@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
+	<oadrSignedObject>
+		<oadrDistributeEvent ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+			<ei:eiResponse>
+				<ei:responseCode>{{ response.response_code }}</ei:responseCode>
+				<ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
+				<requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
+			</ei:eiResponse>
+			<requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
+			<ei:vtnID>{{ vtn_id }}</ei:vtnID>
+            {% for event in events %}
+			    {% include 'parts/eiEvent.xml' %}
+            {% endfor %}
+	</oadrDistributeEvent>
+</oadrSignedObject>
+</oadrPayload>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07">
+  <oadrSignedObject>
+    <oadrCreatePartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+      <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
+      <oadrProfileName>{{ profile_name }}</oadrProfileName>
+      {% if ven_id %}
+      <venID>{{ ven_id }}</venID>
+      {% endif %}
+      <oadrTransportName>{{ transport_name }}</oadrTransportName>
+      <oadrTransportAddress>{{ transport_address }}</oadrTransportAddress>
+      <oadrReportOnly>{{ report_only }}</oadrReportOnly>
+      <oadrXmlSignature>{{ xml_signature }}</oadrXmlSignature>
+      <oadrVenName>{{ ven_name }}</oadrVenName>
+      <oadrHttpPullModel>{{ http_pull_model }}</oadrHttpPullModel>
+    </oadrCreatePartyRegistration>
+  </oadrSignedObject>
+</oadrPayload>

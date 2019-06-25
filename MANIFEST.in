@@ -1,0 +1,2 @@
+include pyopenadr/templates/*.xml
+include pyopenadr/templates/parts/*.xml

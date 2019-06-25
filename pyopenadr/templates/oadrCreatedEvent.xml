@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
+  <oadrSignedObject>
+    <oadrCreatedEvent ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+      <eiCreatedEvent xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
+        <ei:eiResponse>
+          <ei:responseCode>{{ response.response_code }}</ei:responseCode>
+          <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
+          {% if response.request_id %}
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
+          {% endif %}
+        </ei:eiResponse>
+        {% if event_responses %}
+        <ei:eventResponses>
+          {% for event_response in event_responses %}
+          <ei:eventResponse>
+            <ei:responseCode>{{ event_response.response_code }}</ei:responseCode>
+            {% if event_response.response_description %}
+            <ei:responseDescription>{{ event_response.response_description }}</ei:responseDescription>
+            {% endif %}
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ event_response.request_id }}</requestID>
+            <ei:qualifiedEventID>
+              <ei:eventID>{{ event_response.qualified_event_id.event_id }}</ei:eventID>
+              <ei:modificationNumber>{{ event_response.qualified_event_id.modification_number }}</ei:modificationNumber>
+            </ei:qualifiedEventID>
+            <ei:optType>{{ event_response.opt_type }}</ei:optType>
+          </ei:eventResponse>
+          {% endfor %}
+        </ei:eventResponses>
+        {% endif %}
+        <ei:venID>{{ ven_id }}</ei:venID>
+      </eiCreatedEvent>
+    </oadrCreatedEvent>
+  </oadrSignedObject>
+</oadrPayload>
