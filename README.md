@@ -21,7 +21,7 @@ The `poll()` method will return a tuple of (message type, message payload) for y
 
 ### Auto Mode
 
-The client can handle the automatic polling and call your own functions or coroutines whenever there is an event or report that your application needs to see or needs to respond to. If you want to use automatic polling, set `auto_polling` = `True`, and also implement the `on_event` and `on_report` handlers. All handlers can be implemented as regular methods or coroutines; the coroutines having the advantage of not blocking the rest of the client (polling for example).
+The client can handle the automatic polling and call your own functions or coroutines whenever there is an event or report that your application needs to see or needs to respond to. If you want to use automatic polling, implement the `on_event` and `on_report` handlers, and call `client.run()` to start. All handlers can be implemented as regular methods or coroutines; the coroutines having the advantage of not blocking the rest of the client (polling for example).
 
 ### Handling events
 
@@ -79,6 +79,7 @@ OpenADR revolves around the VEN polling for messages from the VTN.
 
 ### Registration
 
+(To be added)
 
 
 ### Reporting
@@ -113,3 +114,5 @@ An OpenADR Event is built up of the following properties (more or less):
 
 
 ### Polling
+
+(To be added)

@@ -26,6 +26,10 @@ class OpenADRClient:
 
         self.create_party_registration()
 
+        if not self.ven_id:
+            print("No VEN ID received from the VTN, aborting registration.")
+            return
+
         # Set up automatic polling
         self.scheduler = AsyncIOScheduler()
         if self.poll_frequency.total_seconds() < 60:
@@ -74,6 +78,11 @@ class OpenADRClient:
             payload['ven_id'] = ven_id
         message = create_message('oadrCreatePartyRegistration', request_id=new_request_id(), **payload)
         response_type, response_payload = self._perform_request(service, message)
+        if response_payload['response']['response_code'] != 200:
+            status_code = response_payload['response']['response_code']
+            status_description = response_payload['response']['response_description']
+            print(f"Got error on Create Party Registration: {status_code} {status_description}")
+            return
         self.ven_id = response_payload['ven_id']
         self.poll_frequency = response_payload['requested_oadr_poll_freq']
         print(f"VEN is now registered with ID {self.ven_id}")
