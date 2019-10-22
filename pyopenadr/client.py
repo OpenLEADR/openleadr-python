@@ -132,7 +132,7 @@ class OpenADRClient:
 
     def poll(self):
         service = 'OadrPoll'
-        message = create_message('OadrPoll', ven_id=self.ven_id)
+        message = create_message('oadrPoll', ven_id=self.ven_id)
         response_type, response_payload = self._perform_request(service, message)
         return response_type, response_payload
 
