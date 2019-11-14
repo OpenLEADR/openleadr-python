@@ -1,0 +1,35 @@
+<ei:eiEventSignal>
+    <intervals xmlns="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+    {% for interval in signal.intervals %}
+        <ei:interval>
+            <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
+                <duration>{{ interval.duration|timedeltaformat }}</duration>
+            </duration>
+            <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
+                <text>{{ interval.uid }}</text>
+            </uid>
+            <ei:signalPayload>
+                <ei:payloadFloat>
+                    <ei:value>{{ interval.signal_payload }}</ei:value>
+                </ei:payloadFloat>
+            </ei:signalPayload>
+        </ei:interval>
+    {% endfor %}
+    </intervals>
+    <ei:signalName>{{ signal.signal_name }}</ei:signalName>
+    <ei:signalType>{{ signal.signal_type }}</ei:signalType>
+    <ei:signalID>{{ signal.signal_id }}</ei:signalID>
+    {% if signal.current_value %}
+    <ei:currentValue>
+        <ei:payloadFloat>
+            <ei:value>{{ signal.current_value }}</ei:value>
+        </ei:payloadFloat>
+    </ei:currentValue>
+    {% else %}
+    <ei:currentValue>
+        <ei:payloadFloat>
+            <ei:value>12.34</ei:value>
+        </ei:payloadFloat>
+    </ei:currentValue>
+    {% endif %}
+</ei:eiEventSignal>

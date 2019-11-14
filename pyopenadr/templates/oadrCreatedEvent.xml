@@ -20,8 +20,8 @@
             {% endif %}
             <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ event_response.request_id }}</requestID>
             <ei:qualifiedEventID>
-              <ei:eventID>{{ event_response.qualified_event_id.event_id }}</ei:eventID>
-              <ei:modificationNumber>{{ event_response.qualified_event_id.modification_number }}</ei:modificationNumber>
+              <ei:eventID>{{ event_response.event_id }}</ei:eventID>
+              <ei:modificationNumber>{{ event_response.modification_number }}</ei:modificationNumber>
             </ei:qualifiedEventID>
             <ei:optType>{{ event_response.opt_type }}</ei:optType>
           </ei:eventResponse>

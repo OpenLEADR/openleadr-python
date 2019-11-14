@@ -58,6 +58,7 @@ def normalize_dict(ordered_dict):
         """
         Parse a RFC5545 duration.
         """
+        # TODO: implement the full regex: matches = re.match(r'(\+|\-)?P((\d+Y)?(\d+M)?(\d+D)?T?(\d+H)?(\d+M)?(\d+S)?)|(\d+W)', value)
         matches = re.match(r'P(\d+(?:D|W))?T(\d+H)?(\d+M)?(\d+S)?', value)
         if not matches:
             return False
@@ -102,6 +103,7 @@ def normalize_dict(ordered_dict):
         if key.startswith("@"):
             continue
         key = normalize_key(key)
+
         if isinstance(value, OrderedDict):
             d[key] = normalize_dict(value)
         elif isinstance(value, list):
@@ -112,7 +114,7 @@ def normalize_dict(ordered_dict):
                     d[key].append(normalize_dict(dict_item))
                 else:
                     d[key].append(item)
-        elif key in ("duration", "startafter") and isinstance(value, str):
+        elif key in ("duration", "startafter", "max_period", "min_period") and isinstance(value, str):
             d[key] = parse_duration(value) or value
         elif "date_time" in key and isinstance(value, str):
             d[key] = parse_datetime(value)
@@ -132,12 +134,18 @@ def normalize_dict(ordered_dict):
         if key == "target":
             targets = d.pop("target")
             new_targets = []
-            for key in targets:
-                if isinstance(targets[key], list):
-                    new_targets.extend([{key: value} for value in targets[key]])
+            for ikey in targets:
+                if isinstance(targets[ikey], list):
+                    new_targets.extend([{ikey: value} for value in targets[ikey]])
                 else:
-                    new_targets.append({key: targets[key]})
+                    new_targets.append({ikey: targets[ikey]})
             d["targets"] = new_targets
+            key = "targets"
+
+        # Group all reports as a list of dicts under the key "pending_reports"
+        if key == "pending_reports":
+            if isinstance(d[key], dict) and 'report_request_id' in d[key] and isinstance(d[key]['report_request_id'], list):
+                d['pending_reports'] = [{'request_id': rrid} for rrid in d['pending_reports']['report_request_id']]
 
         # Group all events al a list of dicts under the key "events"
         elif key == "event" and isinstance(d[key], list):
@@ -151,14 +159,48 @@ def normalize_dict(ordered_dict):
 
         # If there's only one event, also put it into a list
         elif key == "event" and isinstance(d[key], dict) and "event" in d[key]:
-            d["events"] = [d.pop('event')['event']]
+            oadr_event = d.pop('event')
+            ei_event = oadr_event['event']
+            ei_event['response_required'] = oadr_event['response_required']
+            d['events'] = [ei_event]
 
         elif key in ("request_event", "created_event") and isinstance(d[key], dict):
             d = d[key]
 
+        elif key == 'report_request':
+            if isinstance(d[key], list):
+                d['report_requests'] = d.pop('report_request')
+            else:
+                d['report_requests'] = [d.pop('report_request')]
+
+        elif key == 'report_description':
+            if isinstance(d[key], list):
+                d['report_descriptions'] = d.pop('report_description')
+            else:
+                d['report_descriptions'] = [d.pop('report_description')]
+
+        elif key == 'report':
+            if isinstance(d[key], list):
+                d['reports'] = d.pop('report')
+            else:
+                d['reports'] = [d.pop('report')]
+
+        # Promote the contents of the Qualified Event ID
+        elif key == "qualified_event_id" and isinstance(d['qualified_event_id'], dict):
+            qeid = d.pop('qualified_event_id')
+            d['event_id'] = qeid['event_id']
+            d['modification_number'] = qeid['modification_number']
+
+        # Promote the contents of the tolerance items
+        # if key == "tolerance" and "tolerate" in d["tolerance"] and len(d["tolerance"]["tolerate"]) == 1:
+        #     d["tolerance"] = d["tolerance"]["tolerate"].values()[0]
+
         # Durations are encapsulated in their own object, remove this nesting
         elif isinstance(d[key], dict) and "duration" in d[key] and len(d[key]) == 1:
-            d[key] = d[key]["duration"]
+            try:
+                d[key] = d[key]["duration"]
+            except:
+                breakpoint()
 
         # In general, remove all double nesting
         elif isinstance(d[key], dict) and key in d[key] and len(d[key]) == 1:
@@ -185,6 +227,14 @@ def normalize_dict(ordered_dict):
         elif isinstance(d[key], dict) and "text" in d[key] and len(d[key]) == 1:
             d[key] = d[key]["text"]
 
+        # Promote a 'date-time' item
+        elif isinstance(d[key], dict) and "date_time" in d[key] and len(d[key]) == 1:
+            d[key] = d[key]["date_time"]
+
+        # Promote 'properties' item
+        elif isinstance(d[key], dict) and "properties" in d[key] and len(d[key]) == 1:
+            d[key] = d[key]["properties"]
+
         # Remove all empty dicts
         elif isinstance(d[key], dict) and len(d[key]) == 0:
             d.pop(key)
@@ -199,11 +249,6 @@ def parse_message(data):
     return message_type, normalize_dict(message_payload)
 
 def create_message(message_type, **message_payload):
-    for key, value in message_payload.items():
-        if isinstance(value, bool):
-            message_payload[key] = str(value).lower()
-        if isinstance(value, datetime):
-            message_payload[key] = value.strftime("%Y-%m-%dT%H:%M:%S%z")
     template = TEMPLATES.get_template(f'{message_type}.xml')
     return indent_xml(template.render(**message_payload))
 

@@ -3,9 +3,9 @@ from .. import config
 from ..utils import datetimeformat, timedeltaformat, booleanformat
 
 api = responder.API(templates_dir=config.TEMPLATE_DIR)
-api.jinja_env.filters['datetimeformat'] = datetimeformat
-api.jinja_env.filters['timedeltaformat'] = timedeltaformat
-api.jinja_env.filters['booleanformat'] = booleanformat
+api.templates._env.filters['datetimeformat'] = datetimeformat
+api.templates._env.filters['timedeltaformat'] = timedeltaformat
+api.templates._env.filters['booleanformat'] = booleanformat
 
 def handler(message_type):
     """

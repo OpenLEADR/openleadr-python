@@ -1,0 +1,13 @@
+<ei:eventDescriptor>
+    <ei:eventID>{{ event.event_descriptor.event_id }}</ei:eventID>
+    <ei:modificationNumber>{{ event.event_descriptor.modification_number }}</ei:modificationNumber>
+    <ei:modificationDateTime>{{ event.event_descriptor.modification_date_time|datetimeformat }}</ei:modificationDateTime>
+    <ei:priority>{{ event.event_descriptor.priority }}</ei:priority>
+    <ei:eiMarketContext>
+        <marketContext xmlns="http://docs.oasis-open.org/ns/emix/2011/06">{{ event.event_descriptor.market_context }}</marketContext>
+    </ei:eiMarketContext>
+    <ei:createdDateTime>{{ event.event_descriptor.created_date_time|datetimeformat }}</ei:createdDateTime>
+    <ei:eventStatus>{{ event.event_descriptor.event_status }}</ei:eventStatus>
+    <ei:testEvent>{{ event.event_descriptor.test_event|booleanformat }}</ei:testEvent>
+    <ei:vtnComment>{{ event.event_descriptor.vtn_comment }}</ei:vtnComment>
+</ei:eventDescriptor>

@@ -1,0 +1,50 @@
+<oadrReportRequest>
+  <ei:reportRequestID>{{ report_request.report_request_id }}</ei:reportRequestID>
+  <ei:reportSpecifier xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
+    <ei:reportSpecifierID>{{ report_request.report_specifier.report_specifier_id }}</ei:reportSpecifierID>
+    <xcal:granularity>
+      <xcal:duration>{{ report_request.report_specifier.granularity|timedeltaformat }}</xcal:duration>
+    </xcal:granularity>
+    <ei:reportBackDuration>
+      <xcal:duration>{{ report_request.report_specifier.report_back_duration|timedeltaformat }}</xcal:duration>
+    </ei:reportBackDuration>
+    {% if report_request.report_specifier.report_interval %}
+    <ei:reportInterval>
+      <xcal:properties>
+        <xcal:dtstart>
+          <xcal:date-time>{{ report_request.report_specifier.report_interval.dtstart|datetimeformat }}</xcal:date-time>
+        </xcal:dtstart>
+        <xcal:duration>
+          <xcal:duration>{{ report_request.report_specifier.report_interval.duration|timedeltaformat }}</xcal:duration>
+        </xcal:duration>
+        {% if report_request.report_specifier.report_interval.tolerance %}
+        <xcal:tolerance>
+          <xcal:tolerate>
+            <xcal:startafter>{{ report_request.report_specifier.report_interval.tolerance.tolerate.startafter|timedeltaformat }}</xcal:startafter>
+          </xcal:tolerate>
+        </xcal:tolerance>
+        {% endif %}
+        {% if report_request.report_specifier.report_interval.notification %}
+        <ei:x-eiNotification>
+          <xcal:duration>{{ report_request.report_specifier.report_interval.notification|timedeltaformat }}</xcal:duration>
+        </ei:x-eiNotification>
+        {% endif %}
+        {% if report_request.report_specifier.report_interval.ramp_up %}
+        <ei:x-eiRampUp>
+          <xcal:duration>{{ report_request.report_specifier.report_interval.ramp_up|timedeltaformat }}</xcal:duration>
+        </ei:x-eiRampUp>
+        {% endif %}
+        {% if report_request.report_specifier.report_interval.recovery %}
+        <ei:x-eiRecovery>
+          <xcal:duration>{{ report_request.report_specifier.report_interval.recovery|timedeltaformat }}</xcal:duration>
+        </ei:x-eiRecovery>
+        {% endif %}
+      </xcal:properties>
+    </ei:reportInterval>
+    {% endif %}
+    <ei:specifierPayload>
+      <ei:rID>{{ report_request.report_specifier.specifier_payload.r_id }}</ei:rID>
+      <ei:readingType>{{ report_request.report_specifier.specifier_payload.reading_type }}</ei:readingType>
+    </ei:specifierPayload>
+  </ei:reportSpecifier>
+</oadrReportRequest>

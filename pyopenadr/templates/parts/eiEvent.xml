@@ -1,0 +1,22 @@
+<oadrEvent>
+    <ei:eiEvent>
+        {% include 'parts/eiEventDescriptor.xml' %}
+        {% include 'parts/eiActivePeriod.xml' %}
+        <ei:eiEventSignals>
+            {% for signal in event.event_signals %}
+                {% include 'parts/eiEventSignal.xml' %}
+            {% endfor %}
+        </ei:eiEventSignals>
+        {% if event.report_requests %}
+        <ei:eiReportRequests>
+            {% for report_request in event.report_requests %}
+            {% include 'parts/eiReportRequest.xml' %}
+            {% endfor %}
+        </ns1>
+        {% endif %}
+        {% if event.targets %}
+        {% include 'parts/eiEventTarget.xml' %}
+        {% endif %}
+    </ei:eiEvent>
+    <oadrResponseRequired>{{ event.response_required }}</oadrResponseRequired>
+</oadrEvent>

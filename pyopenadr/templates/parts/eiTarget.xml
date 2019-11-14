@@ -1,0 +1,27 @@
+<ei:eiTarget>
+    {% if target.emix_interfaces %}
+        {% for emix_interface in target.emix_interface %}
+            {% include 'parts/emixInterface.xml' %}
+        {% endfor %}
+    {% endif %}
+
+    {% if target.group_id %}
+        <ei:groupID>{{ target.group_id }}</ei:groupID>
+    {% endif %}
+
+    {% if target.group_name %}
+        <ei:groupName>{{ target.group_name }}</ei:groupName>
+    {% endif %}
+
+    {% if target.resource_id %}
+        <ei:resourceID>{{ target.resource_id }}</ei:resourceID>
+    {% endif %}
+
+    {% if target.ven_id %}
+        <ei:venID>{{ target.ven_id }}</ei:venID>
+    {% endif %}
+
+    {% if target.party_id %}
+        <ei:partyID>{{ target.party_id }}</ei:partyID>
+    {% endif %}
+</ei:eiTarget>

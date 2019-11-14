@@ -3,16 +3,16 @@
   <oadrSignedObject>
     <oadrCreatePartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
       <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
-      <oadrProfileName>{{ profile_name }}</oadrProfileName>
       {% if ven_id %}
-      <venID>{{ ven_id }}</venID>
+      <ei:venID>{{ ven_id }}</ei:venID>
       {% endif %}
+      <oadrProfileName>{{ profile_name }}</oadrProfileName>
       <oadrTransportName>{{ transport_name }}</oadrTransportName>
       <oadrTransportAddress>{{ transport_address }}</oadrTransportAddress>
-      <oadrReportOnly>{{ report_only }}</oadrReportOnly>
-      <oadrXmlSignature>{{ xml_signature }}</oadrXmlSignature>
+      <oadrReportOnly>{{ report_only|booleanformat }}</oadrReportOnly>
+      <oadrXmlSignature>{{ xml_signature|booleanformat }}</oadrXmlSignature>
       <oadrVenName>{{ ven_name }}</oadrVenName>
-      <oadrHttpPullModel>{{ http_pull_model }}</oadrHttpPullModel>
+      <oadrHttpPullModel>{{ http_pull_model|booleanformat }}</oadrHttpPullModel>
     </oadrCreatePartyRegistration>
   </oadrSignedObject>
 </oadrPayload>

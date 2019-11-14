@@ -7,10 +7,9 @@
         <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
         <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
       </ei:eiResponse>
-    {% for report_request in report_requests %}
-      <oadrReportRequest>
-      </oadrReportRequest>
-    {% endfor %}
+      {% for report_request in report_requests %}
+      {% include 'parts/oadrReportRequest.xml' %}
+      {% endfor %}
       <ei:venID>{{ ven_id }}</ei:venID>
     </oadrRegisteredReport>
   </oadrSignedObject>

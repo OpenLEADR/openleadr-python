@@ -3,10 +3,10 @@
   <oadrSignedObject>
     <oadrResponse ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
       <ei:eiResponse>
-        <ei:responseCode>{{ response_code }}</ei:responseCode>
-        <ei:responseDescription>{{ response_description }}</ei:responseDescription>
-        {% if request_id %}
-        <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
+        <ei:responseCode>{{ response.response_code }}</ei:responseCode>
+        <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
+        {% if response.request_id %}
+        <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
         {% else %}
         <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" />
         {% endif %}
