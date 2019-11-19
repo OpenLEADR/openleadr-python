@@ -11,11 +11,12 @@ import asyncio
 from asyncio import iscoroutine
 
 class OpenADRClient:
-    def __init__(self, ven_name, vtn_url):
+    def __init__(self, ven_name, vtn_url, debug=False):
         self.ven_name = ven_name
         self.vtn_url = vtn_url
         self.ven_id = None
         self.poll_frequency = None
+        self.debug = debug
 
     def run(self):
         """
@@ -117,8 +118,8 @@ class OpenADRClient:
                    'event_responses': [{'response_code': 200,
                                         'response_description': 'OK',
                                         'request_id': request_id,
-                                        'qualified_event_id': {'event_id': event_id,
-                                                               'modification_number': modification_number},
+                                        'event_id': event_id,
+                                        'modification_number': modification_number,
                                         'opt_type': opt_type}]}
         message = create_message('oadrCreatedEvent', **payload)
         response_type, response_payload = self._perform_request(service, message)
@@ -137,22 +138,26 @@ class OpenADRClient:
         return response_type, response_payload
 
     def _perform_request(self, service, message):
-        print(f"Sending {message}")
+        if self.debug:
+            print(f"Sending {message}")
         url = f"{self.vtn_url}/{service}"
         r = requests.post(url,
                           data=message)
         if r.status_code != HTTPStatus.OK:
             raise Exception(f"Received non-OK status in request: {r.status_code}")
-        print(r.content.decode('utf-8'))
+        if self.debug:
+            print(r.content.decode('utf-8'))
         return parse_message(r.content)
 
     async def _on_event(self, message):
-        print("ON_EVENT")
+        if self.debug:
+            print("ON_EVENT")
         result = self.on_event(message)
         if iscoroutine(result):
             result = await result
 
-        print(f"Now responding with {result}")
+        if self.debug:
+            print(f"Now responding with {result}")
         request_id = message['request_id']
         event_id = message['events'][0]['event_descriptor']['event_id']
         self.created_event(request_id, event_id, result)
