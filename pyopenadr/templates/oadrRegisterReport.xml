@@ -6,78 +6,8 @@
 {% for report in reports %}
       <oadrReport>
         <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
-    {% for rd in report.report_descriptions %}
-        <oadrReportDescription>
-          <ei:rID>{{ rd.r_id }}</ei:rID>
-          {% if rd.report_subject %}
-          <ei:reportSubject>
-            {% set target = rd.report_subject %}
-            {% if target.emix_interfaces %}
-                {% for emix_interface in target.emix_interface %}
-                    {% include 'parts/emixInterface.xml' %}
-                {% endfor %}
-            {% endif %}
-
-            {% if target.group_id %}
-                <ei:groupID>{{ target.group_id }}</ei:groupID>
-            {% endif %}
-
-            {% if target.group_name %}
-                <ei:groupName>{{ target.group_name }}</ei:groupName>
-            {% endif %}
-
-            {% if target.resource_id %}
-                <ei:resourceID>{{ target.resource_id }}</ei:resourceID>
-            {% endif %}
-
-            {% if target.ven_id %}
-                <ei:venID>{{ target.ven_id }}</ei:venID>
-            {% endif %}
-
-            {% if target.party_id %}
-                <ei:partyID>{{ target.party_id }}</ei:partyID>
-            {% endif %}
-          </ei:reportSubject>
-          {% endif %}
-          {% if rd.report_data_source %}
-          <ei:reportDataSource>
-              {% set target = rd.report_data_source %}
-              {% if target.emix_interfaces %}
-                  {% for emix_interface in target.emix_interface %}
-                      {% include 'parts/emixInterface.xml' %}
-                  {% endfor %}
-              {% endif %}
-
-              {% if target.group_id %}
-                  <ei:groupID>{{ target.group_id }}</ei:groupID>
-              {% endif %}
-
-              {% if target.group_name %}
-                  <ei:groupName>{{ target.group_name }}</ei:groupName>
-              {% endif %}
-
-              {% if target.resource_id %}
-                  <ei:resourceID>{{ target.resource_id }}</ei:resourceID>
-              {% endif %}
-
-              {% if target.ven_id %}
-                  <ei:venID>{{ target.ven_id }}</ei:venID>
-              {% endif %}
-
-              {% if target.party_id %}
-                  <ei:partyID>{{ target.party_id }}</ei:partyID>
-              {% endif %}
-          </ei:reportDataSource>
-          {% endif %}
-          <ei:reportType>{{ rd.report_type }}</ei:reportType>
-          <ei:readingType>{{ rd.reading_type }}</ei:readingType>
-          <marketContext xmlns="http://docs.oasis-open.org/ns/emix/2011/06">{{ rd.market_context }}</marketContext>
-          <oadrSamplingRate>
-            <oadrMinPeriod>{{ rd.sampling_rate.min_period|timedeltaformat }}</oadrMinPeriod>
-            <oadrMaxPeriod>{{ rd.sampling_rate.max_period|timedeltaformat }}</oadrMaxPeriod>
-            <oadrOnChange>{{ rd.sampling_rate.on_change|booleanformat }}</oadrOnChange>
-          </oadrSamplingRate>
-        </oadrReportDescription>
+    {% for report_description in report.report_descriptions %}
+        {% include 'parts/oadrReportDescription.xml' %}
     {% endfor %}
         <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
         <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>

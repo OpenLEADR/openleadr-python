@@ -131,16 +131,16 @@ def normalize_dict(ordered_dict):
             key = key[5:]
 
         # Group all targets as a list of dicts under the key "target"
-        if key == "target":
-            targets = d.pop("target")
+        if key in ("target", "report_subject", "report_data_source"):
+            targets = d.pop(key)
             new_targets = []
             for ikey in targets:
                 if isinstance(targets[ikey], list):
                     new_targets.extend([{ikey: value} for value in targets[ikey]])
                 else:
                     new_targets.append({ikey: targets[ikey]})
-            d["targets"] = new_targets
-            key = "targets"
+            d[key + "s"] = new_targets
+            key = key + "s"
 
         # Group all reports as a list of dicts under the key "pending_reports"
         if key == "pending_reports":
@@ -167,23 +167,12 @@ def normalize_dict(ordered_dict):
         elif key in ("request_event", "created_event") and isinstance(d[key], dict):
             d = d[key]
 
-        elif key == 'report_request':
+        # Plurarize some lists
+        elif key in ('report_request', 'report_description', 'report'):
             if isinstance(d[key], list):
-                d['report_requests'] = d.pop('report_request')
+                d[key + 's'] = d.pop(key)
             else:
-                d['report_requests'] = [d.pop('report_request')]
-
-        elif key == 'report_description':
-            if isinstance(d[key], list):
-                d['report_descriptions'] = d.pop('report_description')
-            else:
-                d['report_descriptions'] = [d.pop('report_description')]
-
-        elif key == 'report':
-            if isinstance(d[key], list):
-                d['reports'] = d.pop('report')
-            else:
-                d['reports'] = [d.pop('report')]
+                d[key + 's'] = [d.pop(key)]
 
         # Promote the contents of the Qualified Event ID
         elif key == "qualified_event_id" and isinstance(d['qualified_event_id'], dict):

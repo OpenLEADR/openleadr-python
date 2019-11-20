@@ -1,0 +1,100 @@
+<oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+  <ei:rID>{{ report_description.r_id }}</ei:rID>
+  {% if report_description.report_subjects %}
+  <ei:reportSubject>
+  {% for target in report_description.report_subjects %}
+    {% if target.emix_interfaces %}
+        {% for emix_interface in target.emix_interface %}
+            {% include 'parts/emixInterface.xml' %}
+        {% endfor %}
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_subjects %}
+    {% if target.group_id %}
+        <ei:groupID>{{ target.group_id }}</ei:groupID>
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_subjects %}
+    {% if target.group_name %}
+        <ei:groupName>{{ target.group_name }}</ei:groupName>
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_subjects %}
+    {% if target.resource_id %}
+        <ei:resourceID>{{ target.resource_id }}</ei:resourceID>
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_subjects %}
+    {% if target.ven_id %}
+        <ei:venID>{{ target.ven_id }}</ei:venID>
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_subjects %}
+    {% if target.party_id %}
+        <ei:partyID>{{ target.party_id }}</ei:partyID>
+    {% endif %}
+  {% endfor %}
+  </ei:reportSubject>
+  {% endif %}
+  {% if report_description.report_data_sources %}
+  <ei:reportDataSource>
+  {% for target in report_description.report_data_sources %}
+    {% if target.emix_interfaces %}
+        {% for emix_interface in target.emix_interface %}
+            {% include 'parts/emixInterface.xml' %}
+        {% endfor %}
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_data_sources %}
+    {% if target.group_id %}
+        <ei:groupID>{{ target.group_id }}</ei:groupID>
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_data_sources %}
+    {% if target.group_name %}
+        <ei:groupName>{{ target.group_name }}</ei:groupName>
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_data_sources %}
+    {% if target.resource_id %}
+        <ei:resourceID>{{ target.resource_id }}</ei:resourceID>
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_data_sources %}
+    {% if target.ven_id %}
+        <ei:venID>{{ target.ven_id }}</ei:venID>
+    {% endif %}
+  {% endfor %}
+
+  {% for target in report_description.report_data_sources %}
+    {% if target.party_id %}
+        <ei:partyID>{{ target.party_id }}</ei:partyID>
+    {% endif %}
+  {% endfor %}
+  </ei:reportDataSource>
+  {% endif %}
+  <ei:reportType>{{ report_description.report_type }}</ei:reportType>
+  <!--           {% if report_description.item_base %}
+  <emix:itemBase>{{ report_description.item_base }}</emix:itemBase>
+  {% endif %} -->
+  <ei:readingType>{{ report_description.reading_type }}</ei:readingType>
+  {% if report_description.market_context %}
+  <emix:marketContext>{{ report_description.market_context }}</emix:marketContext>
+  {% endif %}
+  {% if report_description.sampling_rate %}
+  <oadrSamplingRate>
+    <oadrMinPeriod>{{ report_description.sampling_rate.min_period|timedeltaformat }}</oadrMinPeriod>
+    <oadrMaxPeriod>{{ report_description.sampling_rate.max_period|timedeltaformat }}</oadrMaxPeriod>
+    <oadrOnChange>{{ report_description.sampling_rate.on_change|booleanformat }}</oadrOnChange>
+  </oadrSamplingRate>
+  {% endif %}
+</oadrReportDescription>
