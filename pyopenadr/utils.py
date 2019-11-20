@@ -305,7 +305,9 @@ NAMESPACES = {
     'urn:ietf:params:xml:ns:icalendar-2.0': None,
     'http://docs.oasis-open.org/ns/energyinterop/201110/payloads': None,
     'http://docs.oasis-open.org/ns/emix/2011/06': None,
-    'urn:ietf:params:xml:ns:icalendar-2.0:stream': None
+    'urn:ietf:params:xml:ns:icalendar-2.0:stream': None,
+    'http://docs.oasis-open.org/ns/emix/2011/06/power': None,
+    'http://docs.oasis-open.org/ns/emix/2011/06/siscale': None
 }
 
 TEMPLATES.filters['datetimeformat'] = datetimeformat

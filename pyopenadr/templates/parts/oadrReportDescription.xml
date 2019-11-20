@@ -83,9 +83,7 @@
   </ei:reportDataSource>
   {% endif %}
   <ei:reportType>{{ report_description.report_type }}</ei:reportType>
-  <!--           {% if report_description.item_base %}
-  <emix:itemBase>{{ report_description.item_base }}</emix:itemBase>
-  {% endif %} -->
+  {% include 'parts/reportDescriptionEmix.xml' %}
   <ei:readingType>{{ report_description.reading_type }}</ei:readingType>
   {% if report_description.market_context %}
   <emix:marketContext>{{ report_description.market_context }}</emix:marketContext>
