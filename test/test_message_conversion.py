@@ -36,7 +36,7 @@ def create_dummy_event(ven_id):
                     #"signal_type": "level",
                     "signal_type": "x-loadControlCapacity",
                     "signal_id": generate_id(),
-                    "current_value": 12.34}]
+                    "current_value": 0.0}]
     event_targets = [{"ven_id": 'VEN001'}, {"ven_id": 'VEN002'}]
     event = {'active_period': active_period,
              'event_descriptor': event_descriptor,

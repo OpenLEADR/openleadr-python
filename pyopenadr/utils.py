@@ -216,12 +216,11 @@ def normalize_dict(ordered_dict):
         # Payload values are wrapped in an object according to their type. We don't need that information.
         elif key in ("signal_payload", "current_value"):
             value = d[key]
-            while True:
-                if isinstance(value, dict):
-                    value = list(value.values())[0]
-                else:
-                    break
-            d[key] = value
+            if isinstance(d[key], dict):
+                if 'payload_float' in d[key]:
+                    d[key] = float(d[key]['payload_float']['value'])
+                elif 'payload_int' in d[key]:
+                    d[key] = int(d[key]['payload_int']['value'])
 
         # Promote the 'text' item
         elif isinstance(d[key], dict) and "text" in d[key] and len(d[key]) == 1:
@@ -253,7 +252,7 @@ def create_message(message_type, **message_payload):
     return indent_xml(template.render(**message_payload))
 
 def new_request_id(*args, **kwargs):
-    return ''.join(random.choice(string.hexdigits) for _ in range(10)).lower()
+    return random.choice(string.ascii_lowercase) + ''.join(random.choice(string.hexdigits) for _ in range(9)).lower()
 
 def generate_id(*args, **kwargs):
     return new_request_id()
