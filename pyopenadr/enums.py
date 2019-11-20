@@ -1,5 +1,3 @@
-# Some handy enums to use in your messages
-
 class Enum(type):
     def __getitem__(self, item):
         return getattr(self, item)
@@ -10,7 +8,55 @@ class Enum(type):
 
     @property
     def values(self):
-        return [self[item] for item in self.members]
+        return (self[item] for item in self.members)
+
+class EVENT_STATUS(metaclass=Enum):
+    NONE = "none"
+    FAR = "far"
+    NEAR = "near"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+class SIGNAL_TYPE(metaclass=Enum):
+    DELTA = "delta"
+    LEVEL = "level"
+    MULTIPLIER = "multiplier"
+    PRICE = "price"
+    PRICE_MULTIPLIER = "priceMultiplier"
+    PRICE_RELATIVE = "priceRelative"
+    SETPOINT = "setpoint"
+    X_LOAD_CONTROL_CAPACITY = "x-loadControlCapacity"
+    X_LOAD_CONTROL_LEVEL_OFFSET = "x-loadControlLevelOffset"
+    X_LOAD_CONTROL_PERCENT_OFFSET = "x-loadControlPorcentOffset"
+    X_LOAD_CONTROL_SETPOINT = "x-loadControlSetpoint"
+
+class SIGNAL_NAME(metaclass=Enum):
+    SIMPLE = "SIMPLE"
+    simple = "simple"
+    ELECTRICITY_PRIC = "ELECTRICITY_PRICE"
+    ENERGY_PRICE = "ELECTRICITY_PRICE"
+    DEMAND_CHARGE = "DEMAND_CHARGE"
+    BID_PRICE = "BID_PRICE"
+    BID_LOAD = "BID_LOAD"
+    BID_ENERGY = "BID_ENERGY"
+    CHARGE_STATE = "CHARGE_STATE"
+    LOAD_DISPATCH = "LOAD_DISPATCH"
+    LOAD_CONTROL = "LOAD_CONTROL"
+
+class OPT(metaclass=Enum):
+    OPT_IN = "optIn"
+    OPT_OUT = "optOut"
+
+class OPT_REASON(metaclass=Enum)
+    ECONOMIC = "economic"
+    EMERGENCY = "emergency"
+    MUST_RUN = "mustRun"
+    NOT_PARTICIPATING = "notParticipating"
+    OUTAGE_RUN_STATUS = "outageRunStatus"
+    OVERRIDE_STATUS = "overrideStatus"
+    PARTICIPATING = "participating"
+    X_SCHEDULE = "x-schedule"
 
 class READING_TYPE(metaclass=Enum):
     DIRECT_READ = "Direct Read"
