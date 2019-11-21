@@ -12,11 +12,11 @@
         {% endif %}
         {% if report.duration %}
         <xcal:duration>
-          <duration>{{ report.duration|timedeltaformat }}</duration>
+          <xcal:duration>{{ report.duration|timedeltaformat }}</xcal:duration>
         </xcal:duration>
         {% endif %}
         <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
-    {% for report_description in report.report_descriptions %}
+    {% for r_id, report_description in report.report_descriptions.items() %}
         {% include 'parts/oadrReportDescription.xml' %}
     {% endfor %}
         <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>

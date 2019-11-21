@@ -134,11 +134,12 @@ def normalize_dict(ordered_dict):
         if key in ("target", "report_subject", "report_data_source"):
             targets = d.pop(key)
             new_targets = []
-            for ikey in targets:
-                if isinstance(targets[ikey], list):
-                    new_targets.extend([{ikey: value} for value in targets[ikey]])
-                else:
-                    new_targets.append({ikey: targets[ikey]})
+            if targets:
+                for ikey in targets:
+                    if isinstance(targets[ikey], list):
+                        new_targets.extend([{ikey: value} for value in targets[ikey]])
+                    else:
+                        new_targets.append({ikey: targets[ikey]})
             d[key + "s"] = new_targets
             key = key + "s"
 
@@ -168,11 +169,24 @@ def normalize_dict(ordered_dict):
             d = d[key]
 
         # Plurarize some lists
-        elif key in ('report_request', 'report_description', 'report'):
+        elif key in ('report_request', 'report'):
             if isinstance(d[key], list):
                 d[key + 's'] = d.pop(key)
             else:
                 d[key + 's'] = [d.pop(key)]
+
+        elif key == 'report_description':
+            if isinstance(d[key], list):
+                original_descriptions = d.pop(key)
+                report_descriptions = {}
+                for item in original_descriptions:
+                    r_id = item.pop('r_id')
+                    report_descriptions[r_id] = item
+                d[key + 's'] = report_descriptions
+            else:
+                original_description = d.pop(key)
+                r_id = original_description.pop('r_id')
+                d[key + 's'] = {r_id: original_description}
 
         # Promote the contents of the Qualified Event ID
         elif key == "qualified_event_id" and isinstance(d['qualified_event_id'], dict):

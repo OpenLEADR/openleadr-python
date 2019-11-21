@@ -8,7 +8,7 @@ class Enum(type):
 
     @property
     def values(self):
-        return (self[item] for item in self.members)
+        return [self[item] for item in self.members]
 
 class EVENT_STATUS(metaclass=Enum):
     NONE = "none"
@@ -44,11 +44,24 @@ class SIGNAL_NAME(metaclass=Enum):
     LOAD_DISPATCH = "LOAD_DISPATCH"
     LOAD_CONTROL = "LOAD_CONTROL"
 
+class SI_SCALE_CODE(metaclass=Enum):
+    p = "p"
+    n = "n"
+    micro = "micro"
+    m = "m"
+    c = "c"
+    d = "d"
+    k = "k"
+    M = "M"
+    G = "G"
+    T = "T"
+    none = "none"
+
 class OPT(metaclass=Enum):
     OPT_IN = "optIn"
     OPT_OUT = "optOut"
 
-class OPT_REASON(metaclass=Enum)
+class OPT_REASON(metaclass=Enum):
     ECONOMIC = "economic"
     EMERGENCY = "emergency"
     MUST_RUN = "mustRun"
@@ -101,7 +114,7 @@ class REPORT_TYPE(metaclass=Enum):
 
 class REPORT_NAME(metaclass=Enum):
     METADATA_HISTORY_USAGE = "METADATA_HISTORY_USAGE"
-    HISTORY_USAGE = "METADATA_HISTORY_USAGE"
+    HISTORY_USAGE = "HISTORY_USAGE"
     METADATA_HISTORY_GREENBUTTON = "METADATA_HISTORY_GREENBUTTON"
     HISTORY_GREENBUTTON = "HISTORY_GREENBUTTON"
     METADATA_TELEMETRY_USAGE = "METADATA_TELEMETRY_USAGE"

@@ -16,6 +16,7 @@ class OpenADRServer:
         map = {'on_created_event': EventService,
                'on_request_event': EventService,
 
+               'on_register_report': ReportService,
                'on_create_report': ReportService,
                'on_created_report': ReportService,
                'on_request_report': ReportService,

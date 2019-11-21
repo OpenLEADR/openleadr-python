@@ -4,11 +4,20 @@ import xmltodict
 import random
 import requests
 from jinja2 import Environment, PackageLoader, select_autoescape
-from pyopenadr.utils import parse_message, create_message, new_request_id, peek
+from pyopenadr.utils import parse_message, create_message, new_request_id, peek, generate_id
+from pyopenadr import enums
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio import iscoroutine
+
+MEASURANDS = {'power_real': 'power_quantity',
+              'power_reactive': 'power_quantity',
+              'power_apparent': 'power_quantity',
+              'energy_real': 'energy_quantity',
+              'energy_reactive': 'energy_quantity',
+              'energy_active': 'energy_quantity'}
 
 class OpenADRClient:
     def __init__(self, ven_name, vtn_url, debug=False):
@@ -17,6 +26,10 @@ class OpenADRClient:
         self.ven_id = None
         self.poll_frequency = None
         self.debug = debug
+        self.reports = {}           # Mapping of all available reports from the VEN
+        self.report_requests = {}   # Mapping of the reports requested by the VTN
+        self.report_schedulers = {} # Mapping between reportRequestIDs and our internal report schedulers
+        self.scheduler = AsyncIOScheduler()
 
     def run(self):
         """
@@ -31,8 +44,10 @@ class OpenADRClient:
             print("No VEN ID received from the VTN, aborting registration.")
             return
 
+        if self.reports:
+            self.register_report()
+
         # Set up automatic polling
-        self.scheduler = AsyncIOScheduler()
         if self.poll_frequency.total_seconds() < 60:
             cron_second = f"*/{self.poll_frequency.seconds}"
             cron_minute = "*"
@@ -52,6 +67,57 @@ class OpenADRClient:
         self.scheduler.add_job(self._poll, trigger='cron', second=cron_second, minute=cron_minute, hour=cron_hour)
         self.scheduler.start()
 
+    def add_report(self, callable, report_id, report_name, reading_type, report_type,
+                         sampling_rate, resource_id, measurand, unit, scale="none",
+                         power_ac=True, power_hertz=50, power_voltage=230, market_context=None):
+        """
+        Add a new reporting capability to the client.
+        :param callable callable: A callable or coroutine that will fetch the value for a specific report. This callable will be passed the report_id and the r_id of the requested value.
+        :param str report_id: A unique identifier for this report.
+        :param str report_name: An OpenADR name for this report (one of pyopenadr.enums.REPORT_NAME)
+        :param str reading_type: An OpenADR reading type (found in pyopenadr.enums.READING_TYPE)
+        :param str report_type: An OpenADR report type (found in pyopenadr.enums.REPORT_TYPE)
+        :param datetime.timedelta sampling_rate: The sampling rate for the measurement.
+        :param resource_id: A specific name for this resource within this report.
+        :param str unit: The unit for this measurement.
+        """
+
+        if report_name not in enums.REPORT_NAME.values:
+            raise ValueError(f"{report_name} is not a valid report_name. Valid options are {', '.join(enums.REPORT_NAME.values)}.")
+        if reading_type not in enums.READING_TYPE.values:
+            raise ValueError(f"{reading_type} is not a valid reading_type. Valid options are {', '.join(enums.READING_TYPE.values)}.")
+        if report_type not in enums.REPORT_TYPE.values:
+            raise ValueError(f"{report_type} is not a valid report_type. Valid options are {', '.join(enums.REPORT_TYPE.values)}.")
+        if measurand not in MEASURANDS:
+            raise ValueError(f"{measurand} is not a valid measurand. Valid options are 'power_real', 'power_reactive', 'power_apparent', 'energy_real', 'energy_reactive', 'energy_active', 'energy_quantity', 'voltage'")
+        if scale not in enums.SI_SCALE_CODE.values:
+            raise ValueError(f"{scale} is not a valid scale. Valid options are {', '.join(enums.SI_SCALE_CODE.values)}")
+
+        report_description = {'market_context': market_context,
+                              'r_id': resource_id,
+                              'reading_type': reading_type,
+                              'report_type': report_type,
+                              'sampling_rate': {'max_period': sampling_rate,
+                                                'min_period': sampling_rate,
+                                                'on_change': False},
+                               measurand: {'item_description': measurand,
+                                           'item_units': unit,
+                                           'si_scale_code': scale}}
+        if 'power' in measurand:
+            report_description[measurand]['power_attributes'] = {'ac': power_ac, 'hertz': power_hertz, 'voltage': power_voltage}
+
+        if report_id in self.reports:
+            report = self.reports[report_id]['report_descriptions'].append(report_description)
+        else:
+            report = {'callable': callable,
+                      'created_date_time': datetime.now(timezone.utc),
+                      'report_id': report_id,
+                      'report_name': report_name,
+                      'report_request_id': generate_id(),
+                      'report_specifier_id': report_id + "_" + report_name.lower(),
+                      'report_descriptions': [report_description]}
+        self.reports[report_id] = report
+        self.report_ids[resource_id] = {'item_base': measurand}
 
     def query_registration(self):
         """
@@ -105,7 +171,6 @@ class OpenADRClient:
         response_type, response_payload = self._perform_request(service, message)
         return response_type, response_payload
 
-
     def created_event(self, request_id, event_id, opt_type, modification_number=1):
         """
         Inform the VTN that we created an event.
@@ -129,13 +194,66 @@ class OpenADRClient:
         """
         Tell the VTN about our reporting capabilities.
         """
-        raise NotImplementedError("Reporting is not yet implemented")
+        request_id = generate_id()
+
+        payload = {'request_id': generate_id(),
+                   'ven_id': self.ven_id,
+                   'reports': self.reports}
+
+        service = 'EiReport'
+        message = create_message('oadrRegisterReport', **payload)
+        response_type, response_payload = self._perform_request(service, message)
+
+        # Remember which reports the VTN is interested in
+
+        return response_type, response_payload
+
+    def created_report(self):
+        pass
 
     def poll(self):
         service = 'OadrPoll'
         message = create_message('oadrPoll', ven_id=self.ven_id)
         response_type, response_payload = self._perform_request(service, message)
         return response_type, response_payload
+
+    async def update_report(self, report_id, resource_id=None):
+        """
+        Calls the previously registered report callable, and send the result as a message to the VTN.
+        """
+        if not resource_id:
+            resource_ids = self.reports[report_id]['report_descriptions'].keys()
+        elif isinstance(resource_id, str):
+            resource_ids = [resource_id]
+        else:
+            resource_ids = resource_id
+        value = self.reports[report_id]['callable'](resource_id)
+        if iscoroutine(value):
+            value = await value
+
+        report_type = self.reports[report_id][resource_id]['report_type']
+        for measurand in MEASURAND:
+            if measurand in self.reports[report_id][resource_id]:
+                item_base = measurand
+                break
+        report = {'report_id': report_id,
+                  'report_descriptions': {resource_id: {MEASURANDS[measurand]: {'quantity': value,
+                                                                         measurand: self.reports[report_id][resource_id][measurand]},
+                                          'report_type': self.reports[report_id][resource_id]['report_type'],
+                                          'reading_type': self.reports[report_id][resource_id]['reading_type']}},
+                  'report_name': self.report['report_id']['report_name'],
+                  'report_request_id': self.reports['report_id']['report_request_id'],
+                  'report_specifier_id': self.report['report_id']['report_specifier_id'],
+                  'created_date_time': datetime.now(timezone.utc)}
+
+        service = 'EiReport'
+        message = create_message('oadrUpdateReport', report)
+        response_type, response_payload = self._perform_request(service, message)
+
+        # We might get a oadrCancelReport message in this thing:
+        if 'cancel_report' in response.payload:
+            print("TODO: cancel this report")
+
 
     def _perform_request(self, service, message):
         if self.debug:
