@@ -15,6 +15,7 @@ In order to track what happens after, there is a Reports mechanism in place that
 
 
 .. _registration:
+
 Registration
 ============
 
@@ -23,12 +24,14 @@ Here is the registration page
 
 
 .. _openadr_events:
+
 Events
 ======
 
 This is the registration
 
 .. _openadr_reports:
+
 Reports
 =======
 

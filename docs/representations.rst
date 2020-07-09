@@ -6,13 +6,38 @@ Payload Representations
 
 In PyOpenADR, the complex hierarchies of the OpenADR XML-payloads are represented as Python dictionaries. These have been simplified as much as possible, allowing for a more natural and more readable experience.
 
+This means that you don't have to instantiate objects and sub-objects and sub-sub-objects, but that you can define the entire object in a single, declarative statement. This kan keep a simple implementation very compact. The downside is that there is little help from your IDE and there is little discoverability for what contents can be provided in the messages. This page can be used as a reference for that information.
+
+To help you, all outgong messages are validated against the XML schema, and you will receive warnings if your messages don't comply to the schema.
+
 The following general principles have been applied to representing OpenADR objects in PyOpenADR:
 
 - All property names are represented in snake_case instead of CamelCase or mixedCase names. For example: ``requestID`` becomes ``request_id``.
 - For all properties, the ``oadr*`` and ``Ei*`` prefixes have been stripped away. For example: ``eiResponse`` becomes ``response`` and ``oadrResponse`` becomes ``response``.
 - OpenADR timestamps are converted to Python ``datetime.datetime`` objects.
 - OpenADR time intervals are converted to Python ``datetime.timedelta`` objects.
+- Properties that might have more than 1 copy in the XML representation are put in a list, even if there is just one. This list will be identified by the pluralized version of the originals property name. For example:
 
+.. code-block:: xml
+
+    <...>
+        <signal>1234</signal>
+        <signal>5678</signal>
+    <...>
+
+Will become:
+
+.. code-block:: python3
+
+    ...
+    "signals": [1234, 5678],
+    ...
+
+- The messages are usually used as a ``message_name, message_payload`` tuple. The message name is kept, for instance, ``oadrCanceledOpt``, and the payload is given as a dict.
+
+Below is an alphabetized overview of all messages with their XML and Python representations.
+
+.. _oadrCanceledOpt:
 
 oadrCanceledOpt
 ===============
@@ -46,6 +71,8 @@ pyOpenADR representation:
                   'response_description': 'OK'}}
 
 
+.. _oadrCanceledPartyRegistration:
+
 oadrCanceledPartyRegistration
 =============================
 
@@ -78,6 +105,8 @@ pyOpenADR representation:
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
 
+
+.. _oadrCanceledReport:
 
 oadrCanceledReport
 ==================
@@ -113,9 +142,6 @@ pyOpenADR representation:
                   'response_code': 200,
                   'response_description': 'OK'}}
 
-oadrCanceledReport
-==================
-
 OpenADR payload:
 
 .. code-block:: xml
@@ -150,6 +176,8 @@ pyOpenADR representation:
      'ven_id': '123ABC'}
 
 
+.. _oadrCancelOpt:
+
 oadrCancelOpt
 =============
 
@@ -174,6 +202,8 @@ pyOpenADR representation:
 
     {'opt_id': 'b1ef7afecc', 'request_id': 'u07a26b1cc', 'ven_id': '123ABC'}
 
+
+.. _oadrCancelPartyRegistration:
 
 oadrCancelPartyRegistration
 ===========================
@@ -201,6 +231,8 @@ pyOpenADR representation:
      'request_id': 'z05e4ff0aa',
      'ven_id': '123ABC'}
 
+
+.. _oadrCancelReport:
 
 oadrCancelReport
 ================
@@ -230,6 +262,8 @@ pyOpenADR representation:
      'request_id': 'kcb7b5cf7a',
      'ven_id': '123ABC'}
 
+
+.. _oadrCreatedEvent:
 
 oadrCreatedEvent
 ================
@@ -314,46 +348,6 @@ pyOpenADR representation:
      'ven_id': '123ABC'}
 
 
-oadrCreatedReport
-=================
-
-OpenADR payload:
-
-.. code-block:: xml
-
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCreatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <ei:eiResponse>
-            <ei:responseCode>200</ei:responseCode>
-            <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">ie8ff94fbc</requestID>
-          </ei:eiResponse>
-          <oadrPendingReports>
-            <ei:reportRequestID>p8c56f9ed9</ei:reportRequestID>
-            <ei:reportRequestID>hab1cced95</ei:reportRequestID>
-          </oadrPendingReports>
-          <ei:venID>123ABC</ei:venID>
-        </oadrCreatedReport>
-      </oadrSignedObject>
-    </oadrPayload>
-
-pyOpenADR representation:
-
-.. code-block:: python3
-
-    {'pending_reports': [{'request_id': 'p8c56f9ed9'},
-                         {'request_id': 'hab1cced95'}],
-     'response': {'request_id': 'ie8ff94fbc',
-                  'response_code': 200,
-                  'response_description': 'OK'},
-     'ven_id': '123ABC'}
-
-
-oadrCreatedEvent
-================
-
 OpenADR payload:
 
 .. code-block:: xml
@@ -418,8 +412,87 @@ pyOpenADR representation:
      'ven_id': '123ABC'}
 
 
+.. _oadrCreatedReport:
+
+oadrCreatedReport
+=================
+
+OpenADR payload:
+
+.. code-block:: xml
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
+      <oadrSignedObject>
+        <oadrCreatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+          <ei:eiResponse>
+            <ei:responseCode>200</ei:responseCode>
+            <ei:responseDescription>OK</ei:responseDescription>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">ie8ff94fbc</requestID>
+          </ei:eiResponse>
+          <oadrPendingReports>
+            <ei:reportRequestID>p8c56f9ed9</ei:reportRequestID>
+            <ei:reportRequestID>hab1cced95</ei:reportRequestID>
+          </oadrPendingReports>
+          <ei:venID>123ABC</ei:venID>
+        </oadrCreatedReport>
+      </oadrSignedObject>
+    </oadrPayload>
+
+pyOpenADR representation:
+
+.. code-block:: python3
+
+    {'pending_reports': [{'request_id': 'p8c56f9ed9'},
+                         {'request_id': 'hab1cced95'}],
+     'response': {'request_id': 'ie8ff94fbc',
+                  'response_code': 200,
+                  'response_description': 'OK'},
+     'ven_id': '123ABC'}
+
+
+
+OpenADR payload:
+
+.. code-block:: xml
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
+      <oadrSignedObject>
+        <oadrCreatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+          <ei:eiResponse>
+            <ei:responseCode>200</ei:responseCode>
+            <ei:responseDescription>OK</ei:responseDescription>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">gde557fcae</requestID>
+          </ei:eiResponse>
+          <oadrPendingReports>
+            <ei:reportRequestID>e1e16137f3</ei:reportRequestID>
+            <ei:reportRequestID>d0f2bcbe89</ei:reportRequestID>
+          </oadrPendingReports>
+        </oadrCreatedReport>
+      </oadrSignedObject>
+    </oadrPayload>
+
+pyOpenADR representation:
+
+.. code-block:: python3
+
+    {'pending_reports': [{'request_id': 'e1e16137f3'},
+                         {'request_id': 'd0f2bcbe89'}],
+     'response': {'request_id': 'gde557fcae',
+                  'response_code': 200,
+                  'response_description': 'OK'}}
+
+
+.. _oadrCreatedPartyRegistration:
+
 oadrCreatedPartyRegistration
 ============================
+
+This message is used by the VTN in two scenarios:
+
+1. The VEN has just sent an :ref:`oadrQueryRegistration` request, and the VTN makes its available profiles and transport mechanisms known to the VEN
+2. The VEN has just sent an :ref:`oadrCreatePartyRegistration` request, and the VTN responds by sending the registrationId to the VEN.
 
 OpenADR payload:
 
@@ -465,40 +538,7 @@ pyOpenADR representation:
      'vtn_id': 'VTN123'}
 
 
-oadrCreatedReport
-=================
-
-OpenADR payload:
-
-.. code-block:: xml
-
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCreatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <ei:eiResponse>
-            <ei:responseCode>200</ei:responseCode>
-            <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">gde557fcae</requestID>
-          </ei:eiResponse>
-          <oadrPendingReports>
-            <ei:reportRequestID>e1e16137f3</ei:reportRequestID>
-            <ei:reportRequestID>d0f2bcbe89</ei:reportRequestID>
-          </oadrPendingReports>
-        </oadrCreatedReport>
-      </oadrSignedObject>
-    </oadrPayload>
-
-pyOpenADR representation:
-
-.. code-block:: python3
-
-    {'pending_reports': [{'request_id': 'e1e16137f3'},
-                         {'request_id': 'd0f2bcbe89'}],
-     'response': {'request_id': 'gde557fcae',
-                  'response_code': 200,
-                  'response_description': 'OK'}}
-
+.. _oadrCreateOpt:
 
 oadrCreateOpt
 =============
@@ -543,6 +583,8 @@ pyOpenADR representation:
      'ven_id': 'VEN123'}
 
 
+.. _oadrCreatePartyRegistration:
+
 oadrCreatePartyRegistration
 ===========================
 
@@ -581,6 +623,8 @@ pyOpenADR representation:
      'ven_name': 'test',
      'xml_signature': False}
 
+
+.. _oadrCreateReport:
 
 oadrCreateReport
 ================
@@ -648,8 +692,14 @@ pyOpenADR representation:
      'ven_id': '123ABC'}
 
 
+.. _oadrDistributeEvent:
+
 oadrDistributeEvent
 ===================
+
+This message is sent by the VTN when it delivers an Event to a VEN. This is the main communication of the Event, and it contains myriad options to precisely define the event.
+
+The VEN responds with either an :ref:`oadrCreatedEvent` message, indicating its 'opt' status ("Opt In" or "Opt Out").
 
 OpenADR payload:
 
@@ -889,8 +939,14 @@ pyOpenADR representation:
      'vtn_id': 'VTN123'}
 
 
+.. _oadrPoll:
+
 oadrPoll
 ========
+
+This message is sent by the VEN to the VTN to poll for new messages. The VTN responds by sending an empty :ref:`oadrResponse`, a :ref:`oadrDistributeEvent` in case there is an Event for the VEN, a :ref:`oadrRequestReregistration` message in case the VTN want the VEN to register again.
+
+In case the VEN wants to hear only about new Events, it can send a :ref:`oadrRequestEvent` message to the VTN.
 
 OpenADR payload:
 
@@ -911,8 +967,12 @@ pyOpenADR representation:
 
     {'ven_id': '123ABC'}
 
+.. _oadrQueryRegistration:
+
 oadrQueryRegistration
 =====================
+
+This message is used by the VEN to request information on the VTN's capabilities before registering. The VTN will respond with a :ref:`oadrCreatedPartyRegistration` message.
 
 OpenADR payload:
 
@@ -932,6 +992,8 @@ pyOpenADR representation:
 .. code-block:: python3
 
     {'request_id': 'i8cf15d21f'}
+
+.. _oadrRegisteredReport:
 
 oadrRegisteredReport
 ====================
@@ -1070,6 +1132,8 @@ pyOpenADR representation:
      'ven_id': 'VEN123'}
 
 
+.. _oadrRequestEvent:
+
 oadrRequestEvent
 ================
 
@@ -1096,8 +1160,12 @@ pyOpenADR representation:
     {'request_id': 'oa1c52db3f', 'ven_id': '123ABC'}
 
 
+.. _oadrRequestReregistration:
+
 oadrRequestReregistration
 =========================
+
+This message is sent by the VTN whenever it want the VEN to go through the registration procedure again. Usually sent in reply to a :ref:`oadrPoll` message.
 
 OpenADR payload:
 
@@ -1119,8 +1187,12 @@ pyOpenADR representation:
     {'ven_id': '123ABC'}
 
 
+.. _oadrResponse:
+
 oadrResponse
 ============
+
+This is a generic message that the VTN sends to the VEN if there is no other message for the VEN. Usually sent in response to an :ref:`oadrPoll` or :ref:`oadrRequestEvent` message.
 
 OpenADR payload:
 
@@ -1149,10 +1221,6 @@ pyOpenADR representation:
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
 
-
-oadrResponse
-============
-
 OpenADR payload:
 
 .. code-block:: xml
@@ -1180,6 +1248,8 @@ pyOpenADR representation:
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
 
+
+.. _oadrUpdatedReport:
 
 oadrUpdatedReport
 =================

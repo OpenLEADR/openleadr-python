@@ -75,8 +75,6 @@ The source code for this project is hosted at GitHub.
 Table of Contents
 =================
 
-We have prepared some ready-to-run examples for you to get started with OpenADR:
-
 .. toctree::
    :name: mastertoc
    :maxdepth: 2
