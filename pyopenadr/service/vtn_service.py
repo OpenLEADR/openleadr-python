@@ -34,12 +34,13 @@ class VTNService:
         if message_type in self.handlers:
             handler = self.handlers[message_type]
             response_type, response_payload = await handler(message_payload)
+            response_payload['vtn_id'] = self.vtn_id
 
             # Get the relevant template and create the XML response
             template = self.templates.get_template(f'{response_type}.xml')
             template.render(**response_payload)
             response = web.Response(text=indent_xml(template.render(**response_payload)),
-                                    status=200,
+                                    status=HTTPStatus.OK,
                                     content_type='application/xml')
 
         else:
