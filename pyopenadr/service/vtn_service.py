@@ -33,11 +33,7 @@ class VTNService:
 
         if message_type in self.handlers:
             handler = self.handlers[message_type]
-            result = handler(message_payload)
-            if iscoroutine(result):
-                response_type, response_payload = await result
-            else:
-                response_type, response_payload = result
+            response_type, response_payload = await handler(message_payload)
 
             # Get the relevant template and create the XML response
             template = self.templates.get_template(f'{response_type}.xml')
