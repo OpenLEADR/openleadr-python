@@ -1,6 +1,5 @@
-from .. import config
-from . import api
+from . import service, handler, VTNService
 
-@api.route('/OpenADR2/Simple/2.0b/EiOpt')
+@service('EiOpt')
 class OptService(VTNService):
     pass

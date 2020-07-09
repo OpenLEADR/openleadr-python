@@ -1,4 +1,4 @@
-from . import api, handler, VTNService
+from . import service, handler, VTNService
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                              REPORT SERVICE                              ║
@@ -38,7 +38,7 @@ from . import api, handler, VTNService
 # │                                                                          │
 # └──────────────────────────────────────────────────────────────────────────┘
 
-@api.route('/OpenADR2/Simple/2.0b/EiReport')
+@service('EiReport')
 class ReportService(VTNService):
 
     @handler('oadrRegisterReport')

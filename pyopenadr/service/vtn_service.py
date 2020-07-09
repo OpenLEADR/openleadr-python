@@ -1,38 +1,36 @@
 from asyncio import iscoroutine
 from http import HTTPStatus
-import random
-import string
+import os
 
-from . import api
-from .. import config, errors
-from ..utils import parse_message, indent_xml
+from aiohttp import web
+from jinja2 import Environment, PackageLoader, select_autoescape
+
+from .. import errors
+from ..utils import parse_message, indent_xml, datetimeformat, timedeltaformat, booleanformat
 
 class VTNService:
-    """
-    This is the default OpenADR handler. You should subclass this with your
-    specific services.
-    """
-    def __init__(self):
+    templates = Environment(loader=PackageLoader('pyopenadr', 'templates'),
+                            autoescape=select_autoescape(['html', 'xml']))
+    templates.filters['datetimeformat'] = datetimeformat
+    templates.filters['timedeltaformat'] = timedeltaformat
+    templates.filters['booleanformat'] = booleanformat
+
+    def __init__(self, vtn_id):
+        self.vtn_id = vtn_id
         self.handlers = {}
         for method in [getattr(self, attr) for attr in dir(self) if callable(getattr(self, attr))]:
             if hasattr(method, '__message_type__'):
-                print(f"Adding {method.__name__} as handler for {method.__message_type__}")
                 self.handlers[method.__message_type__] = method
 
-    async def on_request(self, request, response):
+    async def handler(self, request):
         """
-        This is the default handler that is used by python-responder. It will
-        look for a handler of the message type in one of the subclasses.
+        Handle all incoming POST requests.
         """
-        print()
-        print()
-        print("================================================================================")
-        print(f"             NEW REQUEST to {request.url.path}                                 ")
-        print("================================================================================")
-        content = await request.content
+        content = await request.read()
         print(f"Received: {content.decode('utf-8')}")
         message_type, message_payload = parse_message(content)
         print(f"Interpreted message: {message_type}: {message_payload}")
+
         if message_type in self.handlers:
             handler = self.handlers[message_type]
             result = handler(message_payload)
@@ -40,12 +38,20 @@ class VTNService:
                 response_type, response_payload = await result
             else:
                 response_type, response_payload = result
-            response.html = indent_xml(api.template(f'{response_type}.xml', **response_payload))
-            print(f"Sending {response.html}")
-        else:
-            response.html = indent_xml(api.template('oadrResponse.xml',
-                                status_code=errorcodes.COMPLIANCE_ERROR,
-                                status_description=f'A message of type {message_type} should not be sent to this endpoint'))
-            print(f"Sending {response.html}")
-            response.status_code = HTTPStatus.BAD_REQUEST
 
+            # Get the relevant template and create the XML response
+            template = self.templates.get_template(f'{response_type}.xml')
+            template.render(**response_payload)
+            response = web.Response(text=indent_xml(template.render(**response_payload)),
+                                    status=200,
+                                    content_type='application/xml')
+
+        else:
+            template = templates.get_template('oadrResponse.xml')
+            response = web.Response(
+                text=template.render(status_code=errorcodes.COMPLIANCE_ERROR,
+                                     status_description=f'A message of type {message_type} should not be sent to this endpoint'),
+                status=HTTPStatus.BAD_REQUEST,
+                content_type='application/xml')
+        print(f"Sending {response.text}")
+        return response

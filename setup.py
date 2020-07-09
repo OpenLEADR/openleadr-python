@@ -11,4 +11,4 @@ setup(name="pyopenadr",
       url="https://git.finetuned.nl/stan/pyopenadr",
       packages=['pyopenadr', 'pyopenadr.service'],
       include_package_data=True,
-      install_requires=['xmltodict', 'responder', 'apscheduler', 'uvloop==0.12'])
+      install_requires=['xmltodict', 'aiohttp', 'apscheduler'])

@@ -1,4 +1,4 @@
-from . import api, handler, VTNService
+from . import service, handler, VTNService
 from asyncio import iscoroutine
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
@@ -78,7 +78,7 @@ from asyncio import iscoroutine
 # │                                                                          │
 # └──────────────────────────────────────────────────────────────────────────┘
 
-@api.route('/OpenADR2/Simple/2.0b/OadrPoll')
+@service('OadrPoll')
 class PollService(VTNService):
 
     @handler('oadrPoll')

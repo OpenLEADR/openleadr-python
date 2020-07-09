@@ -1,4 +1,4 @@
-from . import api, handler, VTNService
+from . import service, handler, VTNService
 from datetime import timedelta
 from asyncio import iscoroutine
 
@@ -42,7 +42,7 @@ from asyncio import iscoroutine
 # │                                                                          │
 # └──────────────────────────────────────────────────────────────────────────┘
 
-@api.route('/OpenADR2/Simple/2.0b/EiRegisterParty')
+@service('EiRegisterParty')
 class RegistrationService(VTNService):
 
     @handler('oadrQueryRegistration')
@@ -59,7 +59,7 @@ class RegistrationService(VTNService):
         # If you don't provide a default handler, just give out the info
         response_payload = {'response': {'response_code': 200, 'response_description': 'OK', 'request_id': payload['request_id']},
                             'request_id': payload['request_id'],
-                            'vtn_id': 'ElaadVTN',
+                            'vtn_id': self.vtn_id,
                             'profiles': [{'profile_name': '2.0b',
                                           'transports': {'transport_name': 'simpleHttp'}}],
                             'requested_oadr_poll_freq': timedelta(seconds=5)}

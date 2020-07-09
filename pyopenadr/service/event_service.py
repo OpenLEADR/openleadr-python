@@ -1,8 +1,8 @@
-from . import api, handler, VTNService
+from . import service, handler, VTNService
 from datetime import datetime, timedelta, timezone
 from asyncio import iscoroutine
 
-@api.route('/OpenADR2/Simple/2.0b/EiEvent')
+@service('EiEvent')
 class EventService(VTNService):
 
     @handler('oadrRequestEvent')
@@ -10,7 +10,6 @@ class EventService(VTNService):
         """
         The VEN requests us to send any events we have.
         """
-        # TODO: hook into some backend here to retrieve the appropriate events for this VEN.
         try:
             result = self.on_request_event(payload['ven_id'])
             if iscoroutine(result):
