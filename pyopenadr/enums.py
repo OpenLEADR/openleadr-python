@@ -1,3 +1,8 @@
+"""
+A collection of useful enumerations that you can use to construct or
+interpret OpenADR messages. Can also be useful during testing.
+"""
+
 class Enum(type):
     def __getitem__(self, item):
         return getattr(self, item)
@@ -35,7 +40,7 @@ class SIGNAL_NAME(metaclass=Enum):
     SIMPLE = "SIMPLE"
     simple = "simple"
     ELECTRICITY_PRIC = "ELECTRICITY_PRICE"
-    ENERGY_PRICE = "ELECTRICITY_PRICE"
+    ENERGY_PRICE = "ENERGY_PRICE"
     DEMAND_CHARGE = "DEMAND_CHARGE"
     BID_PRICE = "BID_PRICE"
     BID_LOAD = "BID_LOAD"
