@@ -3,8 +3,11 @@ from setuptools import setup
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open(os.path.join(os.path.abspath(__file__), 'VERSION')) as file:
+    VERSION = file.read().strip()
+
 setup(name="pyopenadr",
-      version="0.2.4",
+      version=VERSION,
       description="Python library for dealing with OpenADR",
       long_description=long_description,
       long_description_content_type="text/markdown",
