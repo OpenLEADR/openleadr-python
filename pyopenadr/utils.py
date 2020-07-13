@@ -225,6 +225,10 @@ def normalize_dict(ordered_dict):
                 elif 'payload_int' in d[key]:
                     d[key] = int(d[key]['payload_int']['value'])
 
+        # All values other than 'false' must be interpreted as True for testEvent (rule 006)
+        elif key == 'test_event' and not isinstance(d[key], bool):
+            d[key] = True
+
         # Promote the 'text' item
         elif isinstance(d[key], dict) and "text" in d[key] and len(d[key]) == 1:
             if key == 'uid':
