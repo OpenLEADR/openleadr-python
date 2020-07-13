@@ -1,4 +1,6 @@
-#!/Users/stan/Development/ElaadNL/pyopenadr/.python/bin/python3
+"""
+OpenADR Client for Python
+"""
 
 import xmltodict
 import random
@@ -20,7 +22,18 @@ MEASURANDS = {'power_real': 'power_quantity',
               'energy_active': 'energy_quantity'}
 
 class OpenADRClient:
+    """
+    Main client class. Most of these methods will be called automatically, but
+    you can always choose to call them manually.
+    """
     def __init__(self, ven_name, vtn_url, debug=False):
+        """
+        Initializes a new OpenADR Client (Virtual End Node)
+
+        :param str ven_name: The name for this VEN
+        :param str vtn_url: The URL of the VTN (Server) to connect to
+        :param bool debug: Whether or not to print debugging messages
+        """
         self.ven_name = ven_name
         self.vtn_url = vtn_url
         self.ven_id = None
@@ -73,6 +86,7 @@ class OpenADRClient:
                          power_ac=True, power_hertz=50, power_voltage=230, market_context=None):
         """
         Add a new reporting capability to the client.
+
         :param callable callable: A callable or coroutine that will fetch the value for a specific report. This callable will be passed the report_id and the r_id of the requested value.
         :param str report_id: A unique identifier for this report.
         :param str report_name: An OpenADR name for this report (one of pyopenadr.enums.REPORT_NAME)
@@ -81,6 +95,7 @@ class OpenADRClient:
         :param datetime.timedelta sampling_rate: The sampling rate for the measurement.
         :param resource_id: A specific name for this resource within this report.
         :param str unit: The unit for this measurement.
+
         """
 
         if report_name not in enums.REPORT_NAME.values:
@@ -133,6 +148,17 @@ class OpenADRClient:
     async def create_party_registration(self, http_pull_model=True, xml_signature=False,
                                   report_only=False, profile_name='2.0b',
                                   transport_name='simpleHttp', transport_address=None, ven_id=None):
+        """
+        Take the neccessary steps to register this client with the server.
+
+        :param bool http_pull_model: Whether to use the 'pull' model for HTTP.
+        :param bool xml_signature: Whether to sign each XML message.
+        :param bool report_only: Whether or not this is a reporting-only client which does not deal with Events.
+        :param str profile_name: Which OpenADR profile to use.
+        :param str transport_name: The transport name to use. Either 'simpleHttp' or 'xmpp'.
+        :param str transport_address: Which public-facing address the server should use to communicate.
+        :param str ven_id: The ID for this VEN. If you leave this blank, a VEN_ID will be assigned by the VTN.
+        """
         request_id = new_request_id()
         service = 'EiRegisterParty'
         payload = {'ven_name': self.ven_name,
@@ -213,6 +239,9 @@ class OpenADRClient:
         pass
 
     async def poll(self):
+        """
+        Request the next available message from the Server. This coroutine is called automatically.
+        """
         service = 'OadrPoll'
         message = create_message('oadrPoll', ven_id=self.ven_id)
         response_type, response_payload = await self._perform_request(service, message)
