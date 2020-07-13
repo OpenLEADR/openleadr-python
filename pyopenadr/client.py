@@ -262,7 +262,7 @@ class OpenADRClient:
         url = f"{self.vtn_url}/{service}"
         async with self.client_session.post(url, data=message) as req:
             if req.status != HTTPStatus.OK:
-                raise Exception(f"Received non-OK status in request: {req.status_code}")
+                raise Exception(f"Received non-OK status in request: {req.status}")
             content = await req.read()
             if self.debug:
                 print(content.decode('utf-8'))
@@ -279,7 +279,7 @@ class OpenADRClient:
             print(f"Now responding with {result}")
         request_id = message['request_id']
         event_id = message['events'][0]['event_descriptor']['event_id']
-        self.created_event(request_id, event_id, result)
+        await self.created_event(request_id, event_id, result)
         return
 
     async def _on_report(self, message):
