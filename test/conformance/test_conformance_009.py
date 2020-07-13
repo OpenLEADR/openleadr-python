@@ -12,7 +12,7 @@ import warnings
 async def test_conformance_009_pass():
     """
     oadrDistributeEvent eiEventSignal’s with a signalName of “SIMPLE” MUST
-use signalPayload values of 0=normal; 1=moderate; 2=high; 3=special.
+    use signalPayload values of 0=normal; 1=moderate; 2=high; 3=special.
     """
     event_id = generate_id()
     event = {'event_descriptor':
@@ -23,7 +23,7 @@ use signalPayload values of 0=normal; 1=moderate; 2=high; 3=special.
                  'market_context': 'MarketContext001',
                  'created_date_time': datetime.now(),
                  'event_status': enums.EVENT_STATUS.FAR,
-                 'test_event': "HelloThere",
+                 'test_event': False,
                  'vtn_comment': 'No Comment'},
             'active_period':
                 {'dtstart': datetime.now(),
@@ -54,7 +54,7 @@ use signalPayload values of 0=normal; 1=moderate; 2=high; 3=special.
 async def test_conformance_009_raise():
     """
     oadrDistributeEvent eiEventSignal’s with a signalName of “SIMPLE” MUST
-use signalPayload values of 0=normal; 1=moderate; 2=high; 3=special.
+    use signalPayload values of 0=normal; 1=moderate; 2=high; 3=special.
     """
     event_id = generate_id()
     event = {'event_descriptor':
