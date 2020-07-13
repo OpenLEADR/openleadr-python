@@ -227,7 +227,10 @@ def normalize_dict(ordered_dict):
 
         # Promote the 'text' item
         elif isinstance(d[key], dict) and "text" in d[key] and len(d[key]) == 1:
-            d[key] = d[key]["text"]
+            if key == 'uid':
+                d[key] = int(d[key]["text"])
+            else:
+                d[key] = d[key]["text"]
 
         # Promote a 'date-time' item
         elif isinstance(d[key], dict) and "date_time" in d[key] and len(d[key]) == 1:
