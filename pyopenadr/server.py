@@ -2,7 +2,7 @@ from aiohttp import web
 from pyopenadr.service import EventService, PollService, RegistrationService, ReportService, OptService
 
 class OpenADRServer:
-    map = {'on_created_event': EventService,
+    _MAP = {'on_created_event': EventService,
            'on_request_event': EventService,
 
            'on_register_report': ReportService,
@@ -28,6 +28,12 @@ class OpenADRServer:
         self.__setattr__ = self.add_handler
 
     def run(self):
+        """
+        Starts the asyncio-loop and runs the server in it. This function is
+        blocking. For other ways to run the server in a more flexible context,
+        please refer to the `aiohttp documentation
+        <https://docs.aiohttp.org/en/stable/web_advanced.html#aiohttp-web-app-runners>`_.
+        """
         web.run_app(self.app)
 
     def add_handler(self, name, func):
@@ -35,7 +41,7 @@ class OpenADRServer:
         Add a handler to the OpenADRServer.
         """
         print("Called add_handler", name, func)
-        if name in self.map:
-            setattr(self.map[name], name, staticmethod(func))
+        if name in self._MAP:
+            setattr(self._MAP[name], name, staticmethod(func))
         else:
-            raise NameError(f"Unknown handler {name}. Correct handler names are: {self.map.keys()}")
+            raise NameError(f"Unknown handler {name}. Correct handler names are: {self._MAP.keys()}")
