@@ -36,3 +36,11 @@ def preflight_oadrDistributeEvent(message_payload):
                     if interval['signal_payload'] not in (0, 1, 2, 3):
                         raise ValueError("Payload Values used with Signal Name SIMPLE must be one of"
                                          "0, 1, 2 or 3")
+
+    # Check that the current_value is 0 for SIMPLE events that are not yet active (rule 14)
+    for event in message_payload['events']:
+        for event_signal in event['event_signals']:
+            if 'current_value' in event_signal and event_signal['current_value'] != 0:
+                if event_signal['signal_name'] == "SIMPLE" and event['event_descriptor']['event_status'] != "ACTIVE":
+                    warnings.warn("The current_value for a SIMPLE event that is not yet active must be 0. This will be corrected.")
+                    event_signal['current_value'] = 0
