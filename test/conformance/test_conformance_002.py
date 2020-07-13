@@ -28,7 +28,7 @@ async def test_conformance_002():
                  'vtn_comment': 'No Comment'},
             'active_period':
                 {'dtstart': datetime.now(),
-                 'duration': timedelta(minutes=5)},
+                 'duration': timedelta(minutes=30)},
             'event_signals':
                 [{'intervals': [{'duration': timedelta(minutes=10),
                                  'signal_payload': 100},

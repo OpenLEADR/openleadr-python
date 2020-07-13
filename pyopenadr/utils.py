@@ -8,6 +8,8 @@ from collections import OrderedDict
 import itertools
 import re
 
+from .preflight import preflight_message
+
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 DATETIME_FORMAT_NO_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -258,6 +260,7 @@ def parse_message(data):
     return message_type, normalize_dict(message_payload)
 
 def create_message(message_type, **message_payload):
+    preflight_message(message_type, message_payload)
     template = TEMPLATES.get_template(f'{message_type}.xml')
     return indent_xml(template.render(**message_payload))
 
