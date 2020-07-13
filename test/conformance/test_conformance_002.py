@@ -31,11 +31,11 @@ async def test_conformance_002():
                  'duration': timedelta(minutes=30)},
             'event_signals':
                 [{'intervals': [{'duration': timedelta(minutes=10),
-                                 'signal_payload': 100},
+                                 'signal_payload': 1},
                                 {'duration': timedelta(minutes=10),
-                                 'signal_payload': 200},
+                                 'signal_payload': 2},
                                 {'duration': timedelta(minutes=10),
-                                 'signal_payload': 300}],
+                                 'signal_payload': 3}],
                   'signal_name': enums.SIGNAL_NAME.SIMPLE,
                   'signal_type': enums.SIGNAL_TYPE.DELTA,
                   'signal_id': generate_id()
@@ -58,8 +58,8 @@ async def test_conformance_002():
 
     # Verify that the interval uid's are numbered consecutively and starting at 0
     assert intervals[0]['uid'] == 0
-    assert intervals[0]['signal_payload'] == 100
+    assert intervals[0]['signal_payload'] == 1
     assert intervals[1]['uid'] == 1
-    assert intervals[1]['signal_payload'] == 200
+    assert intervals[1]['signal_payload'] == 2
     assert intervals[2]['uid'] == 2
-    assert intervals[2]['signal_payload'] == 300
+    assert intervals[2]['signal_payload'] == 3

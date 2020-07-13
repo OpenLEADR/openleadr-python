@@ -28,3 +28,11 @@ def preflight_oadrDistributeEvent(message_payload):
                               f" The active_period duration has been adjusted to ({signal_durations[0]}).")
                 event['active_period']['duration'] = signal_durations[0]
 
+    # Check that payload values with signal name SIMPLE are constricted (rule 9)
+    for event in message_payload['events']:
+        for event_signal in event['event_signals']:
+            if event_signal['signal_name'] == "SIMPLE":
+                for interval in event_signal['intervals']:
+                    if interval['signal_payload'] not in (0, 1, 2, 3):
+                        raise ValueError("Payload Values used with Signal Name SIMPLE must be one of"
+                                         "0, 1, 2 or 3")
