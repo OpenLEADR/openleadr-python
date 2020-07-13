@@ -274,7 +274,7 @@ def peek(iterable):
 def datetimeformat(value, format=DATETIME_FORMAT):
     if not isinstance(value, datetime):
         return value
-    return value.strftime(format)
+    return value.astimezone(timezone.utc).strftime(format)
 
 def timedeltaformat(value):
     """
