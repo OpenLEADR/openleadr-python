@@ -16,7 +16,7 @@
         </xcal:duration>
         {% endif %}
         <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
-    {% for r_id, report_description in report.report_descriptions.items() %}
+    {% for report_description in report.report_descriptions %}
         {% include 'parts/oadrReportDescription.xml' %}
     {% endfor %}
         <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
