@@ -1,10 +1,12 @@
-from pyopenadr.utils import create_message, generate_id
+from pyopenadr.utils import generate_id, indent_xml
+from pyopenadr.messaging import create_message
 from pyopenadr import enums
 from lxml import etree
 import os
 from datetime import datetime, timedelta, timezone
 from termcolor import colored
 import jinja2
+from pprint import pprint
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 SCHEMA_LOCATION = os.path.join('schema', 'oadr_20b.xsd')
@@ -20,7 +22,7 @@ def create_dummy_event(ven_id):
     now = datetime.now(timezone.utc)
     event_id = generate_id()
     active_period = {"dtstart": now + timedelta(minutes=1),
-                     "duration": timedelta(minutes=10)}
+                     "duration": timedelta(minutes=9)}
 
     event_descriptor = {"event_id": event_id,
                         "modification_number": 1,
@@ -56,17 +58,30 @@ def create_dummy_event(ven_id):
              'response_required': 'always'}
     return event
 
-# Test oadrPoll
-def test_message(type, **payload):
+def test_message(msg_type, **payload):
     try:
-        message = create_message(type, **payload)
+        with open(os.path.join('example_messages', f'{msg_type}.xml'), 'w') as file:
+            message = create_message(msg_type, **payload)
+            print(indent_xml(message),file=file)
+            # print(type, file=file)
+            # print("="*len(type), file=file)
+            # print("", file=file)
+            # print("OpenADR payload:", file=file)
+            # print("..code-block:xml", file=file)
+            # print("", file=file)
+            # print(indent_xml(message), file=file)
+            # print("", file=file)
+            # print("pyOpenADR representation:", file=file)
+            # print("..code-block:python3", file=file)
+            # print("", file=file)
+            # pprint(payload, stream=file)
         etree.fromstring(message.encode('utf-8'), parser)
-        print(colored(f"pass: {type} OK", "green"))
+        print(colored(f"pass: {msg_type} OK", "green"))
     except etree.XMLSyntaxError as err:
-        print(colored(f"fail: {type} failed validation: {err}", "red"))
+        print(colored(f"fail: {msg_type} failed validation: {err}", "red"))
         print(message)
     except jinja2.exceptions.UndefinedError as err:
-        print(colored(f"fail: {type} failed message construction: {err}", "yellow"))
+        print(colored(f"fail: {msg_type} failed message construction: {err}", "yellow"))
 
 
 test_message('oadrCanceledOpt', response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, opt_id=generate_id())
@@ -188,10 +203,10 @@ test_message('oadrUpdateReport', request_id=generate_id(), reports=[{'report_id'
 #     for reading_type in enums.READING_TYPE.values:
 #         for report_type in enums.REPORT_TYPE.values:
 #             test_message('oadrUpdateReport', request_id=generate_id(), reports=[{'report_id': generate_id(),
-#                                                                                   'report_name': report_name,
-#                                                                                   'created_date_time': datetime.now(timezone.utc),
-#                                                                                   'report_request_id': generate_id(),
-#                                                                                   'report_specifier_id': generate_id(),
+#                                                                                  'report_name': report_name,
+#                                                                                  'created_date_time': datetime.now(timezone.utc),
+#                                                                                  'report_request_id': generate_id(),
+#                                                                                  'report_specifier_id': generate_id(),
 #                                                                                  'report_descriptions': [{'r_id': generate_id(),
 #                                                                                                           'report_subjects': [{'ven_id': '123ABC'}, {'ven_id': 'DEF456'}],
 #                                                                                                           'report_data_sources': [{'ven_id': '123ABC'}],

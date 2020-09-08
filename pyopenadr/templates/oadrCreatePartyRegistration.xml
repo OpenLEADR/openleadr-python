@@ -1,18 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07">
-  <oadrSignedObject>
-    <oadrCreatePartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-      <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
-      {% if ven_id %}
-      <ei:venID>{{ ven_id }}</ei:venID>
-      {% endif %}
-      <oadrProfileName>{{ profile_name }}</oadrProfileName>
-      <oadrTransportName>{{ transport_name }}</oadrTransportName>
-      <oadrTransportAddress>{{ transport_address }}</oadrTransportAddress>
-      <oadrReportOnly>{{ report_only|booleanformat }}</oadrReportOnly>
-      <oadrXmlSignature>{{ xml_signature|booleanformat }}</oadrXmlSignature>
-      <oadrVenName>{{ ven_name }}</oadrVenName>
-      <oadrHttpPullModel>{{ http_pull_model|booleanformat }}</oadrHttpPullModel>
-    </oadrCreatePartyRegistration>
-  </oadrSignedObject>
-</oadrPayload>
+<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" id="oadrSignedObject">
+  <oadrCreatePartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
+    {% if ven_id %}
+    <ei:venID>{{ ven_id }}</ei:venID>
+    {% endif %}
+    <oadrProfileName>{{ profile_name }}</oadrProfileName>
+    <oadrTransportName>{{ transport_name }}</oadrTransportName>
+    <oadrTransportAddress>{{ transport_address }}</oadrTransportAddress>
+    <oadrReportOnly>{{ report_only|booleanformat }}</oadrReportOnly>
+    <oadrXmlSignature>{{ xml_signature|booleanformat }}</oadrXmlSignature>
+    <oadrVenName>{{ ven_name }}</oadrVenName>
+    <oadrHttpPullModel>{{ http_pull_model|booleanformat }}</oadrHttpPullModel>
+  </oadrCreatePartyRegistration>
+</oadrSignedObject>

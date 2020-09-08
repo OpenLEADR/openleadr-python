@@ -1,31 +1,28 @@
-<?xml version="1.0" encoding="utf-8"?>
-<oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-  <oadrSignedObject>
-    <oadrUpdatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-      <ei:eiResponse>
-        <ei:responseCode>{{ response.response_code }}</ei:responseCode>
-        <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
-        {% if response.request_id %}
-        <pyld:requestID>{{ response.request_id }}</pyld:requestID>
-        {% else %}
-        <pyld:requestID />
-        {% endif %}
-      </ei:eiResponse>
-      {% if cancel_report %}
-      <oadrCancelReport>
-        <pyld:requestID>{{ cancel_report.request_id }}</pyld:requestID>
-        {% for report_request_id in cancel_report.report_request_id %}
-        <ei:reportRequestID>{{ report_request_id }}</ei:reportRequestID>
-        {% endfor %}
-        <pyld:reportToFollow>{{ cancel_report.report_to_follow|booleanformat }}</pyld:reportToFollow>
-        {% if cancel_report.ven_id %}
-        <ei:venID>{{ cancel_report.ven_id }}</ei:venID>
-        {% endif %}
-      </oadrCancelReport>
+<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" id="oadrSignedObject">
+  <oadrUpdatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
+    <ei:eiResponse>
+      <ei:responseCode>{{ response.response_code }}</ei:responseCode>
+      <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
+      {% if response.request_id %}
+      <pyld:requestID>{{ response.request_id }}</pyld:requestID>
+      {% else %}
+      <pyld:requestID />
       {% endif %}
-      {% if ven_id %}
-      <ei:venID>{{ ven_id }}</ei:venID>
+    </ei:eiResponse>
+    {% if cancel_report %}
+    <oadrCancelReport>
+      <pyld:requestID>{{ cancel_report.request_id }}</pyld:requestID>
+      {% for report_request_id in cancel_report.report_request_id %}
+      <ei:reportRequestID>{{ report_request_id }}</ei:reportRequestID>
+      {% endfor %}
+      <pyld:reportToFollow>{{ cancel_report.report_to_follow|booleanformat }}</pyld:reportToFollow>
+      {% if cancel_report.ven_id %}
+      <ei:venID>{{ cancel_report.ven_id }}</ei:venID>
       {% endif %}
-    </oadrUpdatedReport>
-  </oadrSignedObject>
-</oadrPayload>
+    </oadrCancelReport>
+    {% endif %}
+    {% if ven_id %}
+    <ei:venID>{{ ven_id }}</ei:venID>
+    {% endif %}
+  </oadrUpdatedReport>
+</oadrSignedObject>

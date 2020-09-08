@@ -29,5 +29,5 @@
         </ei:x-eiRecovery>
         {% endif %}
     </properties>
-    <components xsi:nil="true" xmlns="urn:ietf:params:xml:ns:icalendar-2.0" />
+    <components xmlns="urn:ietf:params:xml:ns:icalendar-2.0" />
 </ei:eiActivePeriod>

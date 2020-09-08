@@ -3,21 +3,29 @@ import pytest
 from pyopenadr import OpenADRClient, OpenADRServer, enums
 from pyopenadr.utils import generate_id
 from pyopenadr.messaging import create_message, parse_message
+from pyopenadr.objects import Event, EventDescriptor, ActivePeriod, EventSignal, Interval
 from datetime import datetime, timezone, timedelta
 
 from pprint import pprint
 import warnings
 
+from test.fixtures.simple_server import start_server, add_event
 
 @pytest.mark.asyncio
-async def test_conformance_014_warn():
+async def test_conformance_021(start_server):
     """
-    If currentValue is included in the payload, it MUST be set to 0 (normal)
-    when the event status is not “active” for the SIMPLE signalName.
+    If venID, vtnID, or eventID value is included in the payload, the receiving
+    entity MUST validate that the ID value is as expected and generate an error
+    if an unexpected value is received.
+    Exception: A VEN MUST NOT generate an error upon receipt of a canceled
+    event whose eventID is not previously known.
     """
-    event_id = generate_id()
+
+    client = OpenADRClient(ven_name="TestVEN",
+                           vtn_url="http://localhost:8001/OpenADR2/Simple/2.0b")
+    await client.create_party_registration()
     event = {'event_descriptor':
-                {'event_id': event_id,
+                {'event_id': generate_id(),
                  'modification_number': 0,
                  'modification_date': datetime.now(),
                  'priority': 0,
@@ -42,13 +50,8 @@ async def test_conformance_014_warn():
                   'current_value': 123
                 }]
         }
-
-    # Create a message with this event
-    with pytest.warns(UserWarning):
-        msg = create_message('oadrDistributeEvent',
-                             response={'response_code': 200,
-                                       'response_description': 'OK',
-                                       'request_id': generate_id()},
-                             request_id=generate_id(),
-                             vtn_id=generate_id(),
-                             events=[event])
+    add_event(ven_id=client.ven_id,
+              event_id = event['event_descriptor']['event_id'],
+              event=event)
+    message_type, message_payload = await client.poll()
+    assert message_type == 'oadrDistributeEvent'

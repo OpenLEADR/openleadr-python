@@ -1,4 +1,5 @@
-from pyopenadr.utils import create_message, parse_message, generate_id
+from pyopenadr.utils import generate_id
+from pyopenadr.messaging import create_message, parse_message
 from pyopenadr import enums
 from pprint import pprint
 from termcolor import colored

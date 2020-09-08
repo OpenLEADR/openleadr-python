@@ -1,6 +1,4 @@
 from asyncio import iscoroutine
-import xmltodict
-from jinja2 import Environment, PackageLoader, select_autoescape
 from datetime import datetime, timedelta, timezone
 import random
 import string
@@ -8,10 +6,16 @@ from collections import OrderedDict
 import itertools
 import re
 
-from .preflight import preflight_message
+from pyopenadr import config
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 DATETIME_FORMAT_NO_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"
+
+def new_request_id(*args, **kwargs):
+    return random.choice(string.ascii_lowercase) + ''.join(random.choice(string.hexdigits) for _ in range(9)).lower()
+
+def generate_id(*args, **kwargs):
+    return new_request_id()
 
 def indent_xml(message):
     """
@@ -44,61 +48,6 @@ def normalize_dict(ordered_dict):
             key = key.replace('-', '_')
         return key.lower()
 
-    def parse_datetime(value):
-        """
-        Parse an ISO8601 datetime
-        """
-        matches = re.match(r'(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.?(\d{1,6})?\d*Z', value)
-        if matches:
-            year, month, day, hour, minute, second, microsecond = (int(value) for value in matches.groups())
-            return datetime(year, month, day, hour, minute, second, microsecond=microsecond, tzinfo=timezone.utc)
-        else:
-            print(f"{value} did not match format")
-            return value
-
-    def parse_duration(value):
-        """
-        Parse a RFC5545 duration.
-        """
-        # TODO: implement the full regex: matches = re.match(r'(\+|\-)?P((\d+Y)?(\d+M)?(\d+D)?T?(\d+H)?(\d+M)?(\d+S)?)|(\d+W)', value)
-        matches = re.match(r'P(\d+(?:D|W))?T(\d+H)?(\d+M)?(\d+S)?', value)
-        if not matches:
-            return False
-        days = hours = minutes = seconds = 0
-        _days, _hours, _minutes, _seconds = matches.groups()
-        if _days:
-            if _days.endswith("D"):
-                days = int(_days[:-1])
-            elif _days.endswith("W"):
-                days = int(_days[:-1]) * 7
-        if _hours:
-            hours = int(_hours[:-1])
-        if _minutes:
-            minutes = int(_minutes[:-1])
-        if _seconds:
-            seconds = int(_seconds[:-1])
-        return timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
-
-    def parse_int(value):
-        matches = re.match(r'^[\d-]+$', value)
-        if not matches:
-            return False
-        else:
-            return int(value)
-
-    def parse_float(value):
-        matches = re.match(r'^[\d.-]+$', value)
-        if not matches:
-            return False
-        else:
-            return float(value)
-
-    def parse_boolean(value):
-        if value == 'true':
-            return True
-        else:
-            return False
-
     d = {}
     for key, value in ordered_dict.items():
         # Interpret values from the dict
@@ -116,8 +65,8 @@ def normalize_dict(ordered_dict):
                     d[key].append(normalize_dict(dict_item))
                 else:
                     d[key].append(item)
-        elif key in ("duration", "startafter", "max_period", "min_period") and isinstance(value, str):
-            d[key] = parse_duration(value) or value
+        elif key in ("duration", "startafter", "max_period", "min_period"):
+            d[key] = parse_duration(value)
         elif "date_time" in key and isinstance(value, str):
             d[key] = parse_datetime(value)
         elif value in ('true', 'false'):
@@ -144,6 +93,13 @@ def normalize_dict(ordered_dict):
                         new_targets.append({ikey: targets[ikey]})
             d[key + "s"] = new_targets
             key = key + "s"
+
+        # Dig up the properties inside some specific target identifiers
+        # if key in ("aggregated_pnode", "pnode", "service_delivery_point"):
+        #     d[key] = d[key]["node"]
+
+        # if key in ("end_device_asset", "meter_asset"):
+        #     d[key] = d[key]["mrid"]
 
         # Group all reports as a list of dicts under the key "pending_reports"
         if key == "pending_reports":
@@ -242,8 +198,8 @@ def normalize_dict(ordered_dict):
         elif isinstance(d[key], dict) and "date_time" in d[key] and len(d[key]) == 1:
             d[key] = d[key]["date_time"]
 
-        # Promote 'properties' item
-        elif isinstance(d[key], dict) and "properties" in d[key] and len(d[key]) == 1:
+        # Promote 'properties' item, discard the unused? 'components' item
+        elif isinstance(d[key], dict) and "properties" in d[key] and len(d[key]) <= 2:
             d[key] = d[key]["properties"]
 
         # Remove all empty dicts
@@ -251,24 +207,62 @@ def normalize_dict(ordered_dict):
             d.pop(key)
     return d
 
-def parse_message(data):
+def parse_datetime(value):
     """
-    Parse a message and distill its usable parts. Returns a message type and payload.
+    Parse an ISO8601 datetime
     """
-    message_dict = xmltodict.parse(data, process_namespaces=True, namespaces=NAMESPACES)
-    message_type, message_payload = message_dict['oadrPayload']['oadrSignedObject'].popitem()
-    return message_type, normalize_dict(message_payload)
+    matches = re.match(r'(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.?(\d{1,6})?\d*Z', value)
+    if matches:
+        year, month, day, hour, minute, second, microsecond = (int(value) for value in matches.groups())
+        return datetime(year, month, day, hour, minute, second, microsecond=microsecond, tzinfo=timezone.utc)
+    else:
+        print(f"{value} did not match format")
+        return value
 
-def create_message(message_type, **message_payload):
-    preflight_message(message_type, message_payload)
-    template = TEMPLATES.get_template(f'{message_type}.xml')
-    return indent_xml(template.render(**message_payload))
+def parse_duration(value):
+    """
+    Parse a RFC5545 duration.
+    """
+    # TODO: implement the full regex: matches = re.match(r'(\+|\-)?P((\d+Y)?(\d+M)?(\d+D)?T?(\d+H)?(\d+M)?(\d+S)?)|(\d+W)', value)
+    if isinstance(value, timedelta):
+        return value
+    matches = re.match(r'P(\d+(?:D|W))?T(\d+H)?(\d+M)?(\d+S)?', value)
+    if not matches:
+        return False
+    days = hours = minutes = seconds = 0
+    _days, _hours, _minutes, _seconds = matches.groups()
+    if _days:
+        if _days.endswith("D"):
+            days = int(_days[:-1])
+        elif _days.endswith("W"):
+            days = int(_days[:-1]) * 7
+    if _hours:
+        hours = int(_hours[:-1])
+    if _minutes:
+        minutes = int(_minutes[:-1])
+    if _seconds:
+        seconds = int(_seconds[:-1])
+    return timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
 
-def new_request_id(*args, **kwargs):
-    return random.choice(string.ascii_lowercase) + ''.join(random.choice(string.hexdigits) for _ in range(9)).lower()
+def parse_int(value):
+    matches = re.match(r'^[\d-]+$', value)
+    if not matches:
+        return False
+    else:
+        return int(value)
 
-def generate_id(*args, **kwargs):
-    return new_request_id()
+def parse_float(value):
+    matches = re.match(r'^[\d.-]+$', value)
+    if not matches:
+        return False
+    else:
+        return float(value)
+
+def parse_boolean(value):
+    if value == 'true':
+        return True
+    else:
+        return False
 
 def peek(iterable):
     """
@@ -317,23 +311,7 @@ def booleanformat(value):
             return "true"
         elif value == False:
             return "false"
-    else:
+    elif value in ("true", "false"):
         return value
-
-
-TEMPLATES = Environment(loader=PackageLoader('pyopenadr', 'templates'))
-
-NAMESPACES = {
-    'http://docs.oasis-open.org/ns/energyinterop/201110': None,
-    'http://openadr.org/oadr-2.0b/2012/07': None,
-    'urn:ietf:params:xml:ns:icalendar-2.0': None,
-    'http://docs.oasis-open.org/ns/energyinterop/201110/payloads': None,
-    'http://docs.oasis-open.org/ns/emix/2011/06': None,
-    'urn:ietf:params:xml:ns:icalendar-2.0:stream': None,
-    'http://docs.oasis-open.org/ns/emix/2011/06/power': None,
-    'http://docs.oasis-open.org/ns/emix/2011/06/siscale': None
-}
-
-TEMPLATES.filters['datetimeformat'] = datetimeformat
-TEMPLATES.filters['timedeltaformat'] = timedeltaformat
-TEMPLATES.filters['booleanformat'] = booleanformat
+    else:
+        raise ValueError("A boolean value must be provided.")

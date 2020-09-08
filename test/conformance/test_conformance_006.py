@@ -1,7 +1,8 @@
 import pytest
 
 from pyopenadr import OpenADRClient, OpenADRServer, enums
-from pyopenadr.utils import generate_id, create_message, parse_message
+from pyopenadr.utils import generate_id
+from pyopenadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
 
 from pprint import pprint
@@ -13,6 +14,24 @@ async def test_conformance_006():
     The presence of any string except “false” in the oadrDistributeEvent
     testEvent element MUST be treated as a trigger for a test event.
     """
+
+    # Monkey patch our own formatter to prevent an error being raised
+    from pyopenadr.messaging import TEMPLATES
+    def booleanformat_monkey(value):
+        """
+        Format a boolean value
+        """
+        if isinstance(value, bool):
+            if value == True:
+                return "true"
+            elif value == False:
+                return "false"
+        else:
+            return value
+
+    booleanformat_original = TEMPLATES.filters['booleanformat']
+    TEMPLATES.filters['booleanformat'] = booleanformat_monkey
+
     event_id = generate_id()
     event = {'event_descriptor':
                 {'event_id': event_id,
@@ -52,3 +71,6 @@ async def test_conformance_006():
     parsed_type, parsed_message = parse_message(msg)
     assert parsed_type == 'oadrDistributeEvent'
     assert parsed_message['events'][0]['event_descriptor']['test_event'] == True
+
+    # Restore the original booleanformat function
+    TEMPLATES.filters['booleanformat'] = booleanformat_original

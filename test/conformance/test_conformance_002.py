@@ -1,8 +1,10 @@
 import pytest
 
 from pyopenadr import OpenADRClient, OpenADRServer, enums
-from pyopenadr.utils import generate_id, create_message, parse_message
+from pyopenadr.utils import generate_id
+from pyopenadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
+from pyopenadr.signature import validate_message
 
 from pprint import pprint
 
@@ -50,6 +52,7 @@ async def test_conformance_002():
                          request_id=generate_id(),
                          vtn_id=generate_id(),
                          events=[event])
+    validate_message(msg)
 
     # Parse the message
     parsed_type, parsed_msg = parse_message(msg)

@@ -79,4 +79,3 @@
     <scale:siScaleCode>{{ report_description.voltage.si_scale_code }}</scale:siScaleCode>
   </voltage>
   {% endif %}
-

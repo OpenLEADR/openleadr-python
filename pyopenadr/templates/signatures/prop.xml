@@ -1,0 +1,10 @@
+    <Object Id="prop">
+      <SignatureProperties>
+        <SignatureProperty>
+          <dsp:ReplayProtect xmlns:dsp="http://openadr.org/oadr-2.0b/2012/07/xmldsig-properties">
+            <dsp:timestamp>{{ timestamp|datetimeformat }}</dsp:timestamp>
+            <dsp:nonce>{{ nonce }}</dsp:nonce>
+          </dsp:ReplayProtect>
+        </SignatureProperty>
+      </SignatureProperties>
+    </Object>

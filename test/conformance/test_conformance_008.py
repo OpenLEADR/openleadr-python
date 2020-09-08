@@ -1,7 +1,8 @@
 import pytest
 
 from pyopenadr import OpenADRClient, OpenADRServer, enums
-from pyopenadr.utils import generate_id, create_message, parse_message
+from pyopenadr.utils import generate_id
+from pyopenadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
 
 from pprint import pprint
@@ -23,7 +24,7 @@ async def test_conformance_008_autocorrect():
                  'market_context': 'MarketContext001',
                  'created_date_time': datetime.now(),
                  'event_status': enums.EVENT_STATUS.FAR,
-                 'test_event': "HelloThere",
+                 'test_event': False,
                  'vtn_comment': 'No Comment'},
             'active_period':
                 {'dtstart': datetime.now(),
@@ -72,7 +73,7 @@ async def test_conformance_008_raise():
                  'market_context': 'MarketContext001',
                  'created_date_time': datetime.now(),
                  'event_status': enums.EVENT_STATUS.FAR,
-                 'test_event': "HelloThere",
+                 'test_event': False,
                  'vtn_comment': 'No Comment'},
             'active_period':
                 {'dtstart': datetime.now(),

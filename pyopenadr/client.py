@@ -5,8 +5,8 @@ OpenADR Client for Python
 import xmltodict
 import random
 import aiohttp
-from jinja2 import Environment, PackageLoader, select_autoescape
-from pyopenadr.utils import parse_message, create_message, new_request_id, peek, generate_id
+from pyopenadr.utils import new_request_id, peek, generate_id
+from pyopenadr.messaging import create_message, parse_message
 from pyopenadr import enums
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
@@ -287,7 +287,7 @@ class OpenADRClient:
 
     async def _perform_request(self, service, message):
         if self.debug:
-            print(f"Sending {message}")
+            print(f"Client is sending {message}")
         url = f"{self.vtn_url}/{service}"
         async with self.client_session.post(url, data=message) as req:
             if req.status != HTTPStatus.OK:

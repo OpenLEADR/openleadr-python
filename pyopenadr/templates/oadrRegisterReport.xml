@@ -1,36 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-<oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07">
-  <oadrSignedObject>
-    <oadrRegisterReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-      <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
+<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" id="oadrSignedObject">
+  <oadrRegisterReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
 {% for report in reports %}
-      <oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
-        {% if report.dtstart %}
-        <xcal:dtstart>
-          <xcal:date-time>{{ report.duration|timedeltaformat }}</xcal:date-time>
-        </xcal:dtstart>
-        {% endif %}
-        {% if report.duration %}
-        <xcal:duration>
-          <xcal:duration>{{ report.duration|timedeltaformat }}</xcal:duration>
-        </xcal:duration>
-        {% endif %}
-        <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
-    {% for report_description in report.report_descriptions %}
-        {% include 'parts/oadrReportDescription.xml' %}
-    {% endfor %}
-        <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
-        <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>
-        <ei:reportName>{{ report.report_name }}</ei:reportName>
-        <ei:createdDateTime>{{ report.created_date_time|datetimeformat }}</ei:createdDateTime>
-      </oadrReport>
+    <oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+      {% if report.dtstart %}
+      <xcal:dtstart>
+        <xcal:date-time>{{ report.duration|timedeltaformat }}</xcal:date-time>
+      </xcal:dtstart>
+      {% endif %}
+      {% if report.duration %}
+      <xcal:duration>
+        <xcal:duration>{{ report.duration|timedeltaformat }}</xcal:duration>
+      </xcal:duration>
+      {% endif %}
+      <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
+  {% for report_description in report.report_descriptions %}
+      {% include 'parts/oadrReportDescription.xml' %}
+  {% endfor %}
+      <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
+      <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>
+      <ei:reportName>{{ report.report_name }}</ei:reportName>
+      <ei:createdDateTime>{{ report.created_date_time|datetimeformat }}</ei:createdDateTime>
+    </oadrReport>
 {% endfor %}
-      {% if ven_id %}
-      <ei:venID>{{ ven_id }}</ei:venID>
-      {% endif %}
-      {% if report_request_id %}
-      <ei:reportRequestID>{{ report_request_id }}</ei:reportRequestID>
-      {% endif %}
-    </oadrRegisterReport>
-  </oadrSignedObject>
-</oadrPayload>
+    {% if ven_id %}
+    <ei:venID>{{ ven_id }}</ei:venID>
+    {% endif %}
+    {% if report_request_id %}
+    <ei:reportRequestID>{{ report_request_id }}</ei:reportRequestID>
+    {% endif %}
+  </oadrRegisterReport>
+</oadrSignedObject>

@@ -1,2 +1,3 @@
 include pyopenadr/templates/*.xml
 include pyopenadr/templates/parts/*.xml
+include pyopenadr/templates/signatures/*.xml

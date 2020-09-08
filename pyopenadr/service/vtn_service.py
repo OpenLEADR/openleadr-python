@@ -6,14 +6,9 @@ from aiohttp import web
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .. import errors
-from ..utils import parse_message, indent_xml, datetimeformat, timedeltaformat, booleanformat
+from ..messaging import create_message, parse_message
 
 class VTNService:
-    templates = Environment(loader=PackageLoader('pyopenadr', 'templates'),
-                            autoescape=select_autoescape(['html', 'xml']))
-    templates.filters['datetimeformat'] = datetimeformat
-    templates.filters['timedeltaformat'] = timedeltaformat
-    templates.filters['booleanformat'] = booleanformat
 
     def __init__(self, vtn_id):
         self.vtn_id = vtn_id
@@ -36,10 +31,9 @@ class VTNService:
             response_type, response_payload = await handler(message_payload)
             response_payload['vtn_id'] = self.vtn_id
 
-            # Get the relevant template and create the XML response
-            template = self.templates.get_template(f'{response_type}.xml')
-            template.render(**response_payload)
-            response = web.Response(text=indent_xml(template.render(**response_payload)),
+            # Create the XML response
+            msg = create_message(response_type, **response_payload)
+            response = web.Response(text=msg,
                                     status=HTTPStatus.OK,
                                     content_type='application/xml')
 

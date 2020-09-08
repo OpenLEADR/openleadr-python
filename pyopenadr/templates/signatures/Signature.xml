@@ -1,0 +1,6 @@
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+  {{ signed_info|safe }}
+  <SignatureValue>{{ signature_value }}</SignatureValue>
+  {{ key_info|safe }}
+  {{ prop|safe }}
+</Signature>
