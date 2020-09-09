@@ -194,9 +194,9 @@ def normalize_dict(ordered_dict):
         elif key in ("signal_payload", "current_value"):
             value = d[key]
             if isinstance(d[key], dict):
-                if 'payload_float' in d[key]:
+                if 'payload_float' in d[key] and 'value' in d[key]['payload_float'] and d[key]['payload_float']['value'] is not None:
                     d[key] = float(d[key]['payload_float']['value'])
-                elif 'payload_int' in d[key]:
+                elif 'payload_int' in d[key] and 'value' in d[key]['payload_int'] and d[key]['payload_int'] is not None:
                     d[key] = int(d[key]['payload_int']['value'])
 
         # All values other than 'false' must be interpreted as True for testEvent (rule 006)
