@@ -68,7 +68,6 @@ async def test_conformance_002():
                          request_id=generate_id(),
                          vtn_id=generate_id(),
                          events=[event])
-    validate_message(msg)
 
     # Parse the message
     parsed_type, parsed_msg = parse_message(msg)
