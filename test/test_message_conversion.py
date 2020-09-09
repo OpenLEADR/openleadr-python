@@ -30,7 +30,7 @@ def create_dummy_event(ven_id):
     now = datetime.now(timezone.utc)
     event_id = generate_id()
     active_period = {"dtstart": (now + timedelta(minutes=1)),
-                     "duration": timedelta(minutes=10)}
+                     "duration": timedelta(minutes=9)}
     event_descriptor = {"event_id": event_id,
                         "modification_number": 1,
                         "modification_date_time": now,
@@ -40,15 +40,15 @@ def create_dummy_event(ven_id):
                         "event_status": "near",
                         "test_event": False,
                         "vtn_comment": "This is an event"}
-    event_signals = [{"intervals": [{"duration": timedelta(minutes=1), "uid": 1, "signal_payload": 8},
-                                    {"duration": timedelta(minutes=1), "uid": 2, "signal_payload": 10},
-                                    {"duration": timedelta(minutes=1), "uid": 3, "signal_payload": 12},
-                                    {"duration": timedelta(minutes=1), "uid": 4, "signal_payload": 14},
-                                    {"duration": timedelta(minutes=1), "uid": 5, "signal_payload": 16},
-                                    {"duration": timedelta(minutes=1), "uid": 6, "signal_payload": 18},
-                                    {"duration": timedelta(minutes=1), "uid": 7, "signal_payload": 20},
-                                    {"duration": timedelta(minutes=1), "uid": 8, "signal_payload": 10},
-                                    {"duration": timedelta(minutes=1), "uid": 9, "signal_payload": 20}],
+    event_signals = [{"intervals": [{"duration": timedelta(minutes=1), "uid": 0, "signal_payload": 8.0},
+                                    {"duration": timedelta(minutes=1), "uid": 1, "signal_payload": 10.0},
+                                    {"duration": timedelta(minutes=1), "uid": 2, "signal_payload": 12.0},
+                                    {"duration": timedelta(minutes=1), "uid": 3, "signal_payload": 14.0},
+                                    {"duration": timedelta(minutes=1), "uid": 4, "signal_payload": 16.0},
+                                    {"duration": timedelta(minutes=1), "uid": 5, "signal_payload": 18.0},
+                                    {"duration": timedelta(minutes=1), "uid": 6, "signal_payload": 20.0},
+                                    {"duration": timedelta(minutes=1), "uid": 7, "signal_payload": 10.0},
+                                    {"duration": timedelta(minutes=1), "uid": 8, "signal_payload": 20.0}],
                     "signal_name": "LOAD_CONTROL",
                     #"signal_name": "simple",
                     #"signal_type": "level",
@@ -75,6 +75,7 @@ def test_message(message_type, **data):
         print(message)
         pprint(parsed)
         print(colored(f"fail {message_type}", "red"))
+        quit(1)
 
 test_message('oadrCanceledOpt', response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, opt_id=generate_id())
 test_message('oadrCanceledPartyRegistration', response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, registration_id=generate_id(), ven_id='123ABC')
