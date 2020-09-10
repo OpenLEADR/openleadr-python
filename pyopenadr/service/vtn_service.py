@@ -39,7 +39,7 @@ class VTNService:
         """
         content = await request.read()
         print(f"Received: {content.decode('utf-8')}")
-        message_type, message_payload = parse_message(content)
+        message_type, message_payload = self._parse_message(content)
         print(f"Interpreted message: {message_type}: {message_payload}")
 
         if message_type in self.handlers:
@@ -48,16 +48,17 @@ class VTNService:
             response_payload['vtn_id'] = self.vtn_id
 
             # Create the XML response
-            msg = create_message(response_type, **response_payload)
+            msg = self._create_message(response_type, **response_payload)
             response = web.Response(text=msg,
                                     status=HTTPStatus.OK,
                                     content_type='application/xml')
 
         else:
-            template = templates.get_template('oadrResponse.xml')
+            msg = self._create_message('oadrResponse',
+                                       status_code=errorcodes.COMPLIANCE_ERROR,
+                                       status_description=f'A message of type {message_type} should not be sent to this endpoint')
             response = web.Response(
-                text=template.render(status_code=errorcodes.COMPLIANCE_ERROR,
-                                     status_description=f'A message of type {message_type} should not be sent to this endpoint'),
+                text=msg,
                 status=HTTPStatus.BAD_REQUEST,
                 content_type='application/xml')
         print(f"Sending {response.text}")

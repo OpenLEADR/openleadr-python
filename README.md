@@ -11,7 +11,8 @@ You can find documentation here: https://finetuned.nl/pyopenadr
 
 ## Contributing
 
-At this moment, we're finishing off a first usable version. After version 0.3.0, new bug reports and pull requests are most welcome.
+At this moment, we're finishing off a first usable version. After version 0.5.0,
+new bug reports and pull requests are most welcome.
 
 ## Developing
 

@@ -1,0 +1,5 @@
+termcolor
+pytest
+pytest-asyncio
+sphinx
+sphinxcontrib-apidoc

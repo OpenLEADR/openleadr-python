@@ -16,7 +16,7 @@ The following general principles have been applied to representing OpenADR objec
 - For all properties, the ``oadr*`` and ``Ei*`` prefixes have been stripped away. For example: ``eiResponse`` becomes ``response`` and ``oadrResponse`` becomes ``response``.
 - OpenADR timestamps are converted to Python ``datetime.datetime`` objects.
 - OpenADR time intervals are converted to Python ``datetime.timedelta`` objects.
-- Properties that might have more than 1 copy in the XML representation are put in a list, even if there is just one. This list will be identified by the pluralized version of the originals property name. For example:
+- Properties that might have more than 1 copy in the XML representation are put in a list, even if there is just one. This list will be identified by the pluralized version of the original property name. For example:
 
 .. code-block:: xml
 
@@ -35,7 +35,7 @@ Will become:
 
 - The messages are usually used as a ``message_name, message_payload`` tuple. The message name is kept, for instance, ``oadrCanceledOpt``, and the payload is given as a dict.
 
-Below is an alphabetized overview of all messages with their XML and Python representations.
+Below is an alphabetized overview of all payloads with their XML and Python representations.
 
 .. _oadrCanceledOpt:
 
@@ -1294,3 +1294,73 @@ pyOpenADR representation:
                   'response_code': 200,
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
+
+
+.. _oadrUpdateReport:
+
+oadrUpdateReport
+================
+
+This message contains a report.
+
+OpenADR payload:
+
+.. code-block:: xml
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
+      <oadrSignedObject>
+        <oadrUpdateReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+          <pyld:requestID>bfbaaa469c</pyld:requestID>
+          <oadrReport>
+            <ei:eiReportID>z4edcf6f9d</ei:eiReportID>
+            <oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+              <ei:rID>s1167debd8</ei:rID>
+              <ei:reportSubject>
+                <ei:venID>123ABC</ei:venID>
+                <ei:venID>DEF456</ei:venID>
+              </ei:reportSubject>
+              <ei:reportDataSource>
+                <ei:venID>123ABC</ei:venID>
+              </ei:reportDataSource>
+              <ei:reportType>x-resourceStatus</ei:reportType>
+              <ei:readingType>x-RMS</ei:readingType>
+              <emix:marketContext>http://localhost</emix:marketContext>
+              <oadrSamplingRate>
+                <oadrMinPeriod>PT1M</oadrMinPeriod>
+                <oadrMaxPeriod>PT2M</oadrMaxPeriod>
+                <oadrOnChange>false</oadrOnChange>
+              </oadrSamplingRate>
+            </oadrReportDescription>
+            <ei:reportRequestID>m04fa486ef</ei:reportRequestID>
+            <ei:reportSpecifierID>w5fdcab8d0</ei:reportSpecifierID>
+            <ei:reportName>TELEMETRY_USAGE</ei:reportName>
+            <ei:createdDateTime>2020-07-10T09:24:38.606626Z</ei:createdDateTime>
+          </oadrReport>
+          <ei:venID>123ABC</ei:venID>
+        </oadrUpdateReport>
+      </oadrSignedObject>
+    </oadrPayload>
+
+pyOpenADR representation:
+
+.. code-block:: python3
+
+    {'reports': [{'created_date_time': datetime.datetime(2020, 7, 10, 9, 24, 38, 606626, tzinfo=datetime.timezone.utc),
+                  'report_descriptions': [{'market_context': 'http://localhost',
+                                           'r_id': 's1167debd8',
+                                           'reading_type': 'x-RMS',
+                                           'report_data_sources': [{'ven_id': '123ABC'}],
+                                           'report_subjects': [{'ven_id': '123ABC'},
+                                                               {'ven_id': 'DEF456'}],
+                                           'report_type': 'x-resourceStatus',
+                                           'sampling_rate': {'max_period': datetime.timedelta(seconds=120),
+                                                             'min_period': datetime.timedelta(seconds=60),
+                                                             'on_change': False}}],
+                  'report_id': 'z4edcf6f9d',
+                  'report_name': 'TELEMETRY_USAGE',
+                  'report_request_id': 'm04fa486ef',
+                  'report_specifier_id': 'w5fdcab8d0'}],
+     'request_id': 'bfbaaa469c',
+     'ven_id': '123ABC'}
+

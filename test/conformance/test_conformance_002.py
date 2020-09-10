@@ -20,7 +20,6 @@ from pyopenadr import OpenADRClient, OpenADRServer, enums
 from pyopenadr.utils import generate_id
 from pyopenadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
-from pyopenadr.signature import validate_message
 
 from pprint import pprint
 

@@ -1,8 +1,0 @@
-    <KeyInfo>
-        <KeyValue>
-            <RSAKeyValue>
-                <Modulus>{{ modulus }}</Modulus>
-                <Exponent>{{ exponent }}</Exponent>
-            </RSAKeyValue>
-        </KeyValue>
-    </KeyInfo>

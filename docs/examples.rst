@@ -1,8 +1,8 @@
 .. _examples:
 
-========
-Examples
-========
+=====================
+Ready-to-Run Examples
+=====================
 
 This page contains examples for pyOpenADR:
 

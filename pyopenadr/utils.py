@@ -50,6 +50,13 @@ def indent_xml(message):
             indent = indent + INDENT_SIZE
     return "\n".join(lines)
 
+def flatten_xml(message):
+    lines = [line.strip() for line in message.split("\n") if line.strip() != ""]
+    for line in lines:
+        line = re.sub(r'\n', '', line)
+        line = re.sub(r'\s\s+', ' ', line)
+    return "".join(lines)
+
 def normalize_dict(ordered_dict):
     """
     Convert the OrderedDict to a regular dict, snake_case the key names, and promote uniform lists.
@@ -331,3 +338,11 @@ def booleanformat(value):
         return value
     else:
         raise ValueError("A boolean value must be provided.")
+
+def ensure_bytes(obj):
+    if isinstance(obj, bytes):
+        return obj
+    if isinstance(obj, str):
+        return bytes(obj, 'utf-8')
+    else:
+        raise TypeError("Must be bytes or str")

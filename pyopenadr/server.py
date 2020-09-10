@@ -15,7 +15,9 @@
 # limitations under the License.
 
 from aiohttp import web
-from pyopenadr.service import EventService, PollService, RegistrationService, ReportService, OptService
+from pyopenadr.service import EventService, PollService, RegistrationService, ReportService, OptService, VTNService
+from pyopenadr.messaging import create_message, parse_message
+from functools import partial
 
 class OpenADRServer:
     _MAP = {'on_created_event': EventService,
@@ -33,7 +35,7 @@ class OpenADRServer:
            'on_create_party_registration': RegistrationService,
            'on_cancel_party_registration': RegistrationService}
 
-    def __init__(self, vtn_id):
+    def __init__(self, vtn_id, cert=None, key=None, passphrase=None, verification_cert=None):
         self.app = web.Application()
         self.services = {'event_service': EventService(vtn_id),
                          'report_service': ReportService(vtn_id),
@@ -41,6 +43,19 @@ class OpenADRServer:
                          'opt_service': OptService(vtn_id),
                          'registration_service': RegistrationService(vtn_id)}
         self.app.add_routes([web.post(f"/OpenADR2/Simple/2.0b/{s.__service_name__}", s.handler) for s in self.services.values()])
+
+        # Configure message signing
+        if cert and key:
+            with open(cert, "rb") as file:
+                cert = file.read()
+            with open(key, "rb") as file:
+                key = file.read()
+        if verification_cert:
+            with open(verification_cert, "rb") as file:
+                verification_cert = file.read()
+        VTNService._create_message = partial(create_message, cert=cert, key=key, passphrase=passphrase)
+        VTNService._parse_message = partial(parse_message, cert=verification_cert)
+
         self.__setattr__ = self.add_handler
 
     def run(self):

@@ -16,19 +16,22 @@
 
 
 from pyopenadr.utils import generate_id
-from pyopenadr.messaging import create_message, parse_message, validate_message
-from pyopenadr.signature import extract, calculate_digest
-from xml.etree.ElementTree import canonicalize
+from pyopenadr.messaging import create_message, parse_message
 from hashlib import sha256
 from base64 import b64encode
 from datetime import datetime, timedelta, timezone
+import os
+
+with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'cert.pem'), 'rb') as file:
+    TEST_CERT = file.read()
+with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'key.pem'), 'rb') as file:
+    TEST_KEY = file.read()
+TEST_KEY_PASSWORD = 'openadr'
 
 def test_message_validation():
-    msg = create_message('oadrPoll', ven_id='123')
-    parsed_type, parsed_message = parse_message(msg)
+    msg = create_message('oadrPoll', ven_id='123', cert=TEST_CERT, key=TEST_KEY, passphrase='openadr')
+    parsed_type, parsed_message = parse_message(msg, cert=TEST_CERT)
     assert parsed_type == 'oadrPoll'
-    validate_message(msg)
-
 
 
 def test_message_validation_complex():
@@ -73,7 +76,14 @@ def test_message_validation_complex():
     msg = create_message('oadrDistributeEvent',
                          request_id=generate_id(),
                          response={'request_id': 123, 'response_code': 200, 'response_description': 'OK'},
-                         events=[event])
-    parsed_type, parsed_msg = parse_message(msg)
-    assert parsed_type == 'oadrDistributeEvent'
-    validate_message(msg)
+                         events=[event],
+                         cert=TEST_CERT,
+                         key=TEST_KEY,
+                         passphrase='openadr')
+    parsed_type, parsed_msg = parse_message(msg, cert=TEST_CERT)
+
+if __name__ == "__main__":
+    msg = create_message('oadrPoll', ven_id='123', signing_certificate=TEST_CERT, signing_key=TEST_KEY, signing_key_passphrase=b'openadr')
+    parsed_type, parsed_message = parse_message(msg)
+    validate_message(msg, public_key=TEST_CERT)
+    print(msg)

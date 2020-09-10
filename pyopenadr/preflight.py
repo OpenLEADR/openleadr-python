@@ -23,7 +23,7 @@ import warnings
 
 def preflight_message(message_type, message_payload):
     if f'preflight_{message_type}' in globals():
-        message_payload = globals()[f'preflight_{message_type}'](message_payload)
+        globals()[f'preflight_{message_type}'](message_payload)
     return message_type, message_payload
 
 def preflight_oadrDistributeEvent(message_payload):
@@ -35,8 +35,6 @@ def preflight_oadrDistributeEvent(message_payload):
         signal_durations = []
         for signal in event['event_signals']:
             signal_durations.append(sum([parse_duration(i['duration']) for i in signal['intervals']], timedelta(seconds=0)))
-
-
 
         if not all([d==active_period_duration for d in signal_durations]):
             if not all([d==signal_durations[0] for d in signal_durations]):

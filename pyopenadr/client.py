@@ -29,6 +29,7 @@ from http import HTTPStatus
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio import iscoroutine
+from functools import partial
 
 MEASURANDS = {'power_real': 'power_quantity',
               'power_reactive': 'power_quantity',
@@ -42,14 +43,18 @@ class OpenADRClient:
     Main client class. Most of these methods will be called automatically, but
     you can always choose to call them manually.
     """
-    def __init__(self, ven_name, vtn_url, debug=False):
+    def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None, passphrase=None, verification_cert=None):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
         :param str ven_name: The name for this VEN
         :param str vtn_url: The URL of the VTN (Server) to connect to
         :param bool debug: Whether or not to print debugging messages
+        :param str cert: The path to a PEM-formatted Certificate file to use for signing messages
+        :param str key: The path to a PEM-formatted Private Key file to use for signing messages
+        :param str verification_cert: The path to a PEM-formatted Certificate file to use for verifying incoming messages.
         """
+
         self.ven_name = ven_name
         self.vtn_url = vtn_url
         self.ven_id = None
@@ -60,6 +65,23 @@ class OpenADRClient:
         self.report_schedulers = {} # Mapping between reportRequestIDs and our internal report schedulers
         self.scheduler = AsyncIOScheduler()
         self.client_session = aiohttp.ClientSession()
+
+        if cert and key:
+            with open(cert, 'rb') as file:
+                cert = file.read()
+            with open(key, 'rb') as file:
+                key = file.read()
+
+        self._create_message = partial(create_message,
+                                       cert=cert,
+                                       key=key,
+                                       passphrase=passphrase)
+        if verification_cert:
+            with open(verification_cert, "rb") as file:
+                verification_cert = file.read()
+        self._parse_message = partial(parse_message,
+                                      cert=verification_cert)
+
 
     async def run(self):
         """
@@ -157,7 +179,7 @@ class OpenADRClient:
         """
         request_id = new_request_id()
         service = 'EiRegisterParty'
-        message = create_message('oadrQueryRegistration', request_id=request_id)
+        message = self._create_message('oadrQueryRegistration', request_id=request_id)
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload
 
@@ -186,7 +208,7 @@ class OpenADRClient:
                    'transport_address': transport_address}
         if ven_id:
             payload['ven_id'] = ven_id
-        message = create_message('oadrCreatePartyRegistration', request_id=new_request_id(), **payload)
+        message = self._create_message('oadrCreatePartyRegistration', request_id=new_request_id(), **payload)
         response_type, response_payload = await self._perform_request(service, message)
         if response_payload['response']['response_code'] != 200:
             status_code = response_payload['response']['response_code']
@@ -209,7 +231,7 @@ class OpenADRClient:
         payload = {'request_id': new_request_id(),
                    'ven_id': self.ven_id,
                    'reply_limit': reply_limit}
-        message = create_message('oadrRequestEvent', **payload)
+        message = self._create_message('oadrRequestEvent', **payload)
         service = 'EiEvent'
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload
@@ -229,7 +251,7 @@ class OpenADRClient:
                                         'event_id': event_id,
                                         'modification_number': modification_number,
                                         'opt_type': opt_type}]}
-        message = create_message('oadrCreatedEvent', **payload)
+        message = self._create_message('oadrCreatedEvent', **payload)
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload
 
@@ -244,7 +266,7 @@ class OpenADRClient:
                    'reports': self.reports}
 
         service = 'EiReport'
-        message = create_message('oadrRegisterReport', **payload)
+        message = self._create_message('oadrRegisterReport', **payload)
         response_type, response_payload = await self._perform_request(service, message)
 
         # Remember which reports the VTN is interested in
@@ -259,7 +281,7 @@ class OpenADRClient:
         Request the next available message from the Server. This coroutine is called automatically.
         """
         service = 'OadrPoll'
-        message = create_message('oadrPoll', ven_id=self.ven_id)
+        message = self._create_message('oadrPoll', ven_id=self.ven_id)
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload
 
@@ -293,7 +315,7 @@ class OpenADRClient:
                   'created_date_time': datetime.now(timezone.utc)}
 
         service = 'EiReport'
-        message = create_message('oadrUpdateReport', report)
+        message = self._create_message('oadrUpdateReport', report)
         response_type, response_payload = self._perform_request(service, message)
 
         # We might get a oadrCancelReport message in this thing:
@@ -311,7 +333,7 @@ class OpenADRClient:
             content = await req.read()
             if self.debug:
                 print(content.decode('utf-8'))
-        return parse_message(content)
+        return self._parse_message(content)
 
     async def _on_event(self, message):
         if self.debug:
@@ -351,4 +373,3 @@ class OpenADRClient:
         else:
             print(f"No handler implemented for message type {response_type}, ignoring.")
         await self._poll()
-

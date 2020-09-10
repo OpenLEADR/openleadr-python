@@ -24,10 +24,15 @@ import sqlite3
 import pytest
 from aiohttp import web
 
+import os
+
 SERVER_PORT = 8001
 VEN_NAME = 'myven'
 VEN_ID = '1234abcd'
 VTN_ID = "TestVTN"
+
+CERTFILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cert.pem")
+KEYFILE =  os.path.join(os.path.dirname(os.path.dirname(__file__)), "key.pem")
 
 
 async def _on_create_party_registration(payload):
@@ -54,6 +59,18 @@ async def start_server():
     yield
     await runner.cleanup()
 
+@pytest.fixture
+async def start_server_with_signatures():
+    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr', verification_cert=CERTFILE)
+    server.add_handler('on_create_party_registration', _on_create_party_registration)
+
+    runner = web.AppRunner(server.app)
+    await runner.setup()
+    site = web.TCPSite(runner, 'localhost', SERVER_PORT)
+    await site.start()
+    yield
+    await runner.cleanup()
+
 
 @pytest.mark.asyncio
 async def test_query_party_registration(start_server):
@@ -68,6 +85,17 @@ async def test_query_party_registration(start_server):
 async def test_create_party_registration(start_server):
     client = OpenADRClient(ven_name=VEN_NAME,
                            vtn_url=f"http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b")
+
+    response_type, response_payload = await client.create_party_registration()
+    assert response_type == 'oadrCreatedPartyRegistration'
+    assert response_payload['ven_id'] == VEN_ID
+
+
+@pytest.mark.asyncio
+async def test_create_party_registration_with_signatures(start_server_with_signatures):
+    client = OpenADRClient(ven_name=VEN_NAME,
+                           vtn_url=f"http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b",
+                           cert=CERTFILE, key=KEYFILE, passphrase='openadr', verification_cert=CERTFILE)
 
     response_type, response_payload = await client.create_party_registration()
     assert response_type == 'oadrCreatedPartyRegistration'

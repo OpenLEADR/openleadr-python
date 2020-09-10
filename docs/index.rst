@@ -7,7 +7,7 @@
 Welcome to pyOpenADR
 ====================
 
-Dead-simple Python implementation of an OpenADR client and server.
+Super-convenient Python implementation of an OpenADR client and server.
 
 Key Features
 ============
@@ -16,6 +16,20 @@ Key Features
 - Fully asyncio: you set up the coroutines that can handle certain events, and they get called when needed.
 - All messages are represented as simple Python dictionaries. All XML parsing and generation is done for you.
 - You only have to deal with your own logic.
+
+Take a :ref:`feature_tour`!
+
+Project Status
+==============
+
+The current version is |release|.
+
+This project is still a work in progress. Please see our :ref:`roadmap` for information.
+
+License
+=======
+
+This project is licensed under the Apache 2.0 license.
 
 Library Installation
 ====================
@@ -67,10 +81,6 @@ This will connect to an OpenADR server (indicated by the vtn_url parameter), han
 
 We have more examples available over at the :ref:`examples` page.
 
-Source Code
-===========
-
-The source code for this project is hosted at GitHub.
 
 Table of Contents
 =================
@@ -79,12 +89,14 @@ Table of Contents
    :name: mastertoc
    :maxdepth: 2
 
+   features
    openadr
    client
    server
-   representations
    examples
-
+   roadmap
+   representations
+   API Reference <api/modules>
 
 Representations of OpenADR payloads
 ===================================
