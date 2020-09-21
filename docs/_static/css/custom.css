@@ -1,5 +1,38 @@
-body{
+@font-face {
+    font-family: 'charter-webfont';
+    src: url('../fonts/charter_regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'charter-webfont';
+    src: url('../fonts/charter_italic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'charter-webfont';
+    src: url('../fonts/charter_bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'charter-webfont';
+    src: url('../fonts/charter_bold_italic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+}
+
+body {
     font-size: 10.5pt;
+    font-family: 'Charter', 'charter-webfont', 'Georgia', sans-serif;
+}
+
+h1, h2, h3 {
+    font-family: 'Charter', 'charter-webfont', 'Georgia', sans-serif;
 }
 
 .sphinxsidebarwrapper{
