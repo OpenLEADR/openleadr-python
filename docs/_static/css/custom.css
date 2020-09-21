@@ -37,11 +37,6 @@ h1, h2, h3 {
 
 .sphinxsidebarwrapper{
     font-size: 9pt;
-    width: 230px;
-}
-
-div.bodywrapper{
-    margin: 0 0 0 260px;
 }
 
 div.sphinxsidebarwrapper p.logo{
