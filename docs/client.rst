@@ -41,16 +41,11 @@ Example implementation:
 Dealing with Reports
 ====================
 
-Receiving reports
------------------
-
-Upon registration, the server will tell you which reports it has available.
-
-
+The VTN Server will most like want to receive some reports like metering values or availability status from you.
 Providing reports
 -----------------
 
-If you tell pyOpenADR what reports you are able to provide, and give it a handler that will retrieve those reports from your own systems, pyOpenADR will make sure that the server receives the reports it asks for and at the requested interval.
+If you tell OpenLEADR what reports you are able to provide, and give it a handler that will retrieve those reports from your own systems, OpenLEADR will make sure that the server receives the reports it asks for and at the requested interval.
 
 For example: you can provide 15-minute meter readings for an energy meter at your site. You have a coroutine set up like this:
 
@@ -85,7 +80,8 @@ If you want you client to automatically sign your outgoing messages, use the fol
 .. code-block:: python3
 
     async def main():
-        client = OpenADRClient(ven_name='MyVEN', vtn_url='https://localhost:8080/',
+        client = OpenADRClient(ven_name='MyVEN',
+                               vtn_url='https://localhost:8080/',
                                cert='/path/to/cert.pem',
                                key='/path/to/key.pem',
                                passphrase='my-key-password')
@@ -101,7 +97,10 @@ You can validate incoming messages against a public key.
 .. code-block:: python3
 
     async def main():
-        client = OpenADRClient(ven_name='MyVEN', vtn_url='https://localhost:8080/',
-                               verification_cert='/path/to/cert.pem')
+        client = OpenADRClient(ven_name='MyVEN',
+                               vtn_url='https://localhost:8080/',
+                               vtn_fingerprint='AA:BB:CC:DD:EE:FF:11:22:33:44')
 
 This will automatically validate check that incoming messages are signed by the private key that belongs to the provided (public) certificate. If validation fails, you will see a Warning emitted, but the message will not be delivered to your handlers, protecting you from malicious messages being processed by your system. The sending party will see an error message returned.
+
+You should use both of the previous examples combined to secure both the incoming and the outgoing messages.

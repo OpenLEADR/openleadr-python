@@ -14,8 +14,7 @@ Key Features
 
 - Fully compliant OpenADR 2.0b implementation for both servers (Virtual Top Node) and clients (Virtual End Node)
 - Fully asyncio: you set up the coroutines that can handle certain events, and they get called when needed.
-- All messages are represented as simple Python dictionaries. All XML parsing and generation is done for you.
-- You only have to deal with your own logic.
+- Fully pythonic: all messages are represented as simple Python dictionaries. All XML parsing and generation is done for you.
 
 Take a :ref:`feature_tour`!
 
