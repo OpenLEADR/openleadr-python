@@ -16,9 +16,9 @@
 
 import pytest
 
-from pyopenadr import OpenADRClient, OpenADRServer, enums
-from pyopenadr.utils import generate_id
-from pyopenadr.messaging import create_message, parse_message
+from openleadr import OpenADRClient, OpenADRServer, enums
+from openleadr.utils import generate_id
+from openleadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
 
 from pprint import pprint
@@ -32,7 +32,7 @@ async def test_conformance_006():
     """
 
     # Monkey patch our own formatter to prevent an error being raised
-    from pyopenadr.messaging import TEMPLATES
+    from openleadr.messaging import TEMPLATES
     def booleanformat_monkey(value):
         """
         Format a boolean value

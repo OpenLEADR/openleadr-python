@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyopenadr.utils import generate_id
-from pyopenadr.messaging import create_message, parse_message
-from pyopenadr import enums
+from openleadr.utils import generate_id
+from openleadr.messaging import create_message, parse_message
+from openleadr import enums
 from pprint import pprint
 from termcolor import colored
 from datetime import datetime, timezone, timedelta

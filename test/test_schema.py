@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyopenadr.utils import generate_id, indent_xml
-from pyopenadr.messaging import create_message
-from pyopenadr import enums
+from openleadr.utils import generate_id, indent_xml
+from openleadr.messaging import create_message
+from openleadr import enums
 from lxml import etree
 import os
 from datetime import datetime, timedelta, timezone
@@ -91,7 +91,7 @@ def _test_message(msg_type, **payload):
             # print("", file=file)
             # print(indent_xml(message), file=file)
             # print("", file=file)
-            # print("pyOpenADR representation:", file=file)
+            # print("openleadr representation:", file=file)
             # print("..code-block:python3", file=file)
             # print("", file=file)
             # pprint(payload, stream=file)

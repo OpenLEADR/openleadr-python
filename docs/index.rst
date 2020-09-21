@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ====================
-Welcome to pyOpenADR
+Welcome to OpenLEADR
 ====================
 
 Super-convenient Python implementation of an OpenADR client and server.
@@ -36,16 +36,16 @@ Library Installation
 
 .. code-block:: bash
 
-   $ pip install pyopenadr
+   $ pip install openleadr
 
-pyOpenADR is compatible with Python 3.6+
+OpenLEADR is compatible with Python 3.6+
 
 Getting Started
 ===============
 
 Client example::
 
-    from pyopenadr import OpenADRClient
+    from openleadr import OpenADRClient
     import asyncio
 
     async def main():
@@ -96,6 +96,7 @@ Table of Contents
    examples
    roadmap
    representations
+   message_signing
    API Reference <api/modules>
 
 Representations of OpenADR payloads
@@ -121,7 +122,7 @@ For example, this XML payload:
       </oadrSignedObject>
     </oadrPayload>
 
-is represented in pyOpenADR as:
+is represented in OpenLEADR as:
 
 .. code-block:: python3
 

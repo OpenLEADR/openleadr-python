@@ -4,7 +4,7 @@
 Server
 ======
 
-If you are implementing an OpenADR Server ("Virtual Top Node") using pyOpenADR, read this page.
+If you are implementing an OpenADR Server ("Virtual Top Node") using OpenLEADR, read this page.
 
 .. _server_registration:
 
@@ -30,7 +30,7 @@ Example implementation:
 
 .. code-block:: python3
 
-    from pyopenadr.utils import generate_id
+    from openleadr.utils import generate_id
 
     async def on_create_party_registration(payload):
         ven_id = payload['ven_id']
@@ -99,7 +99,7 @@ The VEN should actively supply the reports to the VTN using :ref:`oadrUpdateRepo
 
 .. admonition:: Implementation Checklist
 
-    To benefit from the automatic reporting engine in pyOpenADR, you should implement the following items yourself:
+    To benefit from the automatic reporting engine in OpenLEADR, you should implement the following items yourself:
 
     1. Configure the OpenADRServer() instance with your reporting capabilities and requirements
     2. Implement a handlers that can retrieve the reports from your backend system
@@ -123,7 +123,7 @@ You should implement the following handlers:
 Non-OpenADR signals from the server
 ===================================
 
-The pyOpenADR Server can call the following handlers, which are not part of the regular openADR communication flow, but can help you develop a more robust event-driven system:
+The OpenLEADR Server can call the following handlers, which are not part of the regular openADR communication flow, but can help you develop a more robust event-driven system:
 
 - ``on_ven_online(ven_id)``: called when a VEN sends an :ref:`oadrPoll`, :ref:`oadrRequestEvent` or :ref:`oadrRequestReport` message after it had been offline before.
 - ``on_ven_offline(ven_id)``: called when a VEN misses 3 consecutive poll intervals (configurable).
@@ -132,7 +132,7 @@ Example implementation:
 
 .. code-block:: python3
 
-    from pyopenadr import OpenADRServer
+    from openleadr import OpenADRServer
 
     server = OpenADRServer(vtn_id='MyVTN')
     server.add_handler('on_ven_online', on_ven_online)
@@ -143,3 +143,140 @@ Example implementation:
 
     async def on_ven_offline(ven_id):
         print(f"VEN {ven_id} has gone AWOL")
+
+.. _server_signing_messages:
+
+Signing Messages
+================
+
+The OpenLEADR can sign your messages and validate incoming messages. For some background, see the :ref:`message_signing`.
+
+Example implementation:
+
+.. code-block:: python3
+
+    from openleadr import OpenADRServr
+
+    def fingerprint_lookup(ven_id):
+        # Look up the certificate fingerprint that is associated with this VEN.
+        fingerprint = database.lookup('certificate_fingerprint').where(ven_id=ven_id) # Pseudo code
+        return fingerprint
+
+    server = OpenADRServer(vtn_id='MyVTN',
+                           cert='/path/to/cert.pem',
+                           key='/path/to/private/key.pem',
+                           passphrase='mypassphrase',
+                           validation_handler=fingerprint_lookup)
+
+The VEN's fingerprint should be obtained from the VEN outside of OpenADR.
+
+
+.. _server_message_handlers:
+
+Message Handlers
+================
+
+Your server has to deal with the different OpenADR messages. The way this works is that OpenLEADR will expose certain modules at the appropriate endpoints (like /oadrPoll and /EiRegister), and figure out what type of message is being sent. It will then call your handler with the contents of the message that are relevant for you to handle. This section provides an overview with examples for the different kinds of messages that you can expect and what should be returned.
+
+.. _server_on_created_event:
+
+on_created_event
+----------------
+
+The VEN informs you that they created an Event that you sent to them. You don't have to return anything.
+
+Return: `None`
+
+.. _server_on_request_event:
+
+on_request_event
+----------------
+
+The VEN is requesting the next Event that you have for it. You should return an Event. If you have no Events for this VEN, you should return `None`.
+
+.. _server_on_register_report:
+
+on_register_report
+------------------
+
+The VEN informs you which reports it has available. If you want to periodically receive any of these reports, you should return a list of the r_ids that you want to receive.
+
+Signature:
+
+.. code-block:: python3
+
+    async def on_register_report(ven_id, reports):
+
+
+.. _server_on_created_report:
+
+on_created_report
+-----------------
+
+The VEN informs you that it created the automatic reporting that you requested. You don't have to return anything.
+
+Return: `None`
+
+.. _server_on_update_report:
+
+on_update_report
+----------------
+
+The VEN is sending you a fresh report with data. You don't have to return anything.
+
+Signature:
+
+.. code-block:: python3
+
+    async def on_update_report(ven_id, report):
+        ...
+        return None
+
+.. _server_on_poll:
+
+on_poll
+-------
+
+The VEN is requesting the next message that you have for it. You should return a tuple of message_type and message_payload as a dict. If there is no message for the VEN, you should return `None`.
+
+Signature:
+
+.. code-block:: python3
+
+    async def on_poll(ven_id):
+        ...
+        return message_type, message_payload
+
+.. _server_on_query_registration:
+
+on_query_registration
+---------------------
+
+A prospective VEN is requesting information about your VTN, like the versions and transports you support. You should not implement this handler and let OpenLEADR handle this response.
+
+.. _server_on_create_party_registration:
+
+on_create_party_registration
+----------------------------
+
+The VEN tries to register with you. You will probably have manually configured the VEN beforehand, so you should look them up by their ven_name. You should have a ven_id that you generated ready.
+If they are allowed to register, return the ven_id (str), otherwise return False.
+
+.. code-block:: python3
+
+    async def on_create_party_registration(ven_name):
+        if ven_is_known:
+            return ven_id
+        else
+            return None
+
+.. _server_on_cancel_party_registration:
+
+on_cancel_party_registration
+----------------------------
+
+The VEN informs you that they are cancelling their registration and no longer wish to be contacted by you.
+
+You should deregister the VEN internally, and return `None`.
+
+Return: `None`

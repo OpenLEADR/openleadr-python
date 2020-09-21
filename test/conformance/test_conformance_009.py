@@ -16,9 +16,9 @@
 
 import pytest
 
-from pyopenadr import OpenADRClient, OpenADRServer, enums
-from pyopenadr.utils import generate_id
-from pyopenadr.messaging import create_message, parse_message
+from openleadr import OpenADRClient, OpenADRServer, enums
+from openleadr.utils import generate_id
+from openleadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
 
 from pprint import pprint

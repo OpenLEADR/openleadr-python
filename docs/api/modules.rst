@@ -1,7 +1,7 @@
-pyopenadr
+openleadr
 =========
 
 .. toctree::
    :maxdepth: 4
 
-   pyopenadr
+   openleadr

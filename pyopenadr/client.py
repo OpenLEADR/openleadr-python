@@ -21,9 +21,9 @@ OpenADR Client for Python
 import xmltodict
 import random
 import aiohttp
-from pyopenadr.utils import new_request_id, peek, generate_id
-from pyopenadr.messaging import create_message, parse_message
-from pyopenadr import enums
+from openleadr.utils import new_request_id, peek, generate_id, certificate_fingerprint
+from openleadr.messaging import create_message, parse_message
+from openleadr import enums
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -127,9 +127,9 @@ class OpenADRClient:
 
         :param callable callable: A callable or coroutine that will fetch the value for a specific report. This callable will be passed the report_id and the r_id of the requested value.
         :param str report_id: A unique identifier for this report.
-        :param str report_name: An OpenADR name for this report (one of pyopenadr.enums.REPORT_NAME)
-        :param str reading_type: An OpenADR reading type (found in pyopenadr.enums.READING_TYPE)
-        :param str report_type: An OpenADR report type (found in pyopenadr.enums.REPORT_TYPE)
+        :param str report_name: An OpenADR name for this report (one of openleadr.enums.REPORT_NAME)
+        :param str reading_type: An OpenADR reading type (found in openleadr.enums.READING_TYPE)
+        :param str report_type: An OpenADR report type (found in openleadr.enums.REPORT_TYPE)
         :param datetime.timedelta sampling_rate: The sampling rate for the measurement.
         :param resource_id: A specific name for this resource within this report.
         :param str unit: The unit for this measurement.

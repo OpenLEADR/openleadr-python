@@ -104,7 +104,7 @@ NONCE_CACHE = set()
 
 
 # Settings for jinja2
-TEMPLATES = Environment(loader=PackageLoader('pyopenadr', 'templates'))
+TEMPLATES = Environment(loader=PackageLoader('openleadr', 'templates'))
 TEMPLATES.filters['datetimeformat'] = datetimeformat
 TEMPLATES.filters['timedeltaformat'] = timedeltaformat
 TEMPLATES.filters['booleanformat'] = booleanformat

@@ -4,7 +4,7 @@
 Ready-to-Run Examples
 =====================
 
-This page contains examples for pyOpenADR:
+This page contains examples for OpenLEADR:
 
 .. _client_example:
 
@@ -15,7 +15,7 @@ This example sets up a minimal OpenADR Client (Virtual End Node):
 
 .. code-block:: python3
 
-    from pyopenadr import OpenADRClient
+    from openleadr import OpenADRClient
     import asyncio
 
     async def main():

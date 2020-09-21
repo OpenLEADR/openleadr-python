@@ -22,7 +22,7 @@ from collections import OrderedDict
 import itertools
 import re
 
-from pyopenadr import config
+from openleadr import config
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 DATETIME_FORMAT_NO_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"

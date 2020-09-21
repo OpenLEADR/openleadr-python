@@ -4,7 +4,7 @@
 Project Status and Roadmap
 ==========================
 
-pyOpenADR is under development. The current version is |release|.
+OpenLEADR is under development. The current version is |release|.
 
 Upcoming releases
 -----------------

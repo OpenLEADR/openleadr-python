@@ -15,8 +15,8 @@
 # limitations under the License.
 
 from aiohttp import web
-from pyopenadr.service import EventService, PollService, RegistrationService, ReportService, OptService, VTNService
-from pyopenadr.messaging import create_message, parse_message
+from openleadr.service import EventService, PollService, RegistrationService, ReportService, OptService, VTNService
+from openleadr.messaging import create_message, parse_message
 from functools import partial
 
 class OpenADRServer:

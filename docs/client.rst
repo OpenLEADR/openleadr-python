@@ -19,7 +19,7 @@ The Event consists of three main sections:
 2. A list of Targets to which the Event applies (``target``). This can be the VEN as a whole, or specific groups, assets, geographic areas, et cetera that this VEN represents.
 3. A list of Signals (``signals``), which form the content of the Event. This can be price signals, load reduction signals, et cetera. Each signal has a name, a type, multiple Intervals that contain the relative start times, and some payload value for the client to interpret.
 
-After you evaluate all these properties, you have only one decision to make: Opt In or Opt Out. Your handler must return either the string ``optIn`` or ``optOut``, and pyOpenADR will see to it that your response is correctly formatted for the server.
+After you evaluate all these properties, you have only one decision to make: Opt In or Opt Out. Your handler must return either the string ``optIn`` or ``optOut``, and OpenLEADR will see to it that your response is correctly formatted for the server.
 
 Example implementation:
 
@@ -60,7 +60,7 @@ For example: you can provide 15-minute meter readings for an energy meter at you
         current_value = await meter.read()
         return current_value
 
-And you configure this report in pyOpenADR using an :ref:`oadrReportDescription` dict:
+And you configure this report in OpenLEADR using an :ref:`oadrReportDescription` dict:
 
 .. code-block:: python3
 

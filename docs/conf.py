@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'pyOpenADR'
+project = 'OpenLEADR'
 copyright = '2020, Stan Janssen'
 author = 'Stan Janssen'
 
@@ -34,7 +34,7 @@ print(release)
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.apidoc']
 
-apidoc_module_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'pyopenadr')
+apidoc_module_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'openleadr')
 apidoc_excluded_paths = [os.path.join(apidoc_module_dir, 'service'),
                          os.path.join(apidoc_module_dir, 'config.py')]
 

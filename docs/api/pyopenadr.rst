@@ -1,69 +1,69 @@
-pyopenadr package
+openleadr package
 =================
 
 Submodules
 ----------
 
-pyopenadr.client module
+openleadr.client module
 -----------------------
 
-.. automodule:: pyopenadr.client
+.. automodule:: openleadr.client
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.enums module
+openleadr.enums module
 ----------------------
 
-.. automodule:: pyopenadr.enums
+.. automodule:: openleadr.enums
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.errors module
+openleadr.errors module
 -----------------------
 
-.. automodule:: pyopenadr.errors
+.. automodule:: openleadr.errors
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.messaging module
+openleadr.messaging module
 --------------------------
 
-.. automodule:: pyopenadr.messaging
+.. automodule:: openleadr.messaging
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.objects module
+openleadr.objects module
 ------------------------
 
-.. automodule:: pyopenadr.objects
+.. automodule:: openleadr.objects
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.preflight module
+openleadr.preflight module
 --------------------------
 
-.. automodule:: pyopenadr.preflight
+.. automodule:: openleadr.preflight
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.server module
+openleadr.server module
 -----------------------
 
-.. automodule:: pyopenadr.server
+.. automodule:: openleadr.server
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.utils module
+openleadr.utils module
 ----------------------
 
-.. automodule:: pyopenadr.utils
+.. automodule:: openleadr.utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -71,7 +71,7 @@ pyopenadr.utils module
 Module contents
 ---------------
 
-.. automodule:: pyopenadr
+.. automodule:: openleadr
    :members:
    :undoc-members:
    :show-inheritance:

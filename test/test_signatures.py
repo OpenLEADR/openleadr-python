@@ -15,8 +15,8 @@
 # limitations under the License.
 
 
-from pyopenadr.utils import generate_id
-from pyopenadr.messaging import create_message, parse_message
+from openleadr.utils import generate_id, certificate_fingerprint
+from openleadr.messaging import create_message, parse_message
 from hashlib import sha256
 from base64 import b64encode
 from datetime import datetime, timedelta, timezone

@@ -23,12 +23,12 @@ with open("README.md", "r") as fh:
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION')) as file:
     VERSION = file.read().strip()
 
-setup(name="pyopenadr",
+setup(name='openleadr',
       version=VERSION,
-      description="Python library for dealing with OpenADR",
+      description='Python library for dealing with OpenADR',
       long_description=long_description,
-      long_description_content_type="text/markdown",
-      url="https://finetuned.nl/pyopenadr",
-      packages=['pyopenadr', 'pyopenadr.service'],
+      long_description_content_type='text/markdown',
+      url='https://openleadr.elaad.io',
+      packages=['openleadr', 'openleadr.service'],
       include_package_data=True,
       install_requires=['xmltodict', 'aiohttp', 'apscheduler', 'jinja2', 'signxml-openadr>2.8.0'])

@@ -1,53 +1,53 @@
-pyopenadr.service package
+openleadr.service package
 =========================
 
 Submodules
 ----------
 
-pyopenadr.service.event\_service module
+openleadr.service.event\_service module
 ---------------------------------------
 
-.. automodule:: pyopenadr.service.event_service
+.. automodule:: openleadr.service.event_service
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.service.opt\_service module
+openleadr.service.opt\_service module
 -------------------------------------
 
-.. automodule:: pyopenadr.service.opt_service
+.. automodule:: openleadr.service.opt_service
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.service.poll\_service module
+openleadr.service.poll\_service module
 --------------------------------------
 
-.. automodule:: pyopenadr.service.poll_service
+.. automodule:: openleadr.service.poll_service
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.service.registration\_service module
+openleadr.service.registration\_service module
 ----------------------------------------------
 
-.. automodule:: pyopenadr.service.registration_service
+.. automodule:: openleadr.service.registration_service
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.service.report\_service module
+openleadr.service.report\_service module
 ----------------------------------------
 
-.. automodule:: pyopenadr.service.report_service
+.. automodule:: openleadr.service.report_service
    :members:
    :undoc-members:
    :show-inheritance:
 
-pyopenadr.service.vtn\_service module
+openleadr.service.vtn\_service module
 -------------------------------------
 
-.. automodule:: pyopenadr.service.vtn_service
+.. automodule:: openleadr.service.vtn_service
    :members:
    :undoc-members:
    :show-inheritance:
@@ -56,7 +56,7 @@ pyopenadr.service.vtn\_service module
 Module contents
 ---------------
 
-.. automodule:: pyopenadr.service
+.. automodule:: openleadr.service
    :members:
    :undoc-members:
    :show-inheritance:

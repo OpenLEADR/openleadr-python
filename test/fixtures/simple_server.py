@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyopenadr import OpenADRClient, OpenADRServer, enums
-from pyopenadr.utils import generate_id, normalize_dict, timedeltaformat, datetimeformat, booleanformat
-from pyopenadr.messaging import create_message, parse_message
+from openleadr import OpenADRClient, OpenADRServer, enums
+from openleadr.utils import generate_id, normalize_dict, timedeltaformat, datetimeformat, booleanformat
+from openleadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
 
 import asyncio
