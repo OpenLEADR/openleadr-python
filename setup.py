@@ -17,7 +17,7 @@
 from setuptools import setup
 import os
 
-with open("README.md", "r") as fh:
+with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION')) as file:

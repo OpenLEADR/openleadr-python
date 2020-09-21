@@ -21,21 +21,31 @@ from functools import partial
 
 class OpenADRServer:
     _MAP = {'on_created_event': EventService,
-           'on_request_event': EventService,
+            'on_request_event': EventService,
 
-           'on_register_report': ReportService,
-           'on_create_report': ReportService,
-           'on_created_report': ReportService,
-           'on_request_report': ReportService,
-           'on_update_report': ReportService,
+            'on_register_report': ReportService,
+            'on_create_report': ReportService,
+            'on_created_report': ReportService,
+            'on_request_report': ReportService,
+            'on_update_report': ReportService,
 
-           'on_poll': PollService,
+            'on_poll': PollService,
 
-           'on_query_registration': RegistrationService,
-           'on_create_party_registration': RegistrationService,
-           'on_cancel_party_registration': RegistrationService}
+            'on_query_registration': RegistrationService,
+            'on_create_party_registration': RegistrationService,
+            'on_cancel_party_registration': RegistrationService}
 
-    def __init__(self, vtn_id, cert=None, key=None, passphrase=None, verification_cert=None):
+    def __init__(self, vtn_id, cert=None, key=None, passphrase=None, fingerprint_lookup=None):
+        """
+        Create a new OpenADR VTN (Server).
+
+        :param vtn_id string: An identifier string for this VTN. This is how you identify yourself to the VENs that talk to you.
+        :param cert string: Path to the PEM-formatted certificate file that is used to sign outgoing messages
+        :param key string: Path to the PEM-formatted private key file that is used to sign outgoing messages
+        :param passphrase string: The passphrase used to decrypt the private key file
+        :param fingerprint_lookup callable: A callable that receives a ven_id and should return the registered fingerprint for that VEN.
+                                            You should receive these fingerprints outside of OpenADR and configure them manually.
+        """
         self.app = web.Application()
         self.services = {'event_service': EventService(vtn_id),
                          'report_service': ReportService(vtn_id),
@@ -50,11 +60,8 @@ class OpenADRServer:
                 cert = file.read()
             with open(key, "rb") as file:
                 key = file.read()
-        if verification_cert:
-            with open(verification_cert, "rb") as file:
-                verification_cert = file.read()
         VTNService._create_message = partial(create_message, cert=cert, key=key, passphrase=passphrase)
-        VTNService._parse_message = partial(parse_message, cert=verification_cert)
+        VTNService._parse_message = partial(parse_message, fingerprint_lookup=fingerprint_lookup)
 
         self.__setattr__ = self.add_handler
 
@@ -70,6 +77,9 @@ class OpenADRServer:
     def add_handler(self, name, func):
         """
         Add a handler to the OpenADRServer.
+
+        :param name string: The name for this handler. Should be one of: on_created_event, on_request_event, on_register_report, on_create_report, on_created_report, on_request_report, on_update_report, on_poll, on_query_registration, on_create_party_registration, on_cancel_party_registration.
+        :param func coroutine: A coroutine that handles this event. It receives the message, and should return the contents of a response.
         """
         print("Called add_handler", name, func)
         if name in self._MAP:

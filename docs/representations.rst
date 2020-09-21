@@ -4,13 +4,13 @@
 Payload Representations
 =======================
 
-In PyOpenADR, the complex hierarchies of the OpenADR XML-payloads are represented as Python dictionaries. These have been simplified as much as possible, allowing for a more natural and more readable experience.
+In OpenLEADR, the complex hierarchies of the OpenADR XML-payloads are represented as Python dictionaries. These have been simplified as much as possible, allowing for a more natural and more readable experience.
 
 This means that you don't have to instantiate objects and sub-objects and sub-sub-objects, but that you can define the entire object in a single, declarative statement. This kan keep a simple implementation very compact. The downside is that there is little help from your IDE and there is little discoverability for what contents can be provided in the messages. This page can be used as a reference for that information.
 
 To help you, all outgong messages are validated against the XML schema, and you will receive warnings if your messages don't comply to the schema.
 
-The following general principles have been applied to representing OpenADR objects in PyOpenADR:
+The following general principles have been applied to representing OpenADR objects in OpenLEADR:
 
 - All property names are represented in snake_case instead of CamelCase or mixedCase names. For example: ``requestID`` becomes ``request_id``.
 - For all properties, the ``oadr*`` and ``Ei*`` prefixes have been stripped away. For example: ``eiResponse`` becomes ``response`` and ``oadrResponse`` becomes ``response``.

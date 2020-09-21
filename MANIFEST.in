@@ -1,3 +1,3 @@
-include pyopenadr/templates/*.xml
-include pyopenadr/templates/parts/*.xml
-include pyopenadr/templates/signatures/*.xml
+include openleadr/templates/*.xml
+include openleadr/templates/parts/*.xml
+include openleadr/templates/signatures/*.xml

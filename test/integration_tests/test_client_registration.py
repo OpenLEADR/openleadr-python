@@ -61,7 +61,7 @@ async def start_server():
 
 @pytest.fixture
 async def start_server_with_signatures():
-    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr', verification_cert=CERTFILE)
+    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr', fingerprint_lookup=fingerprint_lookup)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
 
     runner = web.AppRunner(server.app)
@@ -91,11 +91,18 @@ async def test_create_party_registration(start_server):
     assert response_payload['ven_id'] == VEN_ID
 
 
+def fingerprint_lookup(ven_id):
+    with open(CERTFILE) as file:
+        cert = file.read()
+    return certificate_fingerprint(cert)
+
 @pytest.mark.asyncio
 async def test_create_party_registration_with_signatures(start_server_with_signatures):
+    with open(CERTFILE) as file:
+        cert = file.read()
     client = OpenADRClient(ven_name=VEN_NAME,
                            vtn_url=f"http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b",
-                           cert=CERTFILE, key=KEYFILE, passphrase='openadr', verification_cert=CERTFILE)
+                           cert=CERTFILE, key=KEYFILE, passphrase='openadr', vtn_fingerprint=certificate_fingerprint(cert))
 
     response_type, response_payload = await client.create_party_registration()
     assert response_type == 'oadrCreatedPartyRegistration'

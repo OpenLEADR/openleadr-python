@@ -30,6 +30,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio import iscoroutine
 from functools import partial
+import warnings
 
 MEASURANDS = {'power_real': 'power_quantity',
               'power_reactive': 'power_quantity',
@@ -43,7 +44,7 @@ class OpenADRClient:
     Main client class. Most of these methods will be called automatically, but
     you can always choose to call them manually.
     """
-    def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None, passphrase=None, verification_cert=None):
+    def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None, passphrase=None, vtn_fingerprint=None):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -52,7 +53,7 @@ class OpenADRClient:
         :param bool debug: Whether or not to print debugging messages
         :param str cert: The path to a PEM-formatted Certificate file to use for signing messages
         :param str key: The path to a PEM-formatted Private Key file to use for signing messages
-        :param str verification_cert: The path to a PEM-formatted Certificate file to use for verifying incoming messages.
+        :param str fingerprint: The fingerprint for the VTN's certificate to verify incomnig messages
         """
 
         self.ven_name = ven_name
@@ -71,24 +72,26 @@ class OpenADRClient:
                 cert = file.read()
             with open(key, 'rb') as file:
                 key = file.read()
+            print("*" * 80)
+            print("Your VEN Certificate Fingerprint is", certificate_fingerprint(cert))
+            print("Please deliver this fingerprint to the VTN you are connecting to.")
+            print("You do not need to keep this a secret.")
+            print("*" * 80)
 
         self._create_message = partial(create_message,
                                        cert=cert,
                                        key=key,
                                        passphrase=passphrase)
-        if verification_cert:
-            with open(verification_cert, "rb") as file:
-                verification_cert = file.read()
         self._parse_message = partial(parse_message,
-                                      cert=verification_cert)
+                                      fingerprint=vtn_fingerprint)
 
 
     async def run(self):
         """
         Run the client in full-auto mode.
         """
-        if not hasattr(self, 'on_event') or not hasattr(self, 'on_report'):
-            raise NotImplementedError("You must implement both the on_event and and_report functions or coroutines.")
+        if not hasattr(self, 'on_event'):
+            raise NotImplementedError("You must implement an on_event function or coroutine.")
 
         await self.create_party_registration()
 
@@ -210,6 +213,8 @@ class OpenADRClient:
             payload['ven_id'] = ven_id
         message = self._create_message('oadrCreatePartyRegistration', request_id=new_request_id(), **payload)
         response_type, response_payload = await self._perform_request(service, message)
+        if response_type is None:
+            return
         if response_payload['response']['response_code'] != 200:
             status_code = response_payload['response']['response_code']
             status_description = response_payload['response']['response_description']
@@ -253,7 +258,6 @@ class OpenADRClient:
                                         'opt_type': opt_type}]}
         message = self._create_message('oadrCreatedEvent', **payload)
         response_type, response_payload = await self._perform_request(service, message)
-        return response_type, response_payload
 
     async def register_report(self):
         """
@@ -317,23 +321,34 @@ class OpenADRClient:
         service = 'EiReport'
         message = self._create_message('oadrUpdateReport', report)
         response_type, response_payload = self._perform_request(service, message)
-
-        # We might get a oadrCancelReport message in this thing:
-        if 'cancel_report' in response.payload:
-            print("TODO: cancel this report")
+        if response_type is not None:
+            # We might get a oadrCancelReport message in this thing:
+            if 'cancel_report' in response_payload:
+                print("TODO: cancel this report")
 
 
     async def _perform_request(self, service, message):
         if self.debug:
             print(f"Client is sending {message}")
         url = f"{self.vtn_url}/{service}"
-        async with self.client_session.post(url, data=message) as req:
-            if req.status != HTTPStatus.OK:
-                raise Exception(f"Received non-OK status in request: {req.status}")
-            content = await req.read()
-            if self.debug:
-                print(content.decode('utf-8'))
-        return self._parse_message(content)
+        try:
+            async with self.client_session.post(url, data=message) as req:
+                if req.status != HTTPStatus.OK:
+                    warnings.warn(f"Non-OK status when performing a request to {url} with data {message}: {req.status}")
+                    return None, {}
+                content = await req.read()
+                if self.debug:
+                    print(content.decode('utf-8'))
+        except:
+            # Could not connect to server
+            warnings.warn(f"Could not connect to server with URL {self.vtn_url}")
+            return None, {}
+        try:
+            message_type, message_payload = self._parse_message(content)
+        except:
+            warnings.warn(f"The incoming message could not be parsed or validated: {content}.")
+            return None, {}
+        return message_type, message_payload
 
     async def _on_event(self, message):
         if self.debug:
@@ -349,27 +364,28 @@ class OpenADRClient:
         await self.created_event(request_id, event_id, result)
         return
 
-    async def _on_report(self, message):
-        result = self.on_report(message)
-        if iscoroutine(result):
-            result = await result
-        return result
-
     async def _poll(self):
+        print("Now polling")
         response_type, response_payload = await self.poll()
+        if response_type is None:
+            raise Exception("NO RESPONSE")
+            return
+
         if response_type == 'oadrResponse':
             print("No events or reports available")
             return
 
         if response_type == 'oadrRequestReregistration':
-            result = await self.create_party_registration()
+            await self.create_party_registration()
 
         if response_type == 'oadrDistributeEvent':
-            result = await self._on_event(response_payload)
+            await self._on_event(response_payload)
 
         elif response_type == 'oadrUpdateReport':
-            result = await self._on_report(response_payload)
+            await self._on_report(response_payload)
 
         else:
             print(f"No handler implemented for message type {response_type}, ignoring.")
+
+        # Immediately poll again, because there might be more messages
         await self._poll()

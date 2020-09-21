@@ -64,7 +64,7 @@ The VTN must determine when VENs are relevant and which Events to send to them. 
 
 .. admonition:: Implementation Checklist
 
-    In your application, the creation of Events is completely up to you. PyOpenADR will only call your ``on_poll`` handler with a ``ven_id``. This handler must be able to either retrieve the next event for this VEN out of some storage or queue, or make up the Event in real time.
+    In your application, the creation of Events is completely up to you. OpenLEADR will only call your ``on_poll`` handler with a ``ven_id``. This handler must be able to either retrieve the next event for this VEN out of some storage or queue, or make up the Event in real time.
 
     - ``on_created_event(payload)`` handler is called whenever the VEN sends an :ref:`oadrCreatedEvent` message, probably informing you of what they intend to do with the event you gave them.
     - ``on_request_event(ven_id)``: this should return the next event (if any) that you have for the VEN. If you return ``None``, a blank :ref:`oadrResponse` will be returned to the VEN.

@@ -1,4 +1,4 @@
-.. pyOpenAdr documentation master file, created by
+.. OpenLEADR documentation master file, created by
    sphinx-quickstart on Thu Jul  9 14:09:27 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -101,7 +101,7 @@ Table of Contents
 Representations of OpenADR payloads
 ===================================
 
-PyOpenADR uses Python dictionaries and vanilla Python types (like datetime and timedelta) to represent the OpenADR payloads. These pages serve as a reference to these representations.
+OpenLEADR uses Python dictionaries and vanilla Python types (like datetime and timedelta) to represent the OpenADR payloads. These pages serve as a reference to these representations.
 
 For example, this XML payload:
 

@@ -30,7 +30,7 @@ TEST_KEY_PASSWORD = 'openadr'
 
 def test_message_validation():
     msg = create_message('oadrPoll', ven_id='123', cert=TEST_CERT, key=TEST_KEY, passphrase='openadr')
-    parsed_type, parsed_message = parse_message(msg, cert=TEST_CERT)
+    parsed_type, parsed_message = parse_message(msg, fingerprint=certificate_fingerprint(TEST_CERT))
     assert parsed_type == 'oadrPoll'
 
 
@@ -80,10 +80,4 @@ def test_message_validation_complex():
                          cert=TEST_CERT,
                          key=TEST_KEY,
                          passphrase='openadr')
-    parsed_type, parsed_msg = parse_message(msg, cert=TEST_CERT)
-
-if __name__ == "__main__":
-    msg = create_message('oadrPoll', ven_id='123', signing_certificate=TEST_CERT, signing_key=TEST_KEY, signing_key_passphrase=b'openadr')
-    parsed_type, parsed_message = parse_message(msg)
-    validate_message(msg, public_key=TEST_CERT)
-    print(msg)
+    parsed_type, parsed_msg = parse_message(msg, fingerprint=certificate_fingerprint(TEST_CERT))

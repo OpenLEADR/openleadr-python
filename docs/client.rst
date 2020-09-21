@@ -64,7 +64,7 @@ And you configure this report in OpenLEADR using an :ref:`oadrReportDescription`
         report_description = {''}
         client.add_report({'report'})
 
-The only thing you need to provide is the current value for the item you are reporting. PyOpenADR will format the complete :ref:`oadrReport` message for you.
+The only thing you need to provide is the current value for the item you are reporting. OpenLEADR will format the complete :ref:`oadrReport` message for you.
 
 
 

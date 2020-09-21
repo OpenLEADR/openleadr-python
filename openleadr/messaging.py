@@ -28,16 +28,14 @@ SIGNER = XMLSigner(method=methods.detached,
                    c14n_algorithm="http://www.w3.org/2001/10/xml-exc-c14n#")
 VERIFIER = XMLVerifier()
 
-def parse_message(data, cert=None):
+def parse_message(data, fingerprint=None, fingerprint_lookup=None):
     """
     Parse a message and distill its usable parts. Returns a message type and payload.
     """
     message_dict = xmltodict.parse(data, process_namespaces=True, namespaces=NAMESPACES)
     message_type, message_payload = message_dict['oadrPayload']['oadrSignedObject'].popitem()
-    if cert:
-        tree = etree.fromstring(ensure_bytes(data))
-        VERIFIER.verify(tree, x509_cert=cert, expect_references=2)
-        _verify_replay_protect(message_dict)
+    if 'ven_id' in message_payload:
+        validate_and_authenticate_message(data, message_dict, fingerprint, fingerprint_lookup)
     return message_type, normalize_dict(message_payload)
 
 def create_message(message_type, cert=None, key=None, passphrase=None, **message_payload):
@@ -63,6 +61,21 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
                           signature=signature,
                           signed_object=signed_object)
     return msg
+
+def validate_and_authenticate_message(data, message_dict, fingerprint=None, fingerprint_lookup=None):
+    if not fingerprint and not fingerprint_lookup:
+        return
+    tree = etree.fromstring(ensure_bytes(data))
+    cert = extract_pem_cert(tree)
+    ven_id = tree.find('.//{http://docs.oasis-open.org/ns/energyinterop/201110}venID').text
+    cert_fingerprint = certificate_fingerprint(cert)
+    if not fingerprint:
+        fingerprint = fingerprint_lookup(ven_id)
+
+    if fingerprint != certificate_fingerprint(cert):
+        raise ValueError("The fingerprint does not match")
+    VERIFIER.verify(tree, x509_cert=ensure_bytes(cert), expect_references=2)
+    _verify_replay_protect(message_dict)
 
 def _create_replay_protect():
     dt_element = Element("{http://openadr.org/oadr-2.0b/2012/07/xmldsig-properties}timestamp")

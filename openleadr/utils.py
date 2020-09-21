@@ -21,6 +21,8 @@ import string
 from collections import OrderedDict
 import itertools
 import re
+import ssl
+import hashlib
 
 from openleadr import config
 
@@ -346,3 +348,20 @@ def ensure_bytes(obj):
         return bytes(obj, 'utf-8')
     else:
         raise TypeError("Must be bytes or str")
+
+def ensure_str(obj):
+    if isinstance(obj, str):
+        return obj
+    if isinstance(obj, bytes):
+        return obj.decode('utf-8')
+    else:
+        raise TypeError("Must be bytes or str")
+
+def certificate_fingerprint(certificate_str):
+    der_cert = ssl.PEM_cert_to_DER_cert(ensure_str(certificate_str))
+    hash = hashlib.sha256(der_cert).digest().hex()
+    return ":".join([hash[i-2:i].upper() for i in range(-20, 0, 2)])
+
+def extract_pem_cert(tree):
+    cert = tree.find('.//{http://www.w3.org/2000/09/xmldsig#}X509Certificate').text
+    return "-----BEGIN CERTIFICATE-----\n" + cert + "-----END CERTIFICATE-----\n"

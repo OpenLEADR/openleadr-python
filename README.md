@@ -18,7 +18,7 @@ new bug reports and pull requests are most welcome.
 
 ```bash
 git clone https://github.com/openleadr/openleadr-python
-cd pyopenadr-python
+cd openleadr-python
 python3 -m venv python_env
 ./python_env/bin/pip3 install -e .
 ```
