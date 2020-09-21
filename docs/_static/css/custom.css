@@ -10,3 +10,12 @@ body{
 div.bodywrapper{
     margin: 0 0 0 260px;
 }
+
+div.sphinxsidebarwrapper p.logo{
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+div.sphinxsidebarwrapper h1.logo{
+    display: none;
+}

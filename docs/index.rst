@@ -7,7 +7,7 @@
 Welcome to OpenLEADR
 ====================
 
-Super-convenient Python implementation of an OpenADR client and server.
+A friendly and compliant OpenADR implementation for Python 3.
 
 Key Features
 ============
