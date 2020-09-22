@@ -93,9 +93,9 @@ Table of Contents
    client
    server
    examples
-   roadmap
    representations
    message_signing
+   roadmap
    API Reference <api/modules>
 
 Representations of OpenADR payloads

@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'OpenLEADR'
-copyright = '2020, Stan Janssen'
+copyright = '2020, OpenLEADR Contributors'
 author = 'Stan Janssen'
 
 # The full version, including alpha/beta/rc tags

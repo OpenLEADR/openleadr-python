@@ -1,7 +1,7 @@
 .. _roadmap:
 
 ==========================
-Project Status and Roadmap
+Project Roadmap
 ==========================
 
 OpenLEADR is under development. The current version is |release|.

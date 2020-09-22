@@ -26,8 +26,14 @@
     font-style: italic;
 }
 
+html{
+    border-top: 5px solid #785b9c;
+    border-bottom: 5px solid #785b9c;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
 body {
-    font-size: 10.5pt;
     font-family: 'Charter', 'charter-webfont', 'Georgia', sans-serif;
 }
 
@@ -35,8 +41,8 @@ h1, h2, h3 {
     font-family: 'Charter', 'charter-webfont', 'Georgia', sans-serif;
 }
 
-.sphinxsidebarwrapper{
-    font-size: 9pt;
+div.body pre {
+    font-size: 80%;
 }
 
 div.sphinxsidebarwrapper p.logo{
@@ -46,4 +52,18 @@ div.sphinxsidebarwrapper p.logo{
 
 div.sphinxsidebarwrapper h1.logo{
     display: none;
+}
+
+div.body a{
+    color: #785b9c;
+    text-decoration: none;
+    border-bottom: none;
+}
+
+div.body a:hover{
+    color: white;
+    background-color: #785b9c;
+    padding: 0px 2px;
+    margin: 0px -2px;
+    border-radius: 3px;
 }
