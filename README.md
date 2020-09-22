@@ -21,11 +21,11 @@ git clone https://github.com/openleadr/openleadr-python
 cd openleadr-python
 python3 -m venv python_env
 ./python_env/bin/pip3 install -e .
+./python_env/bin/pip3 install -r dev_requirements.txt
 ```
 
 ## Running conformance tests
 
 ```bash
-./python_env/bin/pip3 install pytest pytest-asyncio
 ./python_env/bin/python3 -m pytest test/conformance
 ```
