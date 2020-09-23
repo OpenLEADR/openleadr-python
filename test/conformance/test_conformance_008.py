@@ -55,7 +55,8 @@ async def test_conformance_008_autocorrect():
                   'signal_name': enums.SIGNAL_NAME.SIMPLE,
                   'signal_type': enums.SIGNAL_TYPE.DELTA,
                   'signal_id': generate_id()
-                }]
+                }],
+            'targets': [{'ven_id': '123'}]
         }
 
     # Create a message with this event

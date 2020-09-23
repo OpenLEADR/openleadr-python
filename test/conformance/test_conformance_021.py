@@ -64,7 +64,8 @@ async def test_conformance_021(start_server):
                   'signal_type': enums.SIGNAL_TYPE.DELTA,
                   'signal_id': generate_id(),
                   'current_value': 123
-                }]
+                }],
+            'targets': [{'ven_id': '123'}]
         }
     add_event(ven_id=client.ven_id,
               event_id = event['event_descriptor']['event_id'],

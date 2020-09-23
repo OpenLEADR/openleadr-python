@@ -33,17 +33,15 @@ def test_oadr_event():
             signal_id=1,
             current_value=0
         )],
-        target=objects.Target(
+        targets=[objects.Target(
             ven_id='1234'
-        )
+        )]
     )
 
     response = objects.Response(response_code=200,
                                 response_description='OK',
                                 request_id='1234')
-    pprint(event)
     msg = create_message('oadrDistributeEvent', response=response, events=[event])
-    pprint(msg)
     message_type, message_payload = parse_message(msg)
 
 

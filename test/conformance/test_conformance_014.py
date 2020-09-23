@@ -56,7 +56,8 @@ async def test_conformance_014_warn():
                   'signal_type': enums.SIGNAL_TYPE.DELTA,
                   'signal_id': generate_id(),
                   'current_value': 123
-                }]
+                }],
+            'targets': {'ven_id': '123'}
         }
 
     # Create a message with this event

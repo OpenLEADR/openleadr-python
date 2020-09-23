@@ -34,7 +34,7 @@ async def test_conformance_001():
                                              'request_id': generate_id(),
                                              'event_id': generate_id(),
                                              'modification_number': 1,
-                                             'targets': []})
+                                             'targets': [{'ven_id': '123'}]})
     parsed_type, parsed_msg = parse_message(msg)
     assert parsed_msg['created_date_time'].tzinfo == timezone.utc
     assert parsed_msg['created_date_time'] == dt.astimezone(timezone.utc)
