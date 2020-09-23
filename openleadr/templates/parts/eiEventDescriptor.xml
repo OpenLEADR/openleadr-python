@@ -1,8 +1,11 @@
 <ei:eventDescriptor>
     <ei:eventID>{{ event.event_descriptor.event_id }}</ei:eventID>
     <ei:modificationNumber>{{ event.event_descriptor.modification_number }}</ei:modificationNumber>
-    {% if event.event_descriptor.modification_date_time is not none %}
+    {% if event.event_descriptor.modification_date_time is defined and event.event_descriptor.modification_date_time is not none %}
     <ei:modificationDateTime>{{ event.event_descriptor.modification_date_time|datetimeformat }}</ei:modificationDateTime>
+    {% endif %}
+    {% if event.event_descriptor.modification_reason is defined and event.event_descriptor.modification_reason is not none %}
+    <ei:modificationReason>{{ event.event_descriptor.modification_reason }}</ei:modificationReason>
     {% endif %}
     {%if event.event_descriptor.priority is not none %}
     <ei:priority>{{ event.event_descriptor.priority }}</ei:priority>
@@ -12,6 +15,10 @@
     </ei:eiMarketContext>
     <ei:createdDateTime>{{ event.event_descriptor.created_date_time|datetimeformat }}</ei:createdDateTime>
     <ei:eventStatus>{{ event.event_descriptor.event_status }}</ei:eventStatus>
+    {% if event.event_descriptor.test_event is defined and event.event_descriptor.test_event is not none %}
     <ei:testEvent>{{ event.event_descriptor.test_event|booleanformat }}</ei:testEvent>
+    {% endif %}
+    {% if event.event_descriptor.vtn_comment is defined and event.event_descriptor.vtn_comment is not none %}
     <ei:vtnComment>{{ event.event_descriptor.vtn_comment }}</ei:vtnComment>
+    {% endif %}
 </ei:eventDescriptor>

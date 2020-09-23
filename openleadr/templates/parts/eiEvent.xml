@@ -1,4 +1,4 @@
-<oadrEvent>
+<oadr:oadrEvent>
     <ei:eiEvent>
         {% include 'parts/eiEventDescriptor.xml' %}
         {% include 'parts/eiActivePeriod.xml' %}
@@ -14,9 +14,9 @@
             {% endfor %}
         </ns1>
         {% endif %}
-        {% if event.targets %}
+        {% if event.targets is defined and event.targets is not none %}
         {% include 'parts/eiEventTarget.xml' %}
         {% endif %}
     </ei:eiEvent>
-    <oadrResponseRequired>{{ event.response_required }}</oadrResponseRequired>
-</oadrEvent>
+    <oadr:oadrResponseRequired>{{ event.response_required }}</oadr:oadrResponseRequired>
+</oadr:oadrEvent>

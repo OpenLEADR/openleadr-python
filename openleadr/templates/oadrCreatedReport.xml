@@ -1,17 +1,17 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
-  <oadrCreatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+  <oadr:oadrCreatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <ei:eiResponse>
       <ei:responseCode>{{ response.response_code }}</ei:responseCode>
       <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
       <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
     </ei:eiResponse>
-    <oadrPendingReports>
+    <oadr:oadrPendingReports>
       {% for pending_report in pending_reports %}
       <ei:reportRequestID>{{ pending_report.request_id }}</ei:reportRequestID>
       {% endfor %}
-    </oadrPendingReports>
-    {% if ven_id %}
+    </oadr:oadrPendingReports>
+    {% if ven_id is defined and ven_id is not none %}
     <ei:venID>{{ ven_id }}</ei:venID>
     {% endif %}
-  </oadrCreatedReport>
-</oadrSignedObject>
+  </oadr:oadrCreatedReport>
+</oadr:oadrSignedObject>

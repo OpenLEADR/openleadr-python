@@ -1,7 +1,7 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
-  <oadrCancelOpt ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+  <oadr:oadrCancelOpt ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
     <ei:optID>{{ opt_id }}</ei:optID>
     <ei:venID>{{ ven_id }}</ei:venID>
-  </oadrCancelOpt>
-</oadrSignedObject>
+  </oadr:oadrCancelOpt>
+</oadr:oadrSignedObject>

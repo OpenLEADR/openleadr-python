@@ -1,15 +1,15 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
-  <oadrCreatePartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+  <oadr:oadrCreatePartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
-    {% if ven_id %}
+    {% if ven_id is defined and ven_id is not none %}
     <ei:venID>{{ ven_id }}</ei:venID>
     {% endif %}
-    <oadrProfileName>{{ profile_name }}</oadrProfileName>
-    <oadrTransportName>{{ transport_name }}</oadrTransportName>
-    <oadrTransportAddress>{{ transport_address }}</oadrTransportAddress>
-    <oadrReportOnly>{{ report_only|booleanformat }}</oadrReportOnly>
-    <oadrXmlSignature>{{ xml_signature|booleanformat }}</oadrXmlSignature>
-    <oadrVenName>{{ ven_name }}</oadrVenName>
-    <oadrHttpPullModel>{{ http_pull_model|booleanformat }}</oadrHttpPullModel>
-  </oadrCreatePartyRegistration>
-</oadrSignedObject>
+    <oadr:oadrProfileName>{{ profile_name }}</oadr:oadrProfileName>
+    <oadr:oadrTransportName>{{ transport_name }}</oadr:oadrTransportName>
+    <oadr:oadrTransportAddress>{{ transport_address }}</oadr:oadrTransportAddress>
+    <oadr:oadrReportOnly>{{ report_only|booleanformat }}</oadr:oadrReportOnly>
+    <oadr:oadrXmlSignature>{{ xml_signature|booleanformat }}</oadr:oadrXmlSignature>
+    <oadr:oadrVenName>{{ ven_name }}</oadr:oadrVenName>
+    <oadr:oadrHttpPullModel>{{ http_pull_model|booleanformat }}</oadr:oadrHttpPullModel>
+  </oadr:oadrCreatePartyRegistration>
+</oadr:oadrSignedObject>

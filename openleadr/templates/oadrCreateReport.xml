@@ -1,9 +1,9 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
-  <oadrCreateReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+  <oadr:oadrCreateReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
     {% for report_request in report_requests %}
     {% include 'parts/oadrReportRequest.xml' %}
     {% endfor %}
     <ei:venID>{{ ven_id }}</ei:venID>
-  </oadrCreateReport>
-</oadrSignedObject>
+  </oadr:oadrCreateReport>
+</oadr:oadrSignedObject>

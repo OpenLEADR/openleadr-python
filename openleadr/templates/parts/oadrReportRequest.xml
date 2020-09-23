@@ -1,4 +1,4 @@
-<oadrReportRequest>
+<oadr:oadrReportRequest>
   <ei:reportRequestID>{{ report_request.report_request_id }}</ei:reportRequestID>
   <ei:reportSpecifier xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
     <ei:reportSpecifierID>{{ report_request.report_specifier.report_specifier_id }}</ei:reportSpecifierID>
@@ -47,4 +47,4 @@
       <ei:readingType>{{ report_request.report_specifier.specifier_payload.reading_type }}</ei:readingType>
     </ei:specifierPayload>
   </ei:reportSpecifier>
-</oadrReportRequest>
+</oadr:oadrReportRequest>

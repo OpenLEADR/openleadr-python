@@ -1,16 +1,16 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
-  <oadrUpdatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+  <oadr:oadrUpdatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
     <ei:eiResponse>
       <ei:responseCode>{{ response.response_code }}</ei:responseCode>
       <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
-      {% if response.request_id %}
+      {% if response.request_id is defined and response.request_id is not none %}
       <pyld:requestID>{{ response.request_id }}</pyld:requestID>
       {% else %}
       <pyld:requestID />
       {% endif %}
     </ei:eiResponse>
-    {% if cancel_report %}
-    <oadrCancelReport>
+    {% if cancel_report is defined and cancel_report is not none %}
+    <oadr:oadrCancelReport>
       <pyld:requestID>{{ cancel_report.request_id }}</pyld:requestID>
       {% for report_request_id in cancel_report.report_request_id %}
       <ei:reportRequestID>{{ report_request_id }}</ei:reportRequestID>
@@ -19,10 +19,10 @@
       {% if cancel_report.ven_id %}
       <ei:venID>{{ cancel_report.ven_id }}</ei:venID>
       {% endif %}
-    </oadrCancelReport>
+    </oadr:oadrCancelReport>
     {% endif %}
-    {% if ven_id %}
+    {% if ven_id is defined and ven_id is not none %}
     <ei:venID>{{ ven_id }}</ei:venID>
     {% endif %}
-  </oadrUpdatedReport>
-</oadrSignedObject>
+  </oadr:oadrUpdatedReport>
+</oadr:oadrSignedObject>

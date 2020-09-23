@@ -1,5 +1,5 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
-  <oadrQueryRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+  <oadr:oadrQueryRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
-  </oadrQueryRegistration>
-</oadrSignedObject>
+  </oadr:oadrQueryRegistration>
+</oadr:oadrSignedObject>

@@ -1,41 +1,41 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
-  <oadrCreatedPartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+  <oadr:oadrCreatedPartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <ei:eiResponse>
       <ei:responseCode>{{ response.response_code }}</ei:responseCode>
       <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
       <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
     </ei:eiResponse>
-    {% if registration_id %}
+    {% if registration_id is defined and registration_id is not none %}
     <ei:registrationID>{{ registration_id }}</ei:registrationID>
     {% else %}
     <ei:registrationID />
     {% endif %}
 
-    {% if ven_id %}
+    {% if ven_id is defined and ven_id is not none %}
     <ei:venID>{{ ven_id }}</ei:venID>
     {% else %}
     <ei:venID />
     {% endif %}
 
     <ei:vtnID>{{ vtn_id }}</ei:vtnID>
-    <oadrProfiles>
+    <oadr:oadrProfiles>
     {% for profile in profiles %}
-      <oadrProfile>
-        <oadrProfileName>{{ profile.profile_name }}</oadrProfileName>
-        <oadrTransports>
+      <oadr:oadrProfile>
+        <oadr:oadrProfileName>{{ profile.profile_name }}</oadr:oadrProfileName>
+        <oadr:oadrTransports>
           {% for transport in profile.transports %}
-          <oadrTransport>
-            <oadrTransportName>simpleHttp</oadrTransportName>
-          </oadrTransport>
+          <oadr:oadrTransport>
+            <oadr:oadrTransportName>simpleHttp</oadr:oadrTransportName>
+          </oadr:oadrTransport>
           {% endfor %}
-        </oadrTransports>
-      </oadrProfile>
+        </oadr:oadrTransports>
+      </oadr:oadrProfile>
     {% endfor %}
-    </oadrProfiles>
-    {% if requested_oadr_poll_freq %}
-    <oadrRequestedOadrPollFreq>
+    </oadr:oadrProfiles>
+    {% if requested_oadr_poll_freq is defined and requested_oadr_poll_freq is not none %}
+    <oadr:oadrRequestedOadrPollFreq>
       <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">{{ requested_oadr_poll_freq|timedeltaformat }}</duration>
-    </oadrRequestedOadrPollFreq>
+    </oadr:oadrRequestedOadrPollFreq>
     {% endif %}
-  </oadrCreatedPartyRegistration>
-</oadrSignedObject>
+  </oadr:oadrCreatedPartyRegistration>
+</oadr:oadrSignedObject>

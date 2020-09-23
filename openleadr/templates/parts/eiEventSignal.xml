@@ -19,7 +19,7 @@
     <ei:signalName>{{ signal.signal_name }}</ei:signalName>
     <ei:signalType>{{ signal.signal_type }}</ei:signalType>
     <ei:signalID>{{ signal.signal_id }}</ei:signalID>
-    {% if signal.current_value is not none %}
+    {% if signal.current_value is defined and signal.current_value is not none %}
     <ei:currentValue>
         <ei:payloadFloat>
             <ei:value>{{ signal.current_value }}</ei:value>

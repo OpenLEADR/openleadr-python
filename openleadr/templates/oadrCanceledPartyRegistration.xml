@@ -1,5 +1,5 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
-  <oadrCanceledPartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+  <oadr:oadrCanceledPartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <ei:eiResponse>
       <ei:responseCode>{{ response.response_code }}</ei:responseCode>
       <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
@@ -7,5 +7,5 @@
     </ei:eiResponse>
     <ei:registrationID>{{ registration_id }}</ei:registrationID>
     <ei:venID>{{ ven_id }}</ei:venID>
-  </oadrCanceledPartyRegistration>
-</oadrSignedObject>
+  </oadr:oadrCanceledPartyRegistration>
+</oadr:oadrSignedObject>
