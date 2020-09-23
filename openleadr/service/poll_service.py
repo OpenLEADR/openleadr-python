@@ -16,6 +16,7 @@
 
 from . import service, handler, VTNService
 from asyncio import iscoroutine
+import warnings
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                             POLLING SERVICE                              ║
@@ -107,4 +108,13 @@ class PollService(VTNService):
         result = self.on_poll(ven_id=payload['ven_id'])
         if iscoroutine(result):
             result = await result
-        return result
+        if result is None:
+            return result
+        if isinstance(result, tuple):
+            return result
+        if isinstance(result, list):
+            return 'oadrDistributeEvent', result
+        if isinstance(result, dict) and 'event_descriptor' in result:
+            return 'oadrDistributeEvent', {'events': [result]}
+        warnings.warn(f"Could not determine type of message in response to oadrPoll: {result}")
+        return 'oadrResponse', result
