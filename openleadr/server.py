@@ -17,6 +17,7 @@
 from aiohttp import web
 from openleadr.service import EventService, PollService, RegistrationService, ReportService, OptService, VTNService
 from openleadr.messaging import create_message, parse_message
+from openleadr.utils import certificate_fingerprint
 from functools import partial
 
 class OpenADRServer:
@@ -60,6 +61,12 @@ class OpenADRServer:
                 cert = file.read()
             with open(key, "rb") as file:
                 key = file.read()
+            print("*" * 80)
+            print("Your VTN Certificate Fingerprint is", certificate_fingerprint(cert))
+            print("Please deliver this fingerprint to the VTN you are connecting to.")
+            print("You do not need to keep this a secret.")
+            print("*" * 80)
+
         VTNService._create_message = partial(create_message, cert=cert, key=key, passphrase=passphrase)
         VTNService._parse_message = partial(parse_message, fingerprint_lookup=fingerprint_lookup)
 
