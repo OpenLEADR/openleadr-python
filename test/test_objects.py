@@ -25,9 +25,9 @@ def test_oadr_event():
                     duration=timedelta(minutes=5),
                     uid=1,
                     signal_payload=2)],
-            target=objects.Target(
+            targets=[objects.Target(
                 ven_id='1234'
-            ),
+            )],
             signal_name=enums.SIGNAL_NAME.LOAD_CONTROL,
             signal_type=enums.SIGNAL_TYPE.LEVEL,
             signal_id=1,

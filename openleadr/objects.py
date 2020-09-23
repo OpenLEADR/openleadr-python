@@ -113,11 +113,11 @@ class Interval:
 @dataclass
 class EventSignal:
     intervals: List[Interval]
-    target: Target
     signal_name: str
     signal_type: str
     signal_id: str
     current_value: float
+    targets: List[Target] = None
 
 @dataclass
 class Event:
