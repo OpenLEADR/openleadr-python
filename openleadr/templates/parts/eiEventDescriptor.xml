@@ -4,7 +4,7 @@
     {% if event.event_descriptor.modification_date_time is not none %}
     <ei:modificationDateTime>{{ event.event_descriptor.modification_date_time|datetimeformat }}</ei:modificationDateTime>
     {% endif %}
-    {%if event.event_descriptor.modification_date_time is not none %}
+    {%if event.event_descriptor.priority is not none %}
     <ei:priority>{{ event.event_descriptor.priority }}</ei:priority>
     {% endif %}
     <ei:eiMarketContext>
