@@ -96,14 +96,14 @@ class EventDescriptor(objdict):
     event_status: str
 
     created_date_time: datetime = None
-    modification_date: datetime = None
+    modification_date_time: datetime = None
     priority: int = 0
     test_event: bool = False
     vtn_comment: str = None
 
     def __post_init__(self):
-        if self.modification_date is None:
-            self.modification_date = datetime.now(timezone.utc)
+        if self.modification_date_time is None:
+            self.modification_date_time = datetime.now(timezone.utc)
         if self.created_date_time is None:
             self.created_date_time = datetime.now(timezone.utc)
         if self.modification_number is None:
