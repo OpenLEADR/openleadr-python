@@ -18,7 +18,7 @@
 Tests message contents before sending them. It will correct benign errors and
 warn you about them. Uncorrectable errors will raise an Exception.
 """
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import warnings
 
 def preflight_message(message_type, message_payload):
@@ -69,3 +69,9 @@ def preflight_oadrDistributeEvent(message_payload):
         elif event['response_required'] not in ('never', 'always'):
             warnings.warn(f"The response_required property in an Event should be 'never' or 'always', not {event['response_required']}. Changing to 'always'.")
             event['response_required'] = 'always'
+
+    # Check that there is a valid oadrResponseRequired value for each Event
+    for event in message_payload['events']:
+        if 'created_date_time' not in event['event_descriptor'] or not event['event_descriptor']['created_date_time']:
+            print("ADDING CREATED DATE TIME")
+            event['event_descriptor']['created_date_time'] = datetime.now(timezone.utc)
