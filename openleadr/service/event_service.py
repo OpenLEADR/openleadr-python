@@ -26,19 +26,17 @@ class EventService(VTNService):
         """
         The VEN requests us to send any events we have.
         """
-        try:
-            result = self.on_request_event(payload['ven_id'])
-            if iscoroutine(result):
-                result = await result
-        except OpenADRError as err:
-            response_type = 'oadrResponse'
-            response_payload = {'request_id': payload['request_id'],
-                                'response_code': err.status,
-                                'response_description': err.description,
-                                'ven_id': payload['ven_id']}
-            return response_type, response_payload
+        result = self.on_request_event(payload['ven_id'])
+        if iscoroutine(result):
+            result = await result
+        if result is None:
+            return 'oadrDistributeEvent', {'events': []}
+        if isinstance(result, dict):
+            return 'oadrDistributeEvent', {'events': [result]}
+        if isinstance(result, list):
+            return 'oadrDistributeEvent', {'events': result}
         else:
-            return result
+            raise TypeError("Event handler should return None, a dict or a list")
 
     @handler('oadrCreatedEvent')
     async def created_event(self, payload):
