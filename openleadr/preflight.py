@@ -61,3 +61,11 @@ def preflight_oadrDistributeEvent(message_payload):
                 if event_signal['signal_name'] == "SIMPLE" and event['event_descriptor']['event_status'] != "ACTIVE":
                     warnings.warn("The current_value for a SIMPLE event that is not yet active must be 0. This will be corrected.")
                     event_signal['current_value'] = 0
+
+    # Check that there is a valid oadrResponseRequired value for each Event
+    for event in message_payload['events']:
+        if 'response_required' not in event:
+            event['response_required'] = 'always'
+        elif event['response_required'] not in ('never', 'always'):
+            warnings.warn(f"The response_required property in an Event should be 'never' or 'always', not {event['response_required']}. Changing to 'always'.")
+            event['response_required'] = 'always'
