@@ -80,19 +80,19 @@ def normalize_dict(ordered_dict):
             continue
         key = normalize_key(key)
 
-        if isinstance(value, OrderedDict):
+        if isinstance(value, (OrderedDict, dict)):
             d[key] = normalize_dict(value)
         elif isinstance(value, list):
             d[key] = []
             for item in value:
-                if isinstance(item, OrderedDict):
+                if isinstance(item, (OrderedDict, dict)):
                     dict_item = normalize_dict(item)
                     d[key].append(normalize_dict(dict_item))
                 else:
                     d[key].append(item)
         elif key in ("duration", "startafter", "max_period", "min_period"):
             d[key] = parse_duration(value)
-        elif "date_time" in key and isinstance(value, str):
+        elif ("date_time" in key or key == "dtstart") and isinstance(value, str):
             d[key] = parse_datetime(value)
         elif value in ('true', 'false'):
             d[key] = parse_boolean(value)
@@ -183,10 +183,7 @@ def normalize_dict(ordered_dict):
 
         # Durations are encapsulated in their own object, remove this nesting
         elif isinstance(d[key], dict) and "duration" in d[key] and len(d[key]) == 1:
-            try:
-                d[key] = d[key]["duration"]
-            except:
-                breakpoint()
+            d[key] = d[key]["duration"]
 
         # In general, remove all double nesting
         elif isinstance(d[key], dict) and key in d[key] and len(d[key]) == 1:
