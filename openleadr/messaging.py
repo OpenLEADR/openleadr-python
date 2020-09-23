@@ -24,6 +24,7 @@ from lxml.etree import Element
 from .utils import *
 from .preflight import preflight_message
 
+from dataclasses import is_dataclass, asdict
 SIGNER = XMLSigner(method=methods.detached,
                    c14n_algorithm="http://www.w3.org/2001/10/xml-exc-c14n#")
 VERIFIER = XMLVerifier()
@@ -42,6 +43,15 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
     """
     Create and optionally sign an OpenADR message. Returns an XML string.
     """
+    # If we supply the payload as dataclasses, convert them to dicts
+    for k, v in message_payload.items():
+        if isinstance(v, list):
+            for i, item in enumerate(v):
+                if is_dataclass(item):
+                    v[i] = asdict(item)
+        elif is_dataclass(v):
+            message_payload[k] = asdict(v)
+
     preflight_message(message_type, message_payload)
     signed_object = flatten_xml(TEMPLATES.get_template(f'{message_type}.xml').render(**message_payload))
     envelope = TEMPLATES.get_template('oadrPayload.xml')

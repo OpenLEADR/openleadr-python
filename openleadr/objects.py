@@ -18,62 +18,46 @@ from dataclasses import dataclass
 from typing import List
 from datetime import datetime, timezone, timedelta
 
-class objdict(dict):
-    def __getattr__(self, name):
-        if name in self:
-            return self[name]
-        else:
-            raise AttributeError("No such attribute: " + name)
-
-    def __setattr__(self, name, value):
-        self[name] = value
-
-    def __delattr__(self, name):
-        if name in self:
-            del self[name]
-        else:
-            raise AttributeError("No such attribute: " + name)
-
 @dataclass
-class AggregatedPNode(objdict):
+class AggregatedPNode:
     node: str
 
 @dataclass
-class EndDeviceAsset(objdict):
+class EndDeviceAsset:
     mrid: str
 
 @dataclass
-class MeterAsset(objdict):
+class MeterAsset:
     mrid: str
 
 @dataclass
-class PNode(objdict):
+class PNode:
     node: str
 
 @dataclass
-class FeatureCollection(objdict):
+class FeatureCollection:
     id: str
     location: dict
 
 @dataclass
-class ServiceArea(objdict):
+class ServiceArea:
     feature_collection: FeatureCollection
 
 @dataclass
-class ServiceDeliveryPoint(objdict):
+class ServiceDeliveryPoint:
     node: str
 
 @dataclass
-class ServiceLocation(objdict):
+class ServiceLocation:
     node: str
 
 @dataclass
-class TransportInterface(objdict):
+class TransportInterface:
     point_of_receipt: str
     point_of_delivery: str
 
 @dataclass
-class Target(objdict):
+class Target:
     aggregated_p_node: AggregatedPNode = None
     end_device_asset: EndDeviceAsset = None
     meter_asset: MeterAsset = None
@@ -89,7 +73,7 @@ class Target(objdict):
     party_id: str = None
 
 @dataclass
-class EventDescriptor(objdict):
+class EventDescriptor:
     event_id: int
     modification_number: int
     market_context: str
@@ -102,17 +86,16 @@ class EventDescriptor(objdict):
     vtn_comment: str = None
 
     def __post_init__(self):
+        print("Calling Post Init")
         if self.modification_date_time is None:
             self.modification_date_time = datetime.now(timezone.utc)
         if self.created_date_time is None:
             self.created_date_time = datetime.now(timezone.utc)
         if self.modification_number is None:
             self.modification_number = 0
-        if not isinstance(self.test_event, bool):
-            self.test_event = False
 
 @dataclass
-class ActivePeriod(objdict):
+class ActivePeriod:
     dtstart: datetime
     duration: timedelta
     tolerance: dict = None
@@ -121,14 +104,14 @@ class ActivePeriod(objdict):
     recovery: dict = None
 
 @dataclass
-class Interval(objdict):
+class Interval:
     dtstart: datetime
     duration: timedelta
     signal_payload: float
     uid: int = None
 
 @dataclass
-class EventSignal(objdict):
+class EventSignal:
     intervals: List[Interval]
     target: Target
     signal_name: str
@@ -137,14 +120,14 @@ class EventSignal(objdict):
     current_value: float
 
 @dataclass
-class Event(objdict):
+class Event:
     event_descriptor: EventDescriptor
     active_period: ActivePeriod
     event_signals: EventSignal
-    target: Target
+    targets: List[Target]
 
 @dataclass
-class Response(objdict):
+class Response:
     response_code: int
     response_description: str
     request_id: str
