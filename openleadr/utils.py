@@ -336,7 +336,7 @@ def booleanformat(value):
     elif value in ("true", "false"):
         return value
     else:
-        raise ValueError("A boolean value must be provided.")
+        raise ValueError(f"A boolean value must be provided, not {value}.")
 
 def ensure_bytes(obj):
     if isinstance(obj, bytes):
