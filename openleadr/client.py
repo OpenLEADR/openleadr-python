@@ -369,7 +369,6 @@ class OpenADRClient:
         print("Now polling")
         response_type, response_payload = await self.poll()
         if response_type is None:
-            raise Exception("NO RESPONSE")
             return
 
         if response_type == 'oadrResponse':
