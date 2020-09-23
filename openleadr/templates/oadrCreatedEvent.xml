@@ -1,4 +1,4 @@
-<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" id="oadrSignedObject">
+<oadrSignedObject xmlns="http://openadr.org/oadr-2.0b/2012/07" Id="oadrSignedObject">
   <oadrCreatedEvent ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <eiCreatedEvent xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
       <ei:eiResponse>
