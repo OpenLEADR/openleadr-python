@@ -25,6 +25,8 @@ from .. import errors
 from ..messaging import create_message, parse_message
 from ..utils import generate_id
 
+from dataclasses import is_dataclass, asdict
+
 class VTNService:
 
     def __init__(self, vtn_id):
@@ -48,6 +50,8 @@ class VTNService:
                 result = await result
             if result is not None:
                 response_type, response_payload = result
+                if is_dataclass(response_payload):
+                    response_payload = asdict(response_payload)
             else:
                 response_type, response_payload = 'oadrResponse', {}
 
