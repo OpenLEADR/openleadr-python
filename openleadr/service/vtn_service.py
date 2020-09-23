@@ -38,14 +38,22 @@ class VTNService:
         Handle all incoming POST requests.
         """
         content = await request.read()
-        print(f"Received: {content.decode('utf-8')}")
         message_type, message_payload = self._parse_message(content)
-        print(f"Interpreted message: {message_type}: {message_payload}")
 
         if message_type in self.handlers:
             handler = self.handlers[message_type]
-            response_type, response_payload = await handler(message_payload)
+            result = handler(message_payload)
+            if iscoroutine(result):
+                result = await result
+            if result is not None:
+                response_type, response_payload = result
+            else:
+                response_type, response_payload = 'oadrResponse', {}
             response_payload['vtn_id'] = self.vtn_id
+
+            response_payload['response'] = {'request_id': message_payload.get('request_id', None),
+                                            'response_code': 200,
+                                            'response_description': 'OK'}
 
             # Create the XML response
             msg = self._create_message(response_type, **response_payload)
@@ -56,10 +64,9 @@ class VTNService:
         else:
             msg = self._create_message('oadrResponse',
                                        status_code=errorcodes.COMPLIANCE_ERROR,
-                                       status_description=f'A message of type {message_type} should not be sent to this endpoint')
+                                       status_description=f"A message of type {message_type} should not be sent to this endpoint")
             response = web.Response(
                 text=msg,
                 status=HTTPStatus.BAD_REQUEST,
                 content_type='application/xml')
-        print(f"Sending {response.text}")
         return response
