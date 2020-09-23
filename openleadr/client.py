@@ -221,7 +221,7 @@ class OpenADRClient:
             print(f"Got error on Create Party Registration: {status_code} {status_description}")
             return
         self.ven_id = response_payload['ven_id']
-        self.poll_frequency = response_payload['requested_oadr_poll_freq']
+        self.poll_frequency = response_payload.get('requested_oadr_poll_freq', timedelta(seconds=10))
         print(f"VEN is now registered with ID {self.ven_id}")
         print(f"The polling frequency is {self.poll_frequency}")
         return response_type, response_payload
@@ -345,8 +345,9 @@ class OpenADRClient:
             return None, {}
         try:
             message_type, message_payload = self._parse_message(content)
-        except:
+        except Exception as err:
             warnings.warn(f"The incoming message could not be parsed or validated: {content}.")
+            raise err
             return None, {}
         return message_type, message_payload
 
