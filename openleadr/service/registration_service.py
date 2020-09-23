@@ -91,11 +91,11 @@ class RegistrationService(VTNService):
             result = await result
 
         response_type, response_payload = result
-        response_payload['reponse'] = {'response_code': 200,
+        response_payload['response'] = {'response_code': 200,
                                        'response_description': 'OK',
                                        'request_id': payload['request_id']}
         response_payload['vtn_id'] = self.vtn_id
-        return result
+        return response_type, response_payload
 
     @handler('oadrCancelPartyRegistration')
     async def cancel_party_registration(self, payload):
