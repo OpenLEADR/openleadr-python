@@ -3,7 +3,7 @@
     <ei:eiResponse>
       <ei:responseCode>{{ response.response_code }}</ei:responseCode>
       <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
-      {% if response.request_id %}
+      {% if response.request_id and response.request_id is not none %}
       <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
       {% else %}
       <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" />
