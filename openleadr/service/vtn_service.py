@@ -23,6 +23,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .. import errors
 from ..messaging import create_message, parse_message
+from ..utils import generate_id
 
 class VTNService:
 
@@ -49,11 +50,15 @@ class VTNService:
                 response_type, response_payload = result
             else:
                 response_type, response_payload = 'oadrResponse', {}
+
             response_payload['vtn_id'] = self.vtn_id
+            if 'ven_id' in message_payload:
+                response_payload['ven_id'] = message_payload['ven_id']
 
             response_payload['response'] = {'request_id': message_payload.get('request_id', None),
                                             'response_code': 200,
                                             'response_description': 'OK'}
+            response_payload['request_id'] = generate_id()
 
             # Create the XML response
             msg = self._create_message(response_type, **response_payload)
@@ -63,8 +68,10 @@ class VTNService:
 
         else:
             msg = self._create_message('oadrResponse',
+                                       ven_id=message_payload.get('ven_id'),
                                        status_code=errorcodes.COMPLIANCE_ERROR,
                                        status_description=f"A message of type {message_type} should not be sent to this endpoint")
+
             response = web.Response(
                 text=msg,
                 status=HTTPStatus.BAD_REQUEST,
