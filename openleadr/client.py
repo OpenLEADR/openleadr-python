@@ -31,6 +31,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio import iscoroutine
 from functools import partial
+from random import randint
 
 MEASURANDS = {'power_real': 'power_quantity',
               'power_reactive': 'power_quantity',
@@ -110,20 +111,24 @@ class OpenADRClient:
 
         # Set up automatic polling
         if self.poll_frequency.total_seconds() < 60:
-            cron_second = f"*/{self.poll_frequency.seconds}"
+            seconds_offset = randint(0, self.poll_frequency.seconds)
+            cron_second = f"{seconds_offset}/{self.poll_frequency.seconds}"
             cron_minute = "*"
             cron_hour = "*"
         elif self.poll_frequency.total_seconds() < 3600:
-            cron_second = "0"
+            cron_second = randint(0, 59)
             cron_minute = f'*/{int(self.poll_frequency.total_seconds() / 60)}'
             cron_hour = "*"
         elif self.poll_frequency.total_seconds() < 86400:
-            cron_second = "0"
+            cron_second = randint(0, 59)
             cron_minute = "0"
             cron_hour = f'*/{int(self.poll_frequency.total_seconds() / 3600)}'
         elif self.poll_frequency.total_seconds() > 86400:
             logger.warning("Polling with intervals of more than 24 hours is not supported. "
                            "Will use 24 hours as the logging interval.")
+            cron_second = randint(0, 59)
+            cron_minute = "0"
+            cron_hour = "0"
             return
 
         self.scheduler.add_job(self._poll, trigger='cron', second=cron_second, minute=cron_minute, hour=cron_hour)
