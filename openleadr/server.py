@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from aiohttp import web
+from openleadr import logger
 from openleadr.service import EventService, PollService, RegistrationService, ReportService, OptService, VTNService
 from openleadr.messaging import create_message, parse_message
 from openleadr.utils import certificate_fingerprint
@@ -61,11 +62,13 @@ class OpenADRServer:
                 cert = file.read()
             with open(key, "rb") as file:
                 key = file.read()
-            print("*" * 80)
-            print("Your VTN Certificate Fingerprint is", certificate_fingerprint(cert))
-            print("Please deliver this fingerprint to the VTN you are connecting to.")
-            print("You do not need to keep this a secret.")
-            print("*" * 80)
+            logger.info("")
+            logger.info("*" * 80)
+            logger.info(f"Your VTN Certificate Fingerprint is {certificate_fingerprint(cert)}".center(80))
+            logger.info("Please deliver this fingerprint to the VENs that connect to you.".center(80))
+            logger.info("You do not need to keep this a secret.".center(80))
+            logger.info("*" * 80)
+            logger.info("")
 
         VTNService._create_message = partial(create_message, cert=cert, key=key, passphrase=passphrase)
         VTNService._parse_message = partial(parse_message, fingerprint_lookup=fingerprint_lookup)
@@ -88,7 +91,7 @@ class OpenADRServer:
         :param name string: The name for this handler. Should be one of: on_created_event, on_request_event, on_register_report, on_create_report, on_created_report, on_request_report, on_update_report, on_poll, on_query_registration, on_create_party_registration, on_cancel_party_registration.
         :param func coroutine: A coroutine that handles this event. It receives the message, and should return the contents of a response.
         """
-        print("Called add_handler", name, func)
+        logger.debug(f"Adding handler: {name} {func}")
         if name in self._MAP:
             setattr(self._MAP[name], name, staticmethod(func))
         else:

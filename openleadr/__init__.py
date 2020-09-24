@@ -14,5 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+logger = logging.getLogger('openleadr')
+
+def enable_default_logging(level=logging.INFO):
+    """
+    Turn on logging to stdout.
+    :param level integer: The logging level you wish to use. Defaults to logging.INFO.
+    """
+    import sys
+    logger.setLevel(level)
+
+    logging_handler = logging.StreamHandler(stream=sys.stdout)
+    logging_handler.setLevel(logging.DEBUG)
+    logger.addHandler(logging_handler)
+
 from .client import OpenADRClient
 from .server import OpenADRServer

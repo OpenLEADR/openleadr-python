@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from datetime import datetime, timedelta, timezone
-import warnings
+from openleadr import logger
 
 def preflight_message(message_type, message_payload):
     """
@@ -44,9 +44,9 @@ def _preflight_oadrDistributeEvent(message_payload):
             if not all([d==signal_durations[0] for d in signal_durations]):
                 raise ValueError("The different EventSignals have different total durations. Please correct this.")
             else:
-                warnings.warn(f"The active_period duration for event {event['event_descriptor']['event_id']} ({active_period_duration})"
-                              f" was different from the sum of the interval's durations ({signal_durations[0]})."
-                              f" The active_period duration has been adjusted to ({signal_durations[0]}).")
+                logger.warning(f"The active_period duration for event {event['event_descriptor']['event_id']} ({active_period_duration})"
+                               f" was different from the sum of the interval's durations ({signal_durations[0]})."
+                               f" The active_period duration has been adjusted to ({signal_durations[0]}).")
                 event['active_period']['duration'] = signal_durations[0]
 
     # Check that payload values with signal name SIMPLE are constricted (rule 9)
@@ -63,7 +63,7 @@ def _preflight_oadrDistributeEvent(message_payload):
         for event_signal in event['event_signals']:
             if 'current_value' in event_signal and event_signal['current_value'] != 0:
                 if event_signal['signal_name'] == "SIMPLE" and event['event_descriptor']['event_status'] != "ACTIVE":
-                    warnings.warn("The current_value for a SIMPLE event that is not yet active must be 0. This will be corrected.")
+                    logger.warning("The current_value for a SIMPLE event that is not yet active must be 0. This will be corrected.")
                     event_signal['current_value'] = 0
 
     # Check that there is a valid oadrResponseRequired value for each Event
@@ -71,11 +71,10 @@ def _preflight_oadrDistributeEvent(message_payload):
         if 'response_required' not in event:
             event['response_required'] = 'always'
         elif event['response_required'] not in ('never', 'always'):
-            warnings.warn(f"The response_required property in an Event should be 'never' or 'always', not {event['response_required']}. Changing to 'always'.")
+            logger.warning(f"The response_required property in an Event should be 'never' or 'always', not {event['response_required']}. Changing to 'always'.")
             event['response_required'] = 'always'
 
     # Check that there is a valid oadrResponseRequired value for each Event
     for event in message_payload['events']:
         if 'created_date_time' not in event['event_descriptor'] or not event['event_descriptor']['created_date_time']:
-            print("ADDING CREATED DATE TIME")
             event['event_descriptor']['created_date_time'] = datetime.now(timezone.utc)

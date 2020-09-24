@@ -62,7 +62,6 @@ class ReportService(VTNService):
         """
         Register a reporting type.
         """
-        print("Called Registered Report")
         response_type = 'oadrRegisteredReport'
         response_payload = {"response": {"response_code": 200,
                                          "response_description": "OK",
@@ -75,18 +74,15 @@ class ReportService(VTNService):
         """
         Provide the VEN with the latest report.
         """
-        print("Called Request Report")
 
     @handler('oadrUpdateReport')
     async def update_report(self, payload):
         """
         Updates an existing report from this VEN in our database.
         """
-        print("Called Update Report")
 
     @handler('oadrCancelReport')
     async def cancel_report(self, payload):
         """
         Cancels a previously received report from this VEN.
         """
-        print("Called Cancel Report")

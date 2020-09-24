@@ -16,7 +16,7 @@
 
 from . import service, handler, VTNService
 from asyncio import iscoroutine
-import warnings
+from openleadr import logger
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                             POLLING SERVICE                              ║
@@ -116,5 +116,5 @@ class PollService(VTNService):
             return 'oadrDistributeEvent', result
         if isinstance(result, dict) and 'event_descriptor' in result:
             return 'oadrDistributeEvent', {'events': [result]}
-        warnings.warn(f"Could not determine type of message in response to oadrPoll: {result}")
+        logger.warning(f"Could not determine type of message in response to oadrPoll: {result}")
         return 'oadrResponse', result
