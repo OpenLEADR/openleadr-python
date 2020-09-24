@@ -42,3 +42,18 @@ To prevent an attacker from simple re-playing a previous message (for instance, 
 
 OpenLEADR automatically generates and validates these portions of the signature. Signed messages that do not contain a ReplayProtect element are rejected, as required by the OpenADR specification.
 
+
+Certificate Fingerprints
+------------------------
+
+In order for the opposing party to verify that you ar who you say you are, they need the fingerprint of your public key that you are using. You can get this fingerprint in two ways:
+
+1. It will be printed to your stdout when you start your client or server. If you don't want this, your can turn it off by passing `show_fingerprint=False` to the OpenADRClient() or OpenADRServer() constructors.
+2. You can use an included commandline tool to show the fingerprint of any PEM certificate:
+
+.. code-block:: bash
+
+    pip3 install --user openleadr
+    fingerprint path/to/cert.pem
+
+The fingerprint is not sensitive material; you can distribute it via an unsecured method, or you can publish it as a DNS-record for example.

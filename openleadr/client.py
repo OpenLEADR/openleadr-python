@@ -21,6 +21,7 @@ OpenADR Client for Python
 import xmltodict
 import random
 import aiohttp
+from openleadr import logger
 from openleadr.utils import peek, generate_id, certificate_fingerprint
 from openleadr.messaging import create_message, parse_message
 from openleadr import enums
@@ -30,7 +31,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio import iscoroutine
 from functools import partial
-import warnings
 
 MEASURANDS = {'power_real': 'power_quantity',
               'power_reactive': 'power_quantity',
@@ -44,7 +44,8 @@ class OpenADRClient:
     Main client class. Most of these methods will be called automatically, but
     you can always choose to call them manually.
     """
-    def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None, passphrase=None, vtn_fingerprint=None):
+    def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None, passphrase=None,
+                 vtn_fingerprint=None, show_fingerprint=True):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -54,6 +55,7 @@ class OpenADRClient:
         :param str cert: The path to a PEM-formatted Certificate file to use for signing messages
         :param str key: The path to a PEM-formatted Private Key file to use for signing messages
         :param str fingerprint: The fingerprint for the VTN's certificate to verify incomnig messages
+        :param str show_fingerprint: Whether to print your own fingerprint on startup. Defaults to True.
         """
 
         self.ven_name = ven_name
@@ -72,11 +74,15 @@ class OpenADRClient:
                 cert = file.read()
             with open(key, 'rb') as file:
                 key = file.read()
-            print("*" * 80)
-            print("Your VEN Certificate Fingerprint is", certificate_fingerprint(cert))
-            print("Please deliver this fingerprint to the VTN you are connecting to.")
-            print("You do not need to keep this a secret.")
-            print("*" * 80)
+
+            if show_fingerprint:
+                print("")
+                print("*" * 80)
+                print(f"Your VEN Certificate Fingerprint is {certificate_fingerprint(cert)}".center(80))
+                print("Please deliver this fingerprint to the VTN you are connecting to.".center(80))
+                print("You do not need to keep this a secret.".center(80))
+                print("*" * 80)
+                print("")
 
         self._create_message = partial(create_message,
                                        cert=cert,
@@ -96,7 +102,7 @@ class OpenADRClient:
         await self.create_party_registration()
 
         if not self.ven_id:
-            print("No VEN ID received from the VTN, aborting registration.")
+            logger.error("No VEN ID received from the VTN, aborting registration.")
             return
 
         if self.reports:
@@ -116,7 +122,8 @@ class OpenADRClient:
             cron_minute = "0"
             cron_hour = f'*/{int(self.poll_frequency.total_seconds() / 3600)}'
         elif self.poll_frequency.total_seconds() > 86400:
-            print("Polling with intervals of more than 24 hours is not supported.")
+            logger.warning("Polling with intervals of more than 24 hours is not supported. "
+                           "Will use 24 hours as the logging interval.")
             return
 
         self.scheduler.add_job(self._poll, trigger='cron', second=cron_second, minute=cron_minute, hour=cron_hour)
@@ -218,12 +225,12 @@ class OpenADRClient:
         if response_payload['response']['response_code'] != 200:
             status_code = response_payload['response']['response_code']
             status_description = response_payload['response']['response_description']
-            print(f"Got error on Create Party Registration: {status_code} {status_description}")
+            logger.error(f"Got error on Create Party Registration: {status_code} {status_description}")
             return
         self.ven_id = response_payload['ven_id']
         self.poll_frequency = response_payload.get('requested_oadr_poll_freq', timedelta(seconds=10))
-        print(f"VEN is now registered with ID {self.ven_id}")
-        print(f"The polling frequency is {self.poll_frequency}")
+        logger.info(f"VEN is now registered with ID {self.ven_id}")
+        logger.info(f"The polling frequency is {self.poll_frequency}")
         return response_type, response_payload
 
     async def cancel_party_registration(self):
@@ -321,61 +328,56 @@ class OpenADRClient:
         service = 'EiReport'
         message = self._create_message('oadrUpdateReport', report)
         response_type, response_payload = self._perform_request(service, message)
-        if response_type is not None:
-            # We might get a oadrCancelReport message in this thing:
-            if 'cancel_report' in response_payload:
-                print("TODO: cancel this report")
+
+        # TODO: handle a possible oadrCancelReport instruction here.
 
 
     async def _perform_request(self, service, message):
-        if self.debug:
-            print(f"Client is sending {message}")
+        logger.debug(f"Client is sending {message}")
         url = f"{self.vtn_url}/{service}"
         try:
             async with self.client_session.post(url, data=message) as req:
                 if req.status != HTTPStatus.OK:
-                    warnings.warn(f"Non-OK status when performing a request to {url} with data {message}: {req.status}")
+                    logger.warning(f"Non-OK status when performing a request to {url} with data {message}: {req.status}")
                     return None, {}
                 content = await req.read()
-                if self.debug:
-                    print(content.decode('utf-8'))
+                logger.debug(content.decode('utf-8'))
         except:
             # Could not connect to server
-            warnings.warn(f"Could not connect to server with URL {self.vtn_url}")
+            logger.warning(f"Could not connect to server with URL {self.vtn_url}")
             return None, {}
         try:
             message_type, message_payload = self._parse_message(content)
         except Exception as err:
-            warnings.warn(f"The incoming message could not be parsed or validated: {content}.")
+            logger.error(f"The incoming message could not be parsed or validated: {content}.")
             raise err
             return None, {}
         return message_type, message_payload
 
     async def _on_event(self, message):
-        if self.debug:
-            print("ON_EVENT")
+        logger.debug(f"The VEN received an event")
         result = self.on_event(message)
         if iscoroutine(result):
             result = await result
 
-        if self.debug:
-            print(f"Now responding with {result}")
+        logger.debug(f"Now responding with {result}")
         request_id = message['request_id']
         event_id = message['events'][0]['event_descriptor']['event_id']
         await self.created_event(request_id, event_id, result)
         return
 
     async def _poll(self):
-        print("Now polling")
+        logger.debug("Now polling for new messages")
         response_type, response_payload = await self.poll()
         if response_type is None:
             return
 
         if response_type == 'oadrResponse':
-            print("No events or reports available")
+            logger.debug("No events or reports available")
             return
 
         if response_type == 'oadrRequestReregistration':
+            logger.info("The VTN required us to re-register. Calling the registration procedure.")
             await self.create_party_registration()
 
         if response_type == 'oadrDistributeEvent':
@@ -385,7 +387,8 @@ class OpenADRClient:
             await self._on_report(response_payload)
 
         else:
-            print(f"No handler implemented for message type {response_type}, ignoring.")
+            logger.warning(f"No handler implemented for incoming message "
+                            f"of type {response_type}, ignoring.")
 
         # Immediately poll again, because there might be more messages
         await self._poll()

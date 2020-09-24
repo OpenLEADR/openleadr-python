@@ -20,13 +20,11 @@ from openleadr import OpenADRClient, OpenADRServer, enums
 from openleadr.utils import generate_id
 from openleadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
-
+import logging
 from pprint import pprint
-import warnings
-
 
 @pytest.mark.asyncio
-async def test_conformance_014_warn():
+async def test_conformance_014_warn(caplog):
     """
     If currentValue is included in the payload, it MUST be set to 0 (normal)
     when the event status is not “active” for the SIMPLE signalName.
@@ -61,11 +59,13 @@ async def test_conformance_014_warn():
         }
 
     # Create a message with this event
-    with pytest.warns(UserWarning):
-        msg = create_message('oadrDistributeEvent',
-                             response={'response_code': 200,
-                                       'response_description': 'OK',
-                                       'request_id': generate_id()},
-                             request_id=generate_id(),
-                             vtn_id=generate_id(),
-                             events=[event])
+    msg = create_message('oadrDistributeEvent',
+                         response={'response_code': 200,
+                                   'response_description': 'OK',
+                                   'request_id': generate_id()},
+                         request_id=generate_id(),
+                         vtn_id=generate_id(),
+                         events=[event])
+
+    assert caplog.record_tuples == [("openleadr", logging.WARNING, "The current_value for a SIMPLE event that is not yet active must be 0. This will be corrected.")]
+

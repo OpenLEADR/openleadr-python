@@ -84,6 +84,7 @@ Table of Contents
    client
    server
    examples
+   logging
    representations
    message_signing
    roadmap

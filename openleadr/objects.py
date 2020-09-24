@@ -86,7 +86,6 @@ class EventDescriptor:
     vtn_comment: str = None
 
     def __post_init__(self):
-        print("Calling Post Init")
         if self.modification_date_time is None:
             self.modification_date_time = datetime.now(timezone.utc)
         if self.created_date_time is None:

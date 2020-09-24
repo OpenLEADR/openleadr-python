@@ -24,6 +24,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 from .. import errors
 from ..messaging import create_message, parse_message
 from ..utils import generate_id
+from .. import logger
 
 from dataclasses import is_dataclass, asdict
 
@@ -42,6 +43,7 @@ class VTNService:
         """
         content = await request.read()
         message_type, message_payload = self._parse_message(content)
+        logger.info(f"Received {message_type} from ven_id {message_payload.get('ven_id')}")
 
         if message_type in self.handlers:
             handler = self.handlers[message_type]
@@ -80,4 +82,5 @@ class VTNService:
                 text=msg,
                 status=HTTPStatus.BAD_REQUEST,
                 content_type='application/xml')
+        logger.info(f"Sending {response_type} to ven_id {response_payload.get('ven_id')}")
         return response

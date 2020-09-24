@@ -22,11 +22,11 @@ from openleadr.messaging import create_message, parse_message
 from datetime import datetime, timezone, timedelta
 
 from pprint import pprint
-import warnings
+import logging
 
 
 @pytest.mark.asyncio
-async def test_conformance_008_autocorrect():
+async def test_conformance_008_autocorrect(caplog):
     """
     oadrDistributeEvent eventSignal interval durations for a given event MUST
     add up to eiEvent eiActivePeriod duration.
@@ -60,14 +60,15 @@ async def test_conformance_008_autocorrect():
         }
 
     # Create a message with this event
-    with pytest.warns(UserWarning):
-        msg = create_message('oadrDistributeEvent',
-                             response={'response_code': 200,
-                                       'response_description': 'OK',
-                                       'request_id': generate_id()},
-                             request_id=generate_id(),
-                             vtn_id=generate_id(),
-                             events=[event])
+    msg = create_message('oadrDistributeEvent',
+                         response={'response_code': 200,
+                                   'response_description': 'OK',
+                                   'request_id': generate_id()},
+                         request_id=generate_id(),
+                         vtn_id=generate_id(),
+                         events=[event])
+
+    assert caplog.record_tuples == [("openleadr", logging.WARNING, f"The active_period duration for event {event_id} (0:05:00) was different from the sum of the interval's durations (0:30:00). The active_period duration has been adjusted to (0:30:00).")]
 
     parsed_type, parsed_msg = parse_message(msg)
     assert parsed_type == 'oadrDistributeEvent'
