@@ -36,7 +36,7 @@ def parse_message(data, fingerprint=None, fingerprint_lookup=None):
     message_dict = xmltodict.parse(data, process_namespaces=True, namespaces=NAMESPACES)
     message_type, message_payload = message_dict['oadrPayload']['oadrSignedObject'].popitem()
     if 'ven_id' in message_payload:
-        validate_and_authenticate_message(data, message_dict, fingerprint, fingerprint_lookup)
+        _validate_and_authenticate_message(data, message_dict, fingerprint, fingerprint_lookup)
     return message_type, normalize_dict(message_payload)
 
 def create_message(message_type, cert=None, key=None, passphrase=None, **message_payload):
@@ -72,7 +72,7 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
                           signed_object=signed_object)
     return msg
 
-def validate_and_authenticate_message(data, message_dict, fingerprint=None, fingerprint_lookup=None):
+def _validate_and_authenticate_message(data, message_dict, fingerprint=None, fingerprint_lookup=None):
     if not fingerprint and not fingerprint_lookup:
         return
     tree = etree.fromstring(ensure_bytes(data))
@@ -124,7 +124,6 @@ def _update_nonce_cache(timestamp, nonce):
 # Replay protect settings
 REPLAY_PROTECT_MAX_TIME_DELTA = timedelta(seconds=5)
 NONCE_CACHE = set()
-
 
 # Settings for jinja2
 TEMPLATES = Environment(loader=PackageLoader('openleadr', 'templates'))
