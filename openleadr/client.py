@@ -44,7 +44,8 @@ class OpenADRClient:
     Main client class. Most of these methods will be called automatically, but
     you can always choose to call them manually.
     """
-    def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None, passphrase=None, vtn_fingerprint=None):
+    def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None, passphrase=None,
+                 vtn_fingerprint=None, show_fingerprint=True):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -54,6 +55,7 @@ class OpenADRClient:
         :param str cert: The path to a PEM-formatted Certificate file to use for signing messages
         :param str key: The path to a PEM-formatted Private Key file to use for signing messages
         :param str fingerprint: The fingerprint for the VTN's certificate to verify incomnig messages
+        :param str show_fingerprint: Whether to print your own fingerprint on startup. Defaults to True.
         """
 
         self.ven_name = ven_name
@@ -72,13 +74,15 @@ class OpenADRClient:
                 cert = file.read()
             with open(key, 'rb') as file:
                 key = file.read()
-            logger.info("")
-            logger.info("*" * 80)
-            logger.info(f"Your VEN Certificate Fingerprint is {certificate_fingerprint(cert)}".center(80))
-            logger.info("Please deliver this fingerprint to the VTN you are connecting to.".center(80))
-            logger.info("You do not need to keep this a secret.".center(80))
-            logger.info("*" * 80)
-            logger.info("")
+
+            if show_fingerprint:
+                print("")
+                print("*" * 80)
+                print(f"Your VEN Certificate Fingerprint is {certificate_fingerprint(cert)}".center(80))
+                print("Please deliver this fingerprint to the VTN you are connecting to.".center(80))
+                print("You do not need to keep this a secret.".center(80))
+                print("*" * 80)
+                print("")
 
         self._create_message = partial(create_message,
                                        cert=cert,

@@ -37,7 +37,7 @@ class OpenADRServer:
             'on_create_party_registration': RegistrationService,
             'on_cancel_party_registration': RegistrationService}
 
-    def __init__(self, vtn_id, cert=None, key=None, passphrase=None, fingerprint_lookup=None):
+    def __init__(self, vtn_id, cert=None, key=None, passphrase=None, fingerprint_lookup=None, show_fingerprint=True):
         """
         Create a new OpenADR VTN (Server).
 
@@ -47,6 +47,7 @@ class OpenADRServer:
         :param passphrase string: The passphrase used to decrypt the private key file
         :param fingerprint_lookup callable: A callable that receives a ven_id and should return the registered fingerprint for that VEN.
                                             You should receive these fingerprints outside of OpenADR and configure them manually.
+        :param show_fingerprint boolean: Whether to print the fingerprint to your stdout on startup. Defaults to True.
         """
         self.app = web.Application()
         self.services = {'event_service': EventService(vtn_id),
@@ -62,13 +63,14 @@ class OpenADRServer:
                 cert = file.read()
             with open(key, "rb") as file:
                 key = file.read()
-            logger.info("")
-            logger.info("*" * 80)
-            logger.info(f"Your VTN Certificate Fingerprint is {certificate_fingerprint(cert)}".center(80))
-            logger.info("Please deliver this fingerprint to the VENs that connect to you.".center(80))
-            logger.info("You do not need to keep this a secret.".center(80))
-            logger.info("*" * 80)
-            logger.info("")
+            if show_fingerprint:
+                print("")
+                print("*" * 80)
+                print(f"Your VTN Certificate Fingerprint is {certificate_fingerprint(cert)}".center(80))
+                print("Please deliver this fingerprint to the VENs that connect to you.".center(80))
+                print("You do not need to keep this a secret.".center(80))
+                print("*" * 80)
+                print("")
 
         VTNService._create_message = partial(create_message, cert=cert, key=key, passphrase=passphrase)
         VTNService._parse_message = partial(parse_message, fingerprint_lookup=fingerprint_lookup)

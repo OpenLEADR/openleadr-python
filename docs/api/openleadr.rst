@@ -28,6 +28,14 @@ openleadr.errors module
    :undoc-members:
    :show-inheritance:
 
+openleadr.fingerprint module
+----------------------------
+
+.. automodule:: openleadr.fingerprint
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 openleadr.logging module
 ------------------------
 
