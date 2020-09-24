@@ -21,7 +21,7 @@ OpenADR Client for Python
 import xmltodict
 import random
 import aiohttp
-from openleadr.utils import new_request_id, peek, generate_id, certificate_fingerprint
+from openleadr.utils import peek, generate_id, certificate_fingerprint
 from openleadr.messaging import create_message, parse_message
 from openleadr import enums
 from datetime import datetime, timedelta, timezone
@@ -180,7 +180,7 @@ class OpenADRClient:
         """
         Request information about the VTN.
         """
-        request_id = new_request_id()
+        request_id = generate_id()
         service = 'EiRegisterParty'
         message = self._create_message('oadrQueryRegistration', request_id=request_id)
         response_type, response_payload = await self._perform_request(service, message)
@@ -200,7 +200,7 @@ class OpenADRClient:
         :param str transport_address: Which public-facing address the server should use to communicate.
         :param str ven_id: The ID for this VEN. If you leave this blank, a VEN_ID will be assigned by the VTN.
         """
-        request_id = new_request_id()
+        request_id = generate_id()
         service = 'EiRegisterParty'
         payload = {'ven_name': self.ven_name,
                    'http_pull_model': http_pull_model,
@@ -211,7 +211,7 @@ class OpenADRClient:
                    'transport_address': transport_address}
         if ven_id:
             payload['ven_id'] = ven_id
-        message = self._create_message('oadrCreatePartyRegistration', request_id=new_request_id(), **payload)
+        message = self._create_message('oadrCreatePartyRegistration', request_id=generate_id(), **payload)
         response_type, response_payload = await self._perform_request(service, message)
         if response_type is None:
             return
@@ -233,7 +233,7 @@ class OpenADRClient:
         """
         Request the next Event from the VTN, if it has any.
         """
-        payload = {'request_id': new_request_id(),
+        payload = {'request_id': generate_id(),
                    'ven_id': self.ven_id,
                    'reply_limit': reply_limit}
         message = self._create_message('oadrRequestEvent', **payload)
