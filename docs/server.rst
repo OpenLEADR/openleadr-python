@@ -166,7 +166,7 @@ Example implementation:
                            cert='/path/to/cert.pem',
                            key='/path/to/private/key.pem',
                            passphrase='mypassphrase',
-                           validation_handler=fingerprint_lookup)
+                           fingerprint_lookup=fingerprint_lookup)
 
 The VEN's fingerprint should be obtained from the VEN outside of OpenADR.
 
