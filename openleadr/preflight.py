@@ -14,19 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Tests message contents before sending them. It will correct benign errors and
-warn you about them. Uncorrectable errors will raise an Exception.
-"""
 from datetime import datetime, timedelta, timezone
 import warnings
 
 def preflight_message(message_type, message_payload):
-    if f'preflight_{message_type}' in globals():
-        globals()[f'preflight_{message_type}'](message_payload)
+    """
+    Tests message contents before sending them. It will correct benign errors
+    and warn you about them. Uncorrectable errors will raise an Exception. It
+    changes the message_payload dict in-place.
+
+    :param message_type string: The type of message you are sending
+    :param message_payload dict: The contents of the message
+    """
+    if f'_preflight_{message_type}' in globals():
+        globals()[f'_preflight_{message_type}'](message_payload)
     return message_type, message_payload
 
-def preflight_oadrDistributeEvent(message_payload):
+def _preflight_oadrDistributeEvent(message_payload):
     if 'parse_duration' not in globals():
         from .utils import parse_duration
     # Check that the total event_duration matches the sum of the interval durations (rule 8)
