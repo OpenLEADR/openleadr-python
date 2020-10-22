@@ -19,6 +19,7 @@ from datetime import datetime, timedelta, timezone
 from asyncio import iscoroutine
 from .. import objects
 
+
 @service('EiEvent')
 class EventService(VTNService):
 

@@ -462,6 +462,7 @@ def group_by(list_of_dicts, key, pop=False):
         grouped[item_key].append(item)
     return grouped
 
+
 def find_by(dict_or_list, key, value, *args):
     """
     Find a dict inside a dict or list by key, value properties.
@@ -488,6 +489,7 @@ def find_by(dict_or_list, key, value, *args):
     else:
         return None
 
+
 def cron_config(interval):
     """
     Returns a dict with cron settings for the given interval
@@ -505,4 +507,3 @@ def cron_config(interval):
         minute = "0"
         hour = f"*/{int(interval.total_seconds/3600)}"
     return {"second": second, "minute": minute, "hour": hour}
-

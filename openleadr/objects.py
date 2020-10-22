@@ -200,11 +200,13 @@ class ReportPayload:
     confidence: int = None
     accuracy: int = None
 
+
 @dataclass
 class ReportInterval:
     dtstart: datetime
     report_payload: ReportPayload
     duration: timedelta = None
+
 
 @dataclass
 class Report:

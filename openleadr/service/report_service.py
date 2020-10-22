@@ -78,7 +78,6 @@ class ReportService(VTNService):
                              "(callable, sampling_rate, [list_of_r_ids]) "
                              "tuple for the report segments you wish te receive.")
 
-
         # Form the report request
         report_requests = []
         for i, report_request in enumerate(result):
@@ -119,8 +118,8 @@ class ReportService(VTNService):
         logger.warning("You should implement and register your own on_register_report handler "
                        "if you want to receive reports from a VEN. This handler will receive an "
                        "oadrReport descriptor, and should return a "
-                       "(callable, sampling_rate, [list_of_r_ids]) tuples for the report segments you "
-                       "wish to receive. Not requesting any reports at this moment.")
+                       "(callable, sampling_rate, [list_of_r_ids]) tuples for the report segments "
+                       "you wish to receive. Not requesting any reports at this moment.")
         return None
 
     @handler('oadrUpdateReport')

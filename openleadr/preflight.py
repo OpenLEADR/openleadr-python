@@ -33,7 +33,8 @@ def preflight_message(message_type, message_payload):
         message_payload = message_payload.copy()
         for key, value in message_payload.items():
             if isinstance(value, list):
-                message_payload[key] = [asdict(item) if is_dataclass(item) else item for item in value]
+                message_payload[key] = [asdict(item) if is_dataclass(item) else item
+                                        for item in value]
             else:
                 message_payload[key] = asdict(value) if is_dataclass(value) else value
         globals()[f'_preflight_{message_type}'](message_payload)

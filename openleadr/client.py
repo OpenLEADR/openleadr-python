@@ -232,7 +232,9 @@ class OpenADRClient:
 
         # Get or create the relevant Report
         if report_specifier_id:
-            report = find_by(self.reports, 'report_name', report_name, 'report_specifier_id', report_specifier_id)
+            report = find_by(self.reports,
+                             'report_name', report_name,
+                             'report_specifier_id', report_specifier_id)
         else:
             report = find_by(self.reports, 'report_name', report_name)
 
@@ -244,10 +246,11 @@ class OpenADRClient:
             self.reports.append(report)
 
         # Add the new report description to the report
+        target = objects.Target(resource_id=resource_id)
         report_description = objects.ReportDescription(r_id=generate_id(),
                                                        reading_type=reading_type,
-                                                       report_data_source=objects.Target(resource_id=resource_id),
-                                                       report_subject=objects.Target(resource_id=resource_id),
+                                                       report_data_source=target,
+                                                       report_subject=target,
                                                        report_type=report_type,
                                                        sampling_rate=sampling_rate,
                                                        measurement=item_base,
@@ -381,7 +384,8 @@ class OpenADRClient:
 
     async def register_reports(self, reports):
         """
-        Tell the VTN about our reports. The VTN miht respond with a oadrCreateReport message that tells us which reports are to be sent.
+        Tell the VTN about our reports. The VTN miht respond with an
+        oadrCreateReport message that tells us which reports are to be sent.
         """
         request_id = generate_id()
         payload = {'request_id': generate_id(),
@@ -481,18 +485,15 @@ class OpenADRClient:
 
             requested_r_ids.append(r_id)
 
-        int_report_request = find_by(self.report_requests, 'report_specifier_id', report_specifier_id)
-        if int_report_request:
-            logger.warning("Received multiple Report Requests for the same report_specifier_id")
-        else:
-            job = self.scheduler.add_job(partial(self.update_report, report_request_id=report_request_id),
-                                         trigger='cron',
-                                         **cron_config(granularity))
-            self.report_requests.append({'report_request_id': report_request_id,
-                                         'report_specifier_id': report_specifier_id,
-                                         'r_ids': requested_r_ids,
-                                         'granularity': granularity,
-                                         'job': job})
+        callable = partial(self.update_report, report_request_id=report_request_id)
+        job = self.scheduler.add_job(func=callable,
+                                     trigger='cron',
+                                     **cron_config(granularity))
+        self.report_requests.append({'report_request_id': report_request_id,
+                                     'report_specifier_id': report_specifier_id,
+                                     'r_ids': requested_r_ids,
+                                     'granularity': granularity,
+                                     'job': job})
 
     async def update_report(self, report_request_id):
         """
@@ -522,8 +523,6 @@ class OpenADRClient:
         Cancel this report.
         """
 
-
-
     async def _report_queue_worker(self):
         """
         A Queue worker that pushes out the pending reports.
@@ -532,7 +531,7 @@ class OpenADRClient:
         while True:
             report = await self.pending_reports.get()
 
-            service ='EiReport'
+            service = 'EiReport'
             message = self._create_message('oadrUpdateReport', reports=[report])
 
             try:
