@@ -16,7 +16,8 @@
 
 from . import service, handler, VTNService
 from asyncio import iscoroutine
-from openleadr import logger
+import logging
+logger = logging.getLogger('openleadr')
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                             POLLING SERVICE                              ║
@@ -95,6 +96,7 @@ from openleadr import logger
 # │                                                                          │
 # └──────────────────────────────────────────────────────────────────────────┘
 
+
 @service('OadrPoll')
 class PollService(VTNService):
 
@@ -118,3 +120,14 @@ class PollService(VTNService):
             return 'oadrDistributeEvent', {'events': [result]}
         logger.warning(f"Could not determine type of message in response to oadrPoll: {result}")
         return 'oadrResponse', result
+
+    def on_poll(self, ven_id):
+        """
+        Placeholder for the on_poll handler.
+        """
+        logger.warning("You should implement and register your own on_poll handler that "
+                       "returns the next message for the VEN. This handler receives the "
+                       "ven_id as its argument, and should return None (if no messages "
+                       "are available), an Event or list of Events, a RequestReregistration "
+                       " or RequestReport.")
+        return None

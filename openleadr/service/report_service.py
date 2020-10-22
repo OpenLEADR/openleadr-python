@@ -15,6 +15,11 @@
 # limitations under the License.
 
 from . import service, handler, VTNService
+from asyncio import iscoroutine, gather
+from openleadr.utils import generate_id
+from openleadr import objects
+import logging
+logger = logging.getLogger('openleadr')
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                              REPORT SERVICE                              ║
@@ -54,35 +59,89 @@ from . import service, handler, VTNService
 # │                                                                          │
 # └──────────────────────────────────────────────────────────────────────────┘
 
+
 @service('EiReport')
 class ReportService(VTNService):
 
     @handler('oadrRegisterReport')
     async def register_report(self, payload):
         """
-        Register a reporting type.
+        Handle the VENs reporting capabilities.
         """
+        result = [self.on_register_report(report) for report in payload['reports']]
+        if iscoroutine(result[0]):
+            result = await gather(*result)
+
+        for report_request in result:
+            if report_request is not None and len(report_request) != 3:
+                logger.error("Your on_register_report handler should return a "
+                             "(callable, sampling_rate, [list_of_r_ids]) "
+                             "tuple for the report segments you wish te receive.")
+
+
+        # Form the report request
+        report_requests = []
+        for i, report_request in enumerate(result):
+            if report_request is None:
+                continue
+
+            callable_, sampling_rate, r_ids = report_request
+            orig_report = payload['reports'][i]
+            report_specifier_id = payload['reports'][i]['report_specifier_id']
+            report_request_id = generate_id()
+
+            specifier_payloads = []
+            for r_id in r_ids:
+                report_description = [report_description for report_description
+                                      in orig_report['report_descriptions']
+                                      if report_description['r_id'] == r_id][0]
+                reading_type = report_description['reading_type']
+                specifier_payloads.append(objects.SpecifierPayload(r_id=r_id,
+                                                                   reading_type=reading_type))
+
+            report_specifier = objects.ReportSpecifier(report_specifier_id=report_specifier_id,
+                                                       granularity=sampling_rate,
+                                                       specifier_payloads=specifier_payloads)
+
+            report_requests.append(objects.ReportRequest(report_request_id=report_request_id,
+                                                         report_specifier=report_specifier))
+
+        # Put the report requests back together
         response_type = 'oadrRegisteredReport'
-        response_payload = {"response": {"response_code": 200,
-                                         "response_description": "OK",
-                                         "request_id": payload['request_id']},
-                            "ven_id": '123'}
+        response_payload = {'report_requests': report_requests}
         return response_type, response_payload
 
-    @handler('oadrRequestReport')
-    async def request_report(self, payload):
+    async def on_register_report(self, payload):
         """
-        Provide the VEN with the latest report.
+        Pre-handler for a oadrOnRegisterReport message. This will call your own handler (if defined)
+        to allow for requesting the offered reports.
         """
+        logger.warning("You should implement and register your own on_register_report handler "
+                       "if you want to receive reports from a VEN. This handler will receive an "
+                       "oadrReport descriptor, and should return a "
+                       "(callable, sampling_rate, [list_of_r_ids]) tuples for the report segments you "
+                       "wish to receive. Not requesting any reports at this moment.")
+        return None
 
     @handler('oadrUpdateReport')
     async def update_report(self, payload):
         """
-        Updates an existing report from this VEN in our database.
+        Handle a report that we received from the VEN.
         """
+        result = [self.on_update_report(report) for report in payload['reports']]
+        if iscoroutine(result[0]):
+            result = await gather(*result)
 
-    @handler('oadrCancelReport')
-    async def cancel_report(self, payload):
+        response_type = 'oadrUpdatedReport'
+        response_payload = {}
+        return response_type, response_payload
+
+    async def on_update_report(self, payload):
         """
-        Cancels a previously received report from this VEN.
+        Placeholder for the on_update_report handler.
         """
+        logger.warning("You should implement and register your own on_update_report handler "
+                       "to deal with reports that your receive from the VEN. This handler will "
+                       "receive an oadrReport that you can then process how you see fit. You don't "
+                       "need to return anything from that handler.")
+        return None

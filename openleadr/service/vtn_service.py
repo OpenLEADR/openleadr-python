@@ -17,6 +17,8 @@
 from asyncio import iscoroutine
 from http import HTTPStatus
 import os
+import logging
+from termcolor import colored
 
 from aiohttp import web
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -24,12 +26,13 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 from .. import errors
 from ..messaging import create_message, parse_message
 from ..utils import generate_id
-from .. import logger
 
 from dataclasses import is_dataclass, asdict
 
-class VTNService:
+logger = logging.getLogger('openleadr')
 
+
+class VTNService:
     def __init__(self, vtn_id):
         self.vtn_id = vtn_id
         self.handlers = {}
@@ -43,7 +46,6 @@ class VTNService:
         """
         content = await request.read()
         message_type, message_payload = self._parse_message(content)
-        logger.info(f"Received {message_type} from ven_id {message_payload.get('ven_id')}")
 
         if message_type in self.handlers:
             handler = self.handlers[message_type]
@@ -76,7 +78,8 @@ class VTNService:
             msg = self._create_message('oadrResponse',
                                        ven_id=message_payload.get('ven_id'),
                                        status_code=errorcodes.COMPLIANCE_ERROR,
-                                       status_description=f"A message of type {message_type} should not be sent to this endpoint")
+                                       status_description=f"A message of type {message_type} "
+                                       "should not be sent to this endpoint")
 
             response = web.Response(
                 text=msg,

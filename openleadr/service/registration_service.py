@@ -17,6 +17,8 @@
 from . import service, handler, VTNService
 from datetime import timedelta
 from asyncio import iscoroutine
+import logging
+logger = logging.getLogger('openleadr')
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                           REGISTRATION SERVICE                           ║
@@ -58,6 +60,7 @@ from asyncio import iscoroutine
 # │                                                                          │
 # └──────────────────────────────────────────────────────────────────────────┘
 
+
 @service('EiRegisterParty')
 class RegistrationService(VTNService):
 
@@ -66,6 +69,7 @@ class RegistrationService(VTNService):
         """
         Return the profiles we support.
         """
+        print("Server: on query registration")
         if hasattr(self, 'on_query_registration'):
             result = self.on_query_registration(payload)
             if iscoroutine(result):
@@ -73,7 +77,8 @@ class RegistrationService(VTNService):
             return result
 
         # If you don't provide a default handler, just give out the info
-        response_payload = {'response': {'response_code': 200, 'response_description': 'OK', 'request_id': payload['request_id']},
+        response_payload = {'response': {'response_code': 200, 'response_description': 'OK',
+                                         'request_id': payload['request_id']},
                             'request_id': payload['request_id'],
                             'vtn_id': self.vtn_id,
                             'profiles': [{'profile_name': '2.0b',
@@ -90,12 +95,22 @@ class RegistrationService(VTNService):
         if iscoroutine(result):
             result = await result
 
-        response_type, response_payload = result
-        response_payload['response'] = {'response_code': 200,
-                                       'response_description': 'OK',
-                                       'request_id': payload['request_id']}
-        response_payload['vtn_id'] = self.vtn_id
-        return response_type, response_payload
+        if result is not False:
+            response_payload = {'ven_id': result[0], 'registration_id': result[1]}
+        else:
+            response_payload = {}
+        return 'oadrCreatedPartyRegistration', response_payload
+
+    def on_create_party_registration(self, payload):
+        """
+        Placeholder for the on_create_party_registration handler
+        """
+        logger.warning("You should implement and register your own on_create_party_registration "
+                       "handler if you want VENs to be able to connect to you. This handler will "
+                       "receive a registration request and should return either 'False' (if the "
+                       "registration is denied) or a (ven_id, registration_id) tuple if the "
+                       "registration is accepted. ")
+        return False
 
     @handler('oadrCancelPartyRegistration')
     async def cancel_party_registration(self, payload):
@@ -106,3 +121,12 @@ class RegistrationService(VTNService):
         if iscoroutine(result):
             result = await result
         return result
+
+    def on_cancel_party_registration(self, ven_id):
+        """
+        Placeholder for the on_cancel_party_registration handler.
+        """
+        logger.warning("You should implement and register your own on_cancel_party_registration "
+                       "handler that allown VENs to deregister from your VTN. This will receive a "
+                       "ven_id as its argument. You don't need to return anything.")
+        return None

@@ -17,6 +17,7 @@
 from . import service, handler, VTNService
 from datetime import datetime, timedelta, timezone
 from asyncio import iscoroutine
+from .. import objects
 
 @service('EiEvent')
 class EventService(VTNService):
@@ -33,10 +34,22 @@ class EventService(VTNService):
             return 'oadrDistributeEvent', {'events': []}
         if isinstance(result, dict):
             return 'oadrDistributeEvent', {'events': [result]}
+        if isinstance(result, objects.Event):
+            return 'oadrDistributeEvent', {'events': [result]}
         if isinstance(result, list):
             return 'oadrDistributeEvent', {'events': result}
         else:
             raise TypeError("Event handler should return None, a dict or a list")
+
+    def on_request_event(self, ven_id):
+        """
+        Placeholder for the on_request_event handler.
+        """
+        logger.warning("You should implement and register your own on_request_event handler "
+                       "that returns the next event for a VEN. This handler will receive a "
+                       "ven_id as its only argument, and should return None (if no events are "
+                       "available), a single Event, or a list of Events.")
+        return None
 
     @handler('oadrCreatedEvent')
     async def created_event(self, payload):
@@ -47,3 +60,13 @@ class EventService(VTNService):
         if iscoroutine(result):
             result = await(result)
         return result
+
+    def on_create_event(self, payload):
+        """
+        Placeholder for the on_created_event handler.
+        """
+        logger.warning("You should implement and register you own on_created_event handler "
+                       "to receive the opt status for an Event that you sent to the VEN. This "
+                       "handler will receive a ven_id, event_id and opt_status. "
+                       "You don't need to return anything from this handler.")
+        return None
