@@ -69,6 +69,7 @@ class OpenADRClient:
         self.pending_reports = asyncio.Queue()  # Holds reports that are waiting to be sent
         self.scheduler = AsyncIOScheduler()
         self.client_session = aiohttp.ClientSession()
+        self.report_queue_task = None
 
         if cert and key:
             with open(cert, 'rb') as file:
@@ -109,7 +110,7 @@ class OpenADRClient:
         if self.reports:
             await self.register_reports(self.reports)
             loop = asyncio.get_event_loop()
-            loop.create_task(self._report_queue_worker())
+            self.report_queue_task = loop.create_task(self._report_queue_worker())
 
         await self._poll()
 
@@ -141,6 +142,16 @@ class OpenADRClient:
                                minute=cron_minute,
                                hour=cron_hour)
         self.scheduler.start()
+
+    async def stop(self):
+        """
+        Cleanly stops the client. Run this coroutine before closing your event loop.
+        """
+        if self.scheduler.running:
+            self.scheduler.shutdown()
+        if self.report_queue_task:
+            self.report_queue_task.cancel()
+        await self.client_session.close()
 
     def add_report(self, callable, resource_id, measurement,
                    report_specifier_id=None, r_id=None,
