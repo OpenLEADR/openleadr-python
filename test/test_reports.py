@@ -85,12 +85,8 @@ async def test_report_registration():
     # Register the reports
     await client.register_reports(client.reports)
     assert len(client.report_requests) == 2
-
-    await client.client_session.close()
-    await server.app_runner.cleanup()
-    await asyncio.sleep(0.1)
-
-
+    await client.stop()
+    await server.stop()
 
 @pytest.mark.asyncio
 async def test_update_reports():
@@ -169,13 +165,8 @@ async def test_update_reports():
     await future_4
 
     await asyncio.gather(*update_report_futures)
-
-
-    await asyncio.sleep(0.1)
-    client.scheduler.shutdown()
-    await client.client_session.close()
-    await server.app_runner.cleanup()
-    await asyncio.sleep(0.1)
+    await client.stop()
+    await server.stop()
 
 if __name__ == "__main__":
     asyncio.run(test_update_reports())

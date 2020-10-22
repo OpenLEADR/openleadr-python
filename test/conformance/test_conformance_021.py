@@ -162,8 +162,6 @@ async def test_conformance_021():
               event=event)
     message_type, message_payload = await client.poll()
     assert message_type == 'oadrDistributeEvent'
-    await client.client_session.close()
-    if client.scheduler.running:
-        await client.scheduler.shutdown()
-    await server.app_runner.cleanup()
+    await client.stop()
+    await server.stop()
 

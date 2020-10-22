@@ -53,15 +53,11 @@ async def start_server():
 
 @pytest.fixture
 async def start_server_with_signatures():
-    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr', fingerprint_lookup=fingerprint_lookup)
+    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr', fingerprint_lookup=fingerprint_lookup, http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
-
-    runner = web.AppRunner(server.app)
-    await runner.setup()
-    site = web.TCPSite(runner, 'localhost', SERVER_PORT)
-    await site.start()
+    await server.run_async()
     yield
-    await runner.cleanup()
+    await server.stop()
 
 
 @pytest.mark.asyncio
@@ -99,5 +95,6 @@ async def test_create_party_registration_with_signatures(start_server_with_signa
     response_type, response_payload = await client.create_party_registration()
     assert response_type == 'oadrCreatedPartyRegistration'
     assert response_payload['ven_id'] == VEN_ID
+    await client.stop()
 
 
