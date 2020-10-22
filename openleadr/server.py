@@ -132,6 +132,9 @@ class OpenADRServer:
                            ssl_context=self.ssl_context)
         await site.start()
 
+    async def stop(self):
+        await self.app_runner.cleanup()
+
     def add_handler(self, name, func):
         """
         Add a handler to the OpenADRServer.
