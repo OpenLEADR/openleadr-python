@@ -37,15 +37,7 @@ KEYFILE =  os.path.join(os.path.dirname(os.path.dirname(__file__)), "key.pem")
 
 async def _on_create_party_registration(payload):
     registration_id = generate_id()
-    payload = {'response': {'response_code': 200,
-                            'response_description': 'OK',
-                            'request_id': payload['request_id']},
-               'ven_id': VEN_ID,
-               'registration_id': registration_id,
-               'profiles': [{'profile_name': '2.0b',
-                             'transports': {'transport_name': 'simpleHttp'}}],
-               'requested_oadr_poll_freq': timedelta(seconds=10)}
-    return 'oadrCreatedPartyRegistration', payload
+    return VEN_ID, registration_id
 
 @pytest.fixture
 async def start_server():

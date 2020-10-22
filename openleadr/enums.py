@@ -18,6 +18,8 @@
 A collection of useful enumerations that you can use to construct or
 interpret OpenADR messages. Can also be useful during testing.
 """
+from openleadr import objects
+
 
 class Enum(type):
     def __getitem__(self, item):
@@ -25,11 +27,13 @@ class Enum(type):
 
     @property
     def members(self):
-        return sorted([item for item in list(set(dir(self)) - set(dir(Enum))) if not item.startswith("_")])
+        return sorted([item for item in list(set(dir(self)) - set(dir(Enum)))
+                       if not item.startswith("_")])
 
     @property
     def values(self):
         return [self[item] for item in self.members]
+
 
 class EVENT_STATUS(metaclass=Enum):
     NONE = "none"
@@ -38,6 +42,7 @@ class EVENT_STATUS(metaclass=Enum):
     ACTIVE = "active"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+
 
 class SIGNAL_TYPE(metaclass=Enum):
     DELTA = "delta"
@@ -52,6 +57,7 @@ class SIGNAL_TYPE(metaclass=Enum):
     X_LOAD_CONTROL_PERCENT_OFFSET = "x-loadControlPorcentOffset"
     X_LOAD_CONTROL_SETPOINT = "x-loadControlSetpoint"
 
+
 class SIGNAL_NAME(metaclass=Enum):
     SIMPLE = "SIMPLE"
     simple = "simple"
@@ -64,6 +70,7 @@ class SIGNAL_NAME(metaclass=Enum):
     CHARGE_STATE = "CHARGE_STATE"
     LOAD_DISPATCH = "LOAD_DISPATCH"
     LOAD_CONTROL = "LOAD_CONTROL"
+
 
 class SI_SCALE_CODE(metaclass=Enum):
     p = "p"
@@ -78,9 +85,11 @@ class SI_SCALE_CODE(metaclass=Enum):
     T = "T"
     none = "none"
 
+
 class OPT(metaclass=Enum):
     OPT_IN = "optIn"
     OPT_OUT = "optOut"
+
 
 class OPT_REASON(metaclass=Enum):
     ECONOMIC = "economic"
@@ -91,6 +100,7 @@ class OPT_REASON(metaclass=Enum):
     OVERRIDE_STATUS = "overrideStatus"
     PARTICIPATING = "participating"
     X_SCHEDULE = "x-schedule"
+
 
 class READING_TYPE(metaclass=Enum):
     DIRECT_READ = "Direct Read"
@@ -106,6 +116,7 @@ class READING_TYPE(metaclass=Enum):
     PROJECTED = "Projected"
     X_RMS = "x-RMS"
     X_NOT_APPLICABLE = "x-notApplicable"
+
 
 class REPORT_TYPE(metaclass=Enum):
     READING = "reading"
@@ -133,6 +144,7 @@ class REPORT_TYPE(metaclass=Enum):
     PERCENT_DEMAND = "percentDemand"
     X_RESOURCE_STATUS = "x-resourceStatus"
 
+
 class REPORT_NAME(metaclass=Enum):
     METADATA_HISTORY_USAGE = "METADATA_HISTORY_USAGE"
     HISTORY_USAGE = "HISTORY_USAGE"
@@ -143,12 +155,13 @@ class REPORT_NAME(metaclass=Enum):
     METADATA_TELEMETRY_STATUS = "METADATA_TELEMETRY_STATUS"
     TELEMETRY_STATUS = "TELEMETRY_STATUS"
 
+
 class STATUS_CODES(metaclass=Enum):
-    OUT_OF_SEQUENCE  = 450
-    NOT_ALLOWED      = 451
-    INVALID_ID       = 452
-    NOT_RECOGNIZED   = 453
-    INVALID_DATA     = 454
+    OUT_OF_SEQUENCE = 450
+    NOT_ALLOWED = 451
+    INVALID_ID = 452
+    NOT_RECOGNIZED = 453
+    INVALID_DATA = 454
     COMPLIANCE_ERROR = 459
     SIGNAL_NOT_SUPPORTED = 460
     REPORT_NOT_SUPPORTED = 461
@@ -156,6 +169,111 @@ class STATUS_CODES(metaclass=Enum):
     NOT_REGISTERED_OR_AUTHORIZED = 463
     DEPLOYMENT_ERROR_OTHER = 469
 
+
 class SECURITY_LEVEL:
     STANDARD: 'STANDARD'
     HIGH: 'HIGH'
+
+
+_CURRENCIES = ("AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AUD", "AWG", "AZN", "BAM",
+               "BBD", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BOV", "BRL",
+               "BSD", "BTN", "BWP", "BYR", "BZD", "CAD", "CDF", "CHE", "CHF", "CHW",
+               "CLF", "CLP", "CNY", "COP", "COU", "CRC", "CUC", "CUP", "CVE", "CZK",
+               "DJF", "DKK", "DOP", "DZD", "EEK", "EGP", "ERN", "ETB", "EUR", "FJD",
+               "FKP", "GBP", "GEL", "GHS", "GIP", "GMD", "GNF", "GTQ", "GWP", "GYD",
+               "HKD", "HNL", "HRK", "HTG", "HUF", "IDR", "ILS", "INR", "IQD", "IRR",
+               "ISK", "JMD", "JOD", "JPY", "KES", "KGS", "KHR", "KMF", "KPW", "KRW",
+               "KWD", "KYD", "KZT", "LAK", "LBP", "LKR", "LRD", "LSL", "LTL", "LVL",
+               "LYD", "MAD", "MAD", "MDL", "MGA", "MKD", "MMK", "MNT", "MOP", "MRO",
+               "MUR", "MVR", "MWK", "MXN", "MXV", "MYR", "MZN", "NAD", "NGN", "NIO",
+               "NOK", "NPR", "NZD", "OMR", "PAB", "PEN", "PGK", "PHP", "PKR", "PLN",
+               "PYG", "QAR", "RON", "RSD", "RUB", "RWF", "SAR", "SBD", "SCR", "SDG",
+               "SEK", "SGD", "SHP", "SLL", "SOS", "SRD", "STD", "SVC", "SYP", "SZL",
+               "THB", "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS", "UAH",
+               "UGX", "USD", "USN", "USS", "UYI", "UYU", "UZS", "VEF", "VND", "VUV",
+               "WST", "XAF", "XAG", "XAU", "XBA", "XBB", "XBC", "XBD", "XCD", "XDR",
+               "XFU", "XOF", "XPD", "XPF", "XPF", "XPF", "XPT", "XTS", "XXX", "YER",
+               "ZAR", "ZMK", "ZWL")
+
+
+class MEASUREMENTS(metaclass=Enum):
+    VOLTAGE = objects.Measurement(item_name='voltage',
+                                  item_description='Voltage',
+                                  item_units='V',
+                                  acceptable_units=('V',),
+                                  si_scale_code='none')
+    CURRENT = objects.Measurement(item_name='current',
+                                  item_description='Current',
+                                  item_units='A',
+                                  acceptable_units=('A',),
+                                  si_scale_code='none')
+    ENERGY_REAL = objects.Measurement(item_name='energyReal',
+                                      item_description='RealEnergy',
+                                      item_units='Wh',
+                                      acceptable_units=('Wh',),
+                                      si_scale_code='none')
+    ENERGY_REACTIVE = objects.Measurement(item_name='energyReal',
+                                          item_description='RealEnergy',
+                                          item_units='VArh',
+                                          acceptable_units=('VArh',),
+                                          si_scale_code='none')
+    ENERGY_APPARENT = objects.Measurement(item_name='energyReal',
+                                          item_description='ApparentEnergy',
+                                          item_units='VAh',
+                                          acceptable_units=('VAh',),
+                                          si_scale_code='none')
+    ACTIVE_POWER = objects.Measurement(item_name='powerReal',
+                                       item_description='RealPower',
+                                       item_units='W',
+                                       acceptable_units=('W',),
+                                       si_scale_code='none')
+    REACTIVE_POWER = objects.Measurement(item_name='powerReactive',
+                                         item_description='ReactivePower',
+                                         item_units='VAr',
+                                         acceptable_units=('VAr',),
+                                         si_scale_code='none')
+    APPARENT_POWER = objects.Measurement(item_name='powerApparent',
+                                         item_description='ApparentPower',
+                                         item_units='VA',
+                                         acceptable_units=('VA',),
+                                         si_scale_code='none')
+    FREQUENCY = objects.Measurement(item_name='frequency',
+                                    item_description='Frequency',
+                                    item_units='Hz',
+                                    acceptable_units=('Hz',),
+                                    si_scale_code='none')
+    PULSE_COUNT = objects.Measurement(item_name='pulseCount',
+                                      item_description='pulse count',
+                                      item_units='count',
+                                      acceptable_units=('count',),
+                                      si_scale_code='none')
+    TEMPERATURE = objects.Measurement(item_name='temperature',
+                                      item_description='temperature',
+                                      item_units='celsius',
+                                      acceptable_units=('celsius', 'fahrenheit'),
+                                      si_scale_code='none')
+    THERM = objects.Measurement(item_name='therm',
+                                item_description='Therm',
+                                item_units='thm',
+                                acceptable_units=('thm',),
+                                si_scale_code='none')
+    CURRENCY = objects.Measurement(item_name='currency',
+                                   item_description='Currency',
+                                   item_units='USD',
+                                   acceptable_units=_CURRENCIES,
+                                   si_scale_code='none')
+    CURRENCY_PER_KW = objects.Measurement(item_name='currencyPerKW',
+                                          item_description='CurrencyPerKW',
+                                          item_units='USD',
+                                          acceptable_units=_CURRENCIES,
+                                          si_scale_code='none')
+    CURRENCY_PER_KWH = objects.Measurement(item_name='currencyPerKWh',
+                                           item_description='CurrencyPerKWh',
+                                           item_units='USD',
+                                           acceptable_units=_CURRENCIES,
+                                           si_scale_code='none')
+    CURRENCY_PER_THERM = objects.Measurement(item_name='currencyPerTherm',
+                                             item_description='CurrencyPerTherm',
+                                             item_units='USD',
+                                             acceptable_units=_CURRENCIES,
+                                             si_scale_code='none')

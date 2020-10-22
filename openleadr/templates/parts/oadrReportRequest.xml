@@ -5,10 +5,12 @@
     <xcal:granularity>
       <xcal:duration>{{ report_request.report_specifier.granularity|timedeltaformat }}</xcal:duration>
     </xcal:granularity>
+    {% if report_request.report_specifier.report_back_duration is defined and report_request.report_specifier.report_back_duration is not none %}
     <ei:reportBackDuration>
       <xcal:duration>{{ report_request.report_specifier.report_back_duration|timedeltaformat }}</xcal:duration>
     </ei:reportBackDuration>
-    {% if report_request.report_specifier.report_interval %}
+    {% endif %}
+    {% if report_request.report_specifier.report_interval is defined and report_request.report_specifier.report_interval is not none %}
     <ei:reportInterval>
       <xcal:properties>
         <xcal:dtstart>
@@ -42,9 +44,11 @@
       </xcal:properties>
     </ei:reportInterval>
     {% endif %}
+    {% for specifier_payload in report_request.report_specifier.specifier_payloads %}
     <ei:specifierPayload>
-      <ei:rID>{{ report_request.report_specifier.specifier_payload.r_id }}</ei:rID>
-      <ei:readingType>{{ report_request.report_specifier.specifier_payload.reading_type }}</ei:readingType>
+      <ei:rID>{{ specifier_payload.r_id }}</ei:rID>
+      <ei:readingType>{{ specifier_payload.reading_type }}</ei:readingType>
     </ei:specifierPayload>
+    {% endfor %}
   </ei:reportSpecifier>
 </oadr:oadrReportRequest>
