@@ -19,29 +19,6 @@
         <xcal:duration>
           <xcal:duration>{{ report_request.report_specifier.report_interval.duration|timedeltaformat }}</xcal:duration>
         </xcal:duration>
-        {% if report_request.report_specifier.report_interval.tolerance %}
-        <xcal:tolerance>
-          <xcal:tolerate>
-            <xcal:startafter>{{ report_request.report_specifier.report_interval.tolerance.tolerate.startafter|timedeltaformat }}</xcal:startafter>
-          </xcal:tolerate>
-        </xcal:tolerance>
-        {% endif %}
-        {% if report_request.report_specifier.report_interval.notification %}
-        <ei:x-eiNotification>
-          <xcal:duration>{{ report_request.report_specifier.report_interval.notification|timedeltaformat }}</xcal:duration>
-        </ei:x-eiNotification>
-        {% endif %}
-        {% if report_request.report_specifier.report_interval.ramp_up %}
-        <ei:x-eiRampUp>
-          <xcal:duration>{{ report_request.report_specifier.report_interval.ramp_up|timedeltaformat }}</xcal:duration>
-        </ei:x-eiRampUp>
-        {% endif %}
-        {% if report_request.report_specifier.report_interval.recovery %}
-        <ei:x-eiRecovery>
-          <xcal:duration>{{ report_request.report_specifier.report_interval.recovery|timedeltaformat }}</xcal:duration>
-        </ei:x-eiRecovery>
-        {% endif %}
-      </xcal:properties>
     </ei:reportInterval>
     {% endif %}
     {% for specifier_payload in report_request.report_specifier.specifier_payloads %}
