@@ -168,5 +168,38 @@ async def test_update_reports():
     await client.stop()
     await server.stop()
 
+def test_add_report_invalid_unit(caplog):
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    client.add_report(callable=print,
+                      report_specifier_id='myreport',
+                      measurement='voltage',
+                      resource_id='mydevice',
+                      sampling_rate=timedelta(seconds=10),
+                      unit='A')
+    assert caplog.record_tuples == [("openleadr", logging.WARNING, f"The supplied unit A for measurement voltage will be ignored, V will be used instead.Allowed units for this measurement are: V")]
+
+def test_add_report_invalid_scale():
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    with pytest.raises(ValueError):
+        client.add_report(callable=print,
+                          report_specifier_id='myreport',
+                          measurement='current',
+                          resource_id='mydevice',
+                          sampling_rate=timedelta(seconds=10),
+                          unit='A',
+                          scale='xxx')
+
+def test_add_report_non_standard_measurement():
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    client.add_report(callable=print,
+                      report_specifier_id='myreport',
+                      measurement='rainbows',
+                      resource_id='mydevice',
+                      sampling_rate=timedelta(seconds=10),
+                      unit='A')
+
+    assert client.reports[0].report_descriptions[0].measurement.item_name == 'customUnit'
+    assert client.reports[0].report_descriptions[0].measurement.item_description == 'rainbows'
+
 if __name__ == "__main__":
     asyncio.run(test_update_reports())
