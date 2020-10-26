@@ -167,8 +167,8 @@ class Measurement:
     item_name: str
     item_description: str
     item_units: str
-    acceptable_units: List[str] = field(repr=False)
-    si_scale_code: str
+    acceptable_units: List[str] = field(repr=False, default_factory=list)
+    si_scale_code: str = None
     power_attributes: PowerAttributes = None
 
     def __post_init__(self):

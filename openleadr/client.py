@@ -221,15 +221,19 @@ class OpenADRClient:
                                             item_units=unit)
         else:
             raise ValueError("measurement should be one of the MEASUREMENTS from enums, or a str")
+        if scale is not None:
+            if scale in enums.SI_SCALE_CODE.values:
+                item_base.si_scale_code = scale
+            else:
+                raise ValueError("The 'scale' argument must be one of '{'. ',join(enums.SI_SCALE_CODE.values)}")
 
         # Check if unit is compatible
         if unit is not None and unit != item_base.item_units \
                 and unit not in item_base.acceptable_units:
             logger.warning(f"The supplied unit {unit} for measurement {measurement} "
-                           f"will be ignored, {item_base['item_units']} will be used instead."
+                           f"will be ignored, {item_base.item_units} will be used instead."
                            f"Allowed units for this measurement are: "
                            f"{', '.join(item_base.acceptable_units)}")
-        item_base.si_scale_code = scale
 
         # Get or create the relevant Report
         if report_specifier_id:
