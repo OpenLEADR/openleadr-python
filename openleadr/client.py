@@ -513,9 +513,12 @@ class OpenADRClient:
             result = report_callable()
             if asyncio.iscoroutine(result):
                 result = await result
-            report_payload = objects.ReportPayload(r_id=r_id, value=result)
-            intervals.append(objects.ReportInterval(dtstart=datetime.now(timezone.utc),
-                                                    report_payload=report_payload))
+            if isinstance(result, (int, float)):
+                result = [(datetime.now(timezone.utc), result)]
+            for dt, value in result:
+                report_payload = objects.ReportPayload(r_id=r_id, value=result)
+                intervals.append(objects.ReportInterval(dtstart=datetime.now(timezone.utc),
+                                                        report_payload=report_payload))
 
         # breakpoint()
         report = objects.Report(report_request_id=report_request_id,
