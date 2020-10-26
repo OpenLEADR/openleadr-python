@@ -36,14 +36,6 @@ openleadr.fingerprint module
    :undoc-members:
    :show-inheritance:
 
-openleadr.logging module
-------------------------
-
-.. automodule:: openleadr.logging
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 openleadr.messaging module
 --------------------------
 

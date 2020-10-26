@@ -30,6 +30,11 @@ License
 
 This project is licensed under the Apache 2.0 license.
 
+Development and contributing
+============================
+
+The source code of this project can be found on `GitHub <https://github.com/openleadr>`_. Feature requests, bug reports and pull requests can be posted there.
+
 Library Installation
 ====================
 
