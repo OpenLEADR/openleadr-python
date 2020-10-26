@@ -16,6 +16,7 @@
 
 from datetime import datetime, timedelta, timezone
 from dataclasses import asdict, is_dataclass
+from openleadr import objects, enums
 import logging
 logger = logging.getLogger('openleadr')
 
@@ -38,7 +39,14 @@ def preflight_message(message_type, message_payload):
             else:
                 message_payload[key] = asdict(value) if is_dataclass(value) else value
         globals()[f'_preflight_{message_type}'](message_payload)
-    return message_type, message_payload
+    return message_payload
+
+
+def _preflight_oadrRegisterReport(message_payload):
+    for report in message_payload['reports']:
+        if report['report_name'] in enums.REPORT_NAME.values \
+                and not report['report_name'].startswith("METADATA"):
+            report['report_name'] = 'METADATA_' + report['report_name']
 
 
 def _preflight_oadrDistributeEvent(message_payload):

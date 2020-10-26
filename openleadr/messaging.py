@@ -58,7 +58,7 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
     #     elif is_dataclass(v):
     #         message_payload[k] = asdict(v)
 
-    preflight_message(message_type, message_payload)
+    message_payload = preflight_message(message_type, message_payload)
     signed_object = flatten_xml(TEMPLATES.get_template(f'{message_type}.xml')
                                          .render(**message_payload))
     envelope = TEMPLATES.get_template('oadrPayload.xml')
