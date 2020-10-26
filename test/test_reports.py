@@ -30,7 +30,7 @@ async def on_register_report(report, futures=None):
     if futures:
         futures.pop().set_result(True)
     granularity = min(*[rd['sampling_rate']['min_period'] for rd in report['report_descriptions']])
-    return (on_update_report, granularity, [rd['r_id'] for rd in report['report_descriptions']])
+    return (on_update_report, granularity, [rd['r_id'] for rd in report['report_descriptions'] if report['report_name'] == 'METADATA_TELEMETRY_USAGE'])
 
 async def on_create_party_registration(ven_name, future=None):
     if future:
