@@ -65,6 +65,7 @@ class OpenADRClient:
         self.poll_frequency = None
         self.debug = debug
         self.reports = []
+        self.report_callables = {}              # Holds the callables for each specific report
         self.report_requests = []               # Keep track of the report requests from the VTN
         self.pending_reports = asyncio.Queue()  # Holds reports that are waiting to be sent
         self.scheduler = AsyncIOScheduler()
@@ -247,15 +248,16 @@ class OpenADRClient:
 
         # Add the new report description to the report
         target = objects.Target(resource_id=resource_id)
-        report_description = objects.ReportDescription(r_id=generate_id(),
+        r_id = generate_id()
+        report_description = objects.ReportDescription(r_id=r_id,
                                                        reading_type=reading_type,
                                                        report_data_source=target,
                                                        report_subject=target,
                                                        report_type=report_type,
                                                        sampling_rate=sampling_rate,
                                                        measurement=item_base,
-                                                       market_context='Market01',
-                                                       callable=callable)
+                                                       market_context='Market01')
+        self.report_callables[(report_specifier_id, r_id)] = callable
         report.report_descriptions.append(report_description)
 
     ###########################################################################
@@ -503,8 +505,8 @@ class OpenADRClient:
         report = find_by(self.reports, 'report_specifier_id', report_request['report_specifier_id'])
         intervals = []
         for r_id in report_request['r_ids']:
-            specific_report = find_by(report.report_descriptions, 'r_id', r_id)
-            result = specific_report.callable()
+            report_callable = self.report_callables[(report.report_specifier_id, r_id)]
+            result = report_callable()
             if asyncio.iscoroutine(result):
                 result = await result
             report_payload = objects.ReportPayload(r_id=r_id, value=result)

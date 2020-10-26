@@ -190,7 +190,6 @@ class ReportDescription:
     report_type: str
     sampling_rate: SamplingRate
     measurement: Measurement
-    callable: callable = None
 
 
 @dataclass
