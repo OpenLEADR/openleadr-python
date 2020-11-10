@@ -19,6 +19,7 @@
         <xcal:duration>
           <xcal:duration>{{ report_request.report_specifier.report_interval.duration|timedeltaformat }}</xcal:duration>
         </xcal:duration>
+      </xcal:properties>
     </ei:reportInterval>
     {% endif %}
     {% for specifier_payload in report_request.report_specifier.specifier_payloads %}
