@@ -1,3 +1,5 @@
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4317/badge)](https://bestpractices.coreinfrastructure.org/projects/4317)
+
 ![OpenLEADR](logo.png)
 
 OpenLEADR is a Python 3 module that provides a convenient interface to OpenADR
@@ -29,3 +31,4 @@ python3 -m venv python_env
 ```bash
 ./python_env/bin/python3 -m pytest test/conformance
 ```
+
