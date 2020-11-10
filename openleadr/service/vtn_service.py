@@ -70,6 +70,7 @@ class VTNService:
 
             # Create the XML response
             msg = self._create_message(response_type, **response_payload)
+            logger.debug(f"Server is sending {msg}")
             response = web.Response(text=msg,
                                     status=HTTPStatus.OK,
                                     content_type='application/xml')
@@ -80,7 +81,7 @@ class VTNService:
                                        status_code=errorcodes.COMPLIANCE_ERROR,
                                        status_description=f"A message of type {message_type} "
                                        "should not be sent to this endpoint")
-
+            logger.debug(f"Server is sending {msg}")
             response = web.Response(
                 text=msg,
                 status=HTTPStatus.BAD_REQUEST,
