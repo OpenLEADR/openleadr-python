@@ -129,7 +129,7 @@ class EventSignal:
     signal_name: str
     signal_type: str
     signal_id: str
-    current_value: float
+    current_value: float = None
     targets: List[Target] = None
 
 
