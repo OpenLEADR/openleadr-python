@@ -113,8 +113,7 @@ testcases = [
                                                   'report_specifier': {'granularity': timedelta(seconds=900),
                                                                        'report_back_duration': timedelta(seconds=900),
                                                                        'report_interval': {'dtstart': datetime(2019, 11, 19, 11, 0, 18, 672768, tzinfo=timezone.utc),
-                                                                                           'duration': timedelta(seconds=7200),
-                                                                                           'tolerance': {'tolerate': {'startafter': timedelta(seconds=300)}}},
+                                                                                           'duration': timedelta(seconds=7200)},
                                                                        'report_specifier_id': '9c8bdc00e7',
                                                                        'specifier_payloads': [{'r_id': 'd6e2e07485',
                                                                                              'reading_type': 'Direct Read'}]}}])),
@@ -127,11 +126,7 @@ testcases = [
                                                                             'granularity': timedelta(minutes=15),
                                                                             'report_back_duration': timedelta(minutes=15),
                                                                             'report_interval': {'dtstart': datetime.now(timezone.utc),
-                                                                                                'duration': timedelta(hours=2),
-                                                                                                'tolerance': {'tolerate': {'startafter': timedelta(minutes=5)}},
-                                                                                                'notification': timedelta(minutes=30),
-                                                                                                'ramp_up': timedelta(minutes=15),
-                                                                                                'recovery': timedelta(minutes=5)},
+                                                                                                'duration': timedelta(hours=2)},
                                                                             'specifier_payloads': [{'r_id': generate_id(),
                                                                                                     'reading_type': 'Direct Read'}]}},
                                                       {'report_request_id': generate_id(),
@@ -139,11 +134,7 @@ testcases = [
                                                                             'granularity': timedelta(minutes=15),
                                                                             'report_back_duration': timedelta(minutes=15),
                                                                             'report_interval': {'dtstart': datetime.now(timezone.utc),
-                                                                                                'duration': timedelta(hours=2),
-                                                                                                'tolerance': {'tolerate': {'startafter': timedelta(minutes=5)}},
-                                                                                                'notification': timedelta(minutes=30),
-                                                                                                'ramp_up': timedelta(minutes=15),
-                                                                                                'recovery': timedelta(minutes=5)},
+                                                                                                'duration': timedelta(hours=2)},
                                                                             'specifier_payloads': [{'r_id': generate_id(),
                                                                                                     'reading_type': 'Direct Read'}]}}])),
 ('oadrRequestEvent', dict(request_id=generate_id(), ven_id='123ABC')),
@@ -151,8 +142,8 @@ testcases = [
 ('oadrRegisterReport', dict(request_id=generate_id(), reports=[{'report_id': generate_id(),
                                                                 'report_descriptions': [{
                                                                      'r_id': generate_id(),
-                                                                     'report_subjects': [{'ven_id': '123ABC'}],
-                                                                     'report_data_sources': [{'ven_id': '123ABC'}],
+                                                                     'report_subject': {'resource_id': '123ABC'},
+                                                                     'report_data_source': {'resource_id': '123ABC'},
                                                                      'report_type': 'reading',
                                                                      'reading_type': 'Direct Read',
                                                                      'market_context': 'http://localhost',
@@ -166,7 +157,7 @@ testcases = [
 ('oadrRegisterReport', {'request_id': '8a4f859883', 'reports': [{'report_id': generate_id(),
                                                                  'duration': timedelta(seconds=7200),
                                                                  'report_descriptions': [{'r_id': generate_id(),
-                                                                                          'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                                          'report_data_source': {'resource_id': 'resource1'},
                                                                                           'report_type': 'x-resourceStatus',
                                                                                           'reading_type': 'x-notApplicable',
                                                                                           'market_context': 'http://MarketContext1',
@@ -178,7 +169,7 @@ testcases = [
                                                                  {'report_id': generate_id(),
                                                                   'duration': timedelta(seconds=7200),
                                                                   'report_descriptions': [{'r_id': 'resource1_energy',
-                                                                                           'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                                           'report_data_source': {'resource_id': 'resource1'},
                                                                                            'report_type': 'usage',
                                                                                            'measurement': {'item_name': 'energyReal',
                                                                                                            'item_description': 'RealEnergy',
@@ -188,7 +179,7 @@ testcases = [
                                                                                            'market_context': 'http://MarketContext1',
                                                                                            'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}},
                                                                                           {'r_id': 'resource1_power',
-                                                                                           'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                                           'report_data_source': {'resource_id': 'resource1'},
                                                                                            'report_type': 'usage',
                                                                                            'measurement': {'item_name': 'powerReal',
                                                                                                            'item_description': 'RealPower',
@@ -204,7 +195,7 @@ testcases = [
                                                                  {'report_id': generate_id(),
                                                                   'duration': timedelta(seconds=7200),
                                                                   'report_descriptions': [{'r_id': 'resource1_energy',
-                                                                                           'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                                           'report_data_source': {'resource_id': 'resource1'},
                                                                                            'report_type': 'usage',
                                                                                            'measurement': {'item_name': 'energyReal',
                                                                                                            'item_description': 'RealEnergy',
@@ -214,7 +205,7 @@ testcases = [
                                                                                            'market_context': 'http://MarketContext1',
                                                                                            'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}},
                                                                                           {'r_id': 'resource1_power',
-                                                                                           'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                                           'report_data_source': {'resource_id': 'resource1'},
                                                                                            'report_type': 'usage',
                                                                                            'measurement': {'item_name': 'powerReal',
                                                                                                            'item_description': 'RealPower',
@@ -236,8 +227,8 @@ testcases = [
                                                               'report_request_id': generate_id(),
                                                               'report_specifier_id': generate_id(),
                                                               'report_descriptions': [{'r_id': generate_id(),
-                                                                                       'report_subjects': [{'ven_id': '123ABC'}, {'ven_id': 'DEF456'}],
-                                                                                       'report_data_sources': [{'ven_id': '123ABC'}],
+                                                                                       'report_subject': {'resource_id': '123ABC'},
+                                                                                       'report_data_source': {'resource_id': '123ABC'},
                                                                                        'report_type': enums.REPORT_TYPE.values[0],
                                                                                        'reading_type': enums.READING_TYPE.values[0],
                                                                                        'market_context': 'http://localhost',
@@ -251,9 +242,6 @@ testcases = [
 @pytest.mark.parametrize('message_type,data', testcases)
 def test_message(message_type, data):
     message = create_message(message_type, **data)
-    # print(message)
+    print(message)
     parsed = parse_message(message)[1]
-    try:
-      assert parsed == data
-    except:
-      breakpoint()
+    assert parsed == data
