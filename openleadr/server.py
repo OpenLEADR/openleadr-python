@@ -78,6 +78,7 @@ class OpenADRServer:
                              for s in self.services.values()])
         self.http_port = http_port
         self.http_host = http_host
+        self.http_path_prefix = http_path_prefix
 
         # Create SSL context for running the server
         if http_cert and http_key:
@@ -131,6 +132,12 @@ class OpenADRServer:
                            host=self.http_host,
                            ssl_context=self.ssl_context)
         await site.start()
+        print("")
+        print("*" * 80)
+        print(f"Your VTN Server is now running at ".center(80))
+        print(f"{'https' if self.ssl_context else 'http'}://{self.http_host}:{self.http_port}{self.http_path_prefix}".center(80))
+        print("*" * 80)
+        print("")
 
     async def stop(self):
         await self.app_runner.cleanup()
