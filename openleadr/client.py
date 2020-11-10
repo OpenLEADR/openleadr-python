@@ -69,7 +69,7 @@ class OpenADRClient:
         self.report_requests = []               # Keep track of the report requests from the VTN
         self.pending_reports = asyncio.Queue()  # Holds reports that are waiting to be sent
         self.scheduler = AsyncIOScheduler()
-        self.client_session = aiohttp.ClientSession()
+        self.client_session = None
         self.report_queue_task = None
 
         if cert and key:
@@ -583,6 +583,7 @@ class OpenADRClient:
     ###########################################################################
 
     async def _perform_request(self, service, message):
+        await self._ensure_client_session()
         logger.debug(f"Client is sending {message}")
         url = f"{self.vtn_url}/{service}"
         try:
@@ -656,3 +657,7 @@ class OpenADRClient:
 
         # Immediately poll again, because there might be more messages
         await self._poll()
+
+    async def _ensure_client_session(self):
+        if not self.client_session:
+            self.client_session = aiohttp.ClientSession()
