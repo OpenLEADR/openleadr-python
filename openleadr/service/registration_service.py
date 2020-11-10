@@ -64,6 +64,10 @@ logger = logging.getLogger('openleadr')
 @service('EiRegisterParty')
 class RegistrationService(VTNService):
 
+    def __init__(self, vtn_id, poll_freq):
+        super().__init__(vtn_id)
+        self.poll_freq = poll_freq
+
     @handler('oadrQueryRegistration')
     async def query_registration(self, payload):
         """
@@ -77,13 +81,10 @@ class RegistrationService(VTNService):
             return result
 
         # If you don't provide a default handler, just give out the info
-        response_payload = {'response': {'response_code': 200, 'response_description': 'OK',
-                                         'request_id': payload['request_id']},
-                            'request_id': payload['request_id'],
-                            'vtn_id': self.vtn_id,
+        response_payload = {'request_id': payload['request_id'],
                             'profiles': [{'profile_name': '2.0b',
                                           'transports': {'transport_name': 'simpleHttp'}}],
-                            'requested_oadr_poll_freq': timedelta(seconds=5)}
+                            'requested_oadr_poll_freq': self.poll_freq}
         return 'oadrCreatedPartyRegistration', response_payload
 
     @handler('oadrCreatePartyRegistration')
@@ -96,7 +97,11 @@ class RegistrationService(VTNService):
             result = await result
 
         if result is not False:
-            response_payload = {'ven_id': result[0], 'registration_id': result[1]}
+            response_payload = {'ven_id': result[0],
+                                'registration_id': result[1],
+                                'profiles': [{'profile_name': payload['profile_name'],
+                                              'transports': [{'transport_name': payload['transport_name']}]}],
+                                'requested_oadr_poll_freq': self.poll_freq}
         else:
             response_payload = {}
         return 'oadrCreatedPartyRegistration', response_payload
@@ -109,7 +114,7 @@ class RegistrationService(VTNService):
                        "handler if you want VENs to be able to connect to you. This handler will "
                        "receive a registration request and should return either 'False' (if the "
                        "registration is denied) or a (ven_id, registration_id) tuple if the "
-                       "registration is accepted. ")
+                       "registration is accepted.")
         return False
 
     @handler('oadrCancelPartyRegistration')

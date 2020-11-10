@@ -14,8 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import service, handler, VTNService
+from openleadr.service import service, handler, VTNService
+from openleadr import objects
 from asyncio import iscoroutine
+from dataclasses import asdict
 import logging
 logger = logging.getLogger('openleadr')
 
@@ -100,14 +102,23 @@ logger = logging.getLogger('openleadr')
 @service('OadrPoll')
 class PollService(VTNService):
 
+    def __init__(self, vtn_id, polling_method='internal', message_queues=None):
+        super().__init__(vtn_id)
+        self.polling_method = polling_method
+        self.message_queues = message_queues
+
     @handler('oadrPoll')
     async def poll(self, payload):
         """
-        Retrieve the messages that we have for this VEN in order.
-
-        The backend get_next_message
+        Handle the request to the oadrPoll service. This either calls a previously registered
+        `on_poll` handler, or it retrieves the next message from the internal queue.
         """
-        result = self.on_poll(ven_id=payload['ven_id'])
+        if self.polling_method == 'external':
+            result = self.on_poll(ven_id=payload['ven_id'])
+        elif payload['ven_id'] in self.message_queues:
+            result = await self.message_queues[payload['ven_id']].get()
+        else:
+            return 'oadrResponse', {}
         if iscoroutine(result):
             result = await result
         if result is None:
@@ -118,6 +129,8 @@ class PollService(VTNService):
             return 'oadrDistributeEvent', result
         if isinstance(result, dict) and 'event_descriptor' in result:
             return 'oadrDistributeEvent', {'events': [result]}
+        if isinstance(result, objects.Event):
+            return 'oadrDistributeEvent', {'events': [asdict(result)]}
         logger.warning(f"Could not determine type of message in response to oadrPoll: {result}")
         return 'oadrResponse', result
 

@@ -14,36 +14,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 from aiohttp import web
 from openleadr.service import EventService, PollService, RegistrationService, ReportService, \
                               OptService, VTNService
 from openleadr.messaging import create_message, parse_message
-from openleadr.utils import certificate_fingerprint
+from openleadr.utils import certificate_fingerprint, generate_id
+from openleadr import objects
 from functools import partial
+from datetime import datetime, timedelta, timezone
 import logging
 import ssl
 logger = logging.getLogger('openleadr')
 
 
 class OpenADRServer:
-    _MAP = {'on_created_event': EventService,
-            'on_request_event': EventService,
+    _MAP = {'on_created_event': 'event_service',
+            'on_request_event': 'event_service',
 
-            'on_register_report': ReportService,
-            'on_create_report': ReportService,
-            'on_created_report': ReportService,
-            'on_request_report': ReportService,
-            'on_update_report': ReportService,
+            'on_register_report': 'report_service',
+            'on_create_report': 'report_service',
+            'on_created_report': 'report_service',
+            'on_request_report': 'report_service',
+            'on_update_report': 'report_service',
 
-            'on_poll': PollService,
+            'on_poll': 'poll_service',
 
-            'on_query_registration': RegistrationService,
-            'on_create_party_registration': RegistrationService,
-            'on_cancel_party_registration': RegistrationService}
+            'on_query_registration': 'registration_service',
+            'on_create_party_registration': 'registration_service',
+            'on_cancel_party_registration': 'registration_service'}
 
     def __init__(self, vtn_id, cert=None, key=None, passphrase=None, fingerprint_lookup=None,
                  show_fingerprint=True, http_port=8080, http_host='127.0.0.1', http_cert=None,
-                 http_key=None, http_key_password=None, http_path_prefix='/OpenADR2/Simple/2.0b'):
+                 http_key=None, http_key_password=None, http_path_prefix='/OpenADR2/Simple/2.0b',
+                 requested_poll_freq=timedelta(seconds=10)):
         """
         Create a new OpenADR VTN (Server).
 
@@ -66,12 +70,16 @@ class OpenADRServer:
         :param http_key str: The path to the PEM private key for securing HTTP traffic.
         :param http_key_password str: The password for the HTTP private key.
         """
+        # Set up the message queues
+        self.message_queues = {}
+
         self.app = web.Application()
-        self.services = {'event_service': EventService(vtn_id),
-                         'report_service': ReportService(vtn_id),
-                         'poll_service': PollService(vtn_id),
+        self.services = {'event_service': EventService(vtn_id, message_queues=self.message_queues),
+                         'report_service': ReportService(vtn_id, message_queues=self.message_queues),
+                         'poll_service': PollService(vtn_id, message_queues=self.message_queues),
                          'opt_service': OptService(vtn_id),
-                         'registration_service': RegistrationService(vtn_id)}
+                         'registration_service': RegistrationService(vtn_id,
+                                                                     poll_freq=requested_poll_freq)}
         if http_path_prefix[-1] == "/":
             http_path_prefix = http_path_prefix[:-1]
         self.app.add_routes([web.post(f"{http_path_prefix}/{s.__service_name__}", s.handler)
@@ -102,11 +110,9 @@ class OpenADRServer:
                 print("You do not need to keep this a secret.".center(80))
                 print("*" * 80)
                 print("")
-
         VTNService._create_message = partial(create_message, cert=cert, key=key,
                                              passphrase=passphrase)
         VTNService._parse_message = partial(parse_message, fingerprint_lookup=fingerprint_lookup)
-
         self.__setattr__ = self.add_handler
 
     def run(self):
@@ -142,6 +148,47 @@ class OpenADRServer:
     async def stop(self):
         await self.app_runner.cleanup()
 
+    async def add_event(self, ven_id, signal_name, signal_type, intervals, target, callback):
+        """
+        Convenience method to add an event with a single signal.
+        :param str ven_id: The ven_id to whom this event must be delivered.
+        :param str signal_name: The OpenADR name of the signal; one of openleadr.objects.SIGNAL_NAME
+        :param str signal_type: The OpenADR type of the signal; one of openleadr.objects.SIGNAL_TYPE
+        :param str intervals: A list of intervals with a dtstart, duration and payload member.
+        :param str callback: A callback function for when your event has been accepted (optIn) or refused (optOut).
+        """
+        event_id = generate_id()
+        if not isinstance(target, list):
+            target = [target]
+        event_descriptor = objects.EventDescriptor(event_id=event_id,
+                                                   modification_number=0,
+                                                   market_context="None",
+                                                   event_status="near",
+                                                   created_date_time=datetime.now(timezone.utc))
+        event_signal = objects.EventSignal(intervals=intervals,
+                                           signal_name=signal_name,
+                                           signal_type=signal_type,
+                                           signal_id=generate_id(),
+                                           targets=target)
+        event = objects.Event(event_descriptor=event_descriptor,
+                              event_signals=[event_signal],
+                              targets=target)
+        if ven_id not in self.message_queues:
+            self.message_queues[ven_id] = asyncio.Queue()
+        await self.message_queues[ven_id].put(event)
+        self.services['event_service'].pending_events[event_id] = callback
+
+    async def add_raw_event(self, ven_id, event):
+        """
+        Add a new event to the queue for a specific VEN.
+        """
+        self.message_queues[ven_id].put(event)
+
+    async def request_report(self):
+        """
+
+        """
+
     def add_handler(self, name, func):
         """
         Add a handler to the OpenADRServer.
@@ -156,7 +203,9 @@ class OpenADRServer:
         """
         logger.debug(f"Adding handler: {name} {func}")
         if name in self._MAP:
-            setattr(self._MAP[name], name, staticmethod(func))
+            setattr(self.services[self._MAP[name]], name, func)
+            if name == 'on_poll':
+                setattr(self.services[self._MAP[name]], 'polling_method', 'external')
         else:
             raise NameError(f"Unknown handler {name}. "
                             f"Correct handler names are: {self._MAP.keys()}")
