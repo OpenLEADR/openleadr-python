@@ -625,7 +625,7 @@ class OpenADRClient:
         if result not in ('optIn', 'optOut'):
             logger.error("Your on_event handler must return 'optIn' or 'optOut'; "
                          f"you supplied {result}. Please fix your on_event handler.")
-
+            result = 'optOut'
 
         logger.debug(f"Now responding with {result}")
         request_id = message['request_id']
