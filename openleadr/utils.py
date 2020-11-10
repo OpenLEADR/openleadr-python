@@ -493,6 +493,20 @@ def find_by(dict_or_list, key, value, *args):
     else:
         return None
 
+def group_by(list_, key, pop_key=False):
+    """
+    Return a dict that groups values
+    """
+    grouped = {}
+    key_path = key.split(".")
+    for item in list_:
+        value = item
+        for key in key_path:
+            value = value.get(key)
+        if value not in grouped:
+            grouped[value] = []
+        grouped[value].append(item)
+    return grouped
 
 def cron_config(interval):
     """
