@@ -25,7 +25,7 @@
         <oadr:oadrTransports>
           {% for transport in profile.transports %}
           <oadr:oadrTransport>
-            <oadr:oadrTransportName>simpleHttp</oadr:oadrTransportName>
+            <oadr:oadrTransportName>{{ transport.transport_name }}</oadr:oadrTransportName>
           </oadr:oadrTransport>
           {% endfor %}
         </oadr:oadrTransports>
