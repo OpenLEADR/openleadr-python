@@ -180,7 +180,11 @@ def normalize_dict(ordered_dict):
                 report_descriptions = [report_descriptions]
             for description in report_descriptions:
                 # We want to make the identification of the measurement universal
-                if 'power_real' in description:
+                if 'current' in description:
+                    item_name, item = 'current', description.pop('current')
+                elif 'voltage' in description:
+                    item_name, item = 'voltage', description.pop('voltage')
+                elif 'power_real' in description:
                     item_name, item = 'powerReal', description.pop('power_real')
                 elif 'power_apparent' in description:
                     item_name, item = 'powerApparent', description.pop('power_apparent')
