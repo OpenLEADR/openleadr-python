@@ -154,6 +154,16 @@ class OpenADRClient:
             self.report_queue_task.cancel()
         await self.client_session.close()
 
+    def add_handler(self, handler, callback):
+        """
+        Add a callback for the given situation
+        """
+        if handler not in ('on_event', 'on_update_event'):
+            logger.error("'handler' must be either on_event or on_update_event")
+            return
+
+        setattr(self, handler, callback)
+
     def add_report(self, callable, resource_id, measurement,
                    report_specifier_id=None, r_id=None,
                    report_name=enums.REPORT_NAME.TELEMETRY_USAGE,
@@ -553,6 +563,21 @@ class OpenADRClient:
 
     ###########################################################################
     #                                                                         #
+    #                                  PLACEHOLDER                            #
+    #                                                                         #
+    ###########################################################################
+
+    async def on_event(self, event):
+        """
+        Placeholder for the on_event handler.
+        """
+        logger.warning("You should implement your own on_event handler. This handler receives "
+                       "an Event dict and should return either 'optIn' or 'optOut' based on your "
+                       "choice. Will opt out of the event for now.")
+        return 'optOut'
+
+    ###########################################################################
+    #                                                                         #
     #                                  LOW LEVEL                              #
     #                                                                         #
     ###########################################################################
@@ -585,9 +610,19 @@ class OpenADRClient:
 
     async def _on_event(self, message):
         logger.debug(f"The VEN received an event")
-        result = self.on_event(message)
-        if asyncio.iscoroutine(result):
-            result = await result
+        try:
+            result = self.on_event(message)
+            if asyncio.iscoroutine(result):
+                result = await result
+        except Exception as err:
+            logger.error("Your on_event handler encountered an error. Will Opt Out of the event. "
+                         f"The error was {err.__class__.__name__}: {str(err)}")
+            result = 'optOut'
+
+        if result not in ('optIn', 'optOut'):
+            logger.error("Your on_event handler must return 'optIn' or 'optOut'; "
+                         f"you supplied {result}. Please fix your on_event handler.")
+
 
         logger.debug(f"Now responding with {result}")
         request_id = message['request_id']
