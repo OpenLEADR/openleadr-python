@@ -157,6 +157,13 @@ class OpenADRServer:
         :param str intervals: A list of intervals with a dtstart, duration and payload member.
         :param str callback: A callback function for when your event has been accepted (optIn) or refused (optOut).
         """
+        if self.services['event_service'].polling_method == 'external':
+            logger.error("You cannot use the add_event method after you assign your own on_poll "
+                         "handler. If you use your own on_poll handler, you are responsible for "
+                         "delivering events from that handler. If you want to use OpenLEADRs "
+                         "message queuing system, you should not assign an on_poll handler. "
+                         "Your Event will NOT be added.")
+            return
         event_id = generate_id()
         if not isinstance(target, list):
             target = [target]
@@ -205,7 +212,8 @@ class OpenADRServer:
         if name in self._MAP:
             setattr(self.services[self._MAP[name]], name, func)
             if name == 'on_poll':
-                setattr(self.services[self._MAP[name]], 'polling_method', 'external')
+                self.services['poll_service'].polling_method = 'external'
+                self.services['event_service'].polling_method = 'external'
         else:
             raise NameError(f"Unknown handler {name}. "
                             f"Correct handler names are: {self._MAP.keys()}")
