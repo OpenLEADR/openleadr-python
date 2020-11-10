@@ -588,11 +588,11 @@ class OpenADRClient:
         url = f"{self.vtn_url}/{service}"
         try:
             async with self.client_session.post(url, data=message) as req:
+                content = await req.read()
                 if req.status != HTTPStatus.OK:
                     logger.warning(f"Non-OK status when performing a request "
-                                   f"to {url} with data {message}: {req.status}")
+                                   f"to {url} with data {message}: {req.status} {content.decode('utf-8')}")
                     return None, {}
-                content = await req.read()
                 logger.debug(content.decode('utf-8'))
         except aiohttp.client_exceptions.ClientConnectorError as err:
             # Could not connect to server
