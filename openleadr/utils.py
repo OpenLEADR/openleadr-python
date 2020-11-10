@@ -121,7 +121,7 @@ def normalize_dict(ordered_dict):
             key = key[5:]
 
         # Group all targets as a list of dicts under the key "target"
-        if key in ("target", "report_subject", "report_data_source"):
+        if key in ("target",):
             targets = d.pop(key)
             new_targets = []
             if targets:
