@@ -600,12 +600,14 @@ class OpenADRClient:
             logger.error(f"{err.__class__.__name__}: {str(err)}")
             return None, {}
         except Exception as err:
-            breakpoint()
+            print(f"!!!!!!!!!!!!!!!!!!!! REQUEST ERROR {err} !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            return None, {}
         try:
+            if 'content' not in locals():
+                print("!!!!!!!!!!!!!!!! CONTENT IS NOT DEFINED HERE !!!!!!!!!!!!!!!!!!!!!")
             message_type, message_payload = self._parse_message(content)
         except Exception as err:
-            logger.error(f"The incoming message could not be parsed or validated: {content}.")
-            raise err
+            logger.error(f"The incoming message could not be parsed or validated.")
             return None, {}
         return message_type, message_payload
 
