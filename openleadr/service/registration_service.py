@@ -17,6 +17,8 @@
 from . import service, handler, VTNService
 from datetime import timedelta
 from asyncio import iscoroutine
+import logging
+logger = logging.getLogger('openleadr')
 
 # ╔══════════════════════════════════════════════════════════════════════════╗
 # ║                           REGISTRATION SERVICE                           ║
@@ -58,8 +60,13 @@ from asyncio import iscoroutine
 # │                                                                          │
 # └──────────────────────────────────────────────────────────────────────────┘
 
+
 @service('EiRegisterParty')
 class RegistrationService(VTNService):
+
+    def __init__(self, vtn_id, poll_freq):
+        super().__init__(vtn_id)
+        self.poll_freq = poll_freq
 
     @handler('oadrQueryRegistration')
     async def query_registration(self, payload):
@@ -73,12 +80,10 @@ class RegistrationService(VTNService):
             return result
 
         # If you don't provide a default handler, just give out the info
-        response_payload = {'response': {'response_code': 200, 'response_description': 'OK', 'request_id': payload['request_id']},
-                            'request_id': payload['request_id'],
-                            'vtn_id': self.vtn_id,
+        response_payload = {'request_id': payload['request_id'],
                             'profiles': [{'profile_name': '2.0b',
                                           'transports': {'transport_name': 'simpleHttp'}}],
-                            'requested_oadr_poll_freq': timedelta(seconds=5)}
+                            'requested_oadr_poll_freq': self.poll_freq}
         return 'oadrCreatedPartyRegistration', response_payload
 
     @handler('oadrCreatePartyRegistration')
@@ -90,12 +95,33 @@ class RegistrationService(VTNService):
         if iscoroutine(result):
             result = await result
 
-        response_type, response_payload = result
-        response_payload['response'] = {'response_code': 200,
-                                       'response_description': 'OK',
-                                       'request_id': payload['request_id']}
-        response_payload['vtn_id'] = self.vtn_id
-        return response_type, response_payload
+        if result is not False and result is not None:
+            if len(result) != 2:
+                logger.error("Your on_create_party_registration handler should return either "
+                             "'False' (if the client is rejected) or a (ven_id, registration_id) "
+                             "tuple. Will REJECT the client for now.")
+                response_payload = {}
+            else:
+                ven_id, registration_id = result
+                response_payload = {'ven_id': result[0],
+                                    'registration_id': result[1],
+                                    'profiles': [{'profile_name': payload['profile_name'],
+                                                  'transports': [{'transport_name': payload['transport_name']}]}],
+                                    'requested_oadr_poll_freq': self.poll_freq}
+        else:
+            response_payload = {}
+        return 'oadrCreatedPartyRegistration', response_payload
+
+    def on_create_party_registration(self, payload):
+        """
+        Placeholder for the on_create_party_registration handler
+        """
+        logger.warning("You should implement and register your own on_create_party_registration "
+                       "handler if you want VENs to be able to connect to you. This handler will "
+                       "receive a registration request and should return either 'False' (if the "
+                       "registration is denied) or a (ven_id, registration_id) tuple if the "
+                       "registration is accepted.")
+        return False
 
     @handler('oadrCancelPartyRegistration')
     async def cancel_party_registration(self, payload):
@@ -106,3 +132,12 @@ class RegistrationService(VTNService):
         if iscoroutine(result):
             result = await result
         return result
+
+    def on_cancel_party_registration(self, ven_id):
+        """
+        Placeholder for the on_cancel_party_registration handler.
+        """
+        logger.warning("You should implement and register your own on_cancel_party_registration "
+                       "handler that allown VENs to deregister from your VTN. This will receive a "
+                       "ven_id as its argument. You don't need to return anything.")
+        return None

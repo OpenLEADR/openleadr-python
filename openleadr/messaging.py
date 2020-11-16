@@ -23,11 +23,15 @@ from lxml.etree import Element
 
 from .utils import *
 from .preflight import preflight_message
-
 from dataclasses import is_dataclass, asdict
+
+import logging
+logger = logging.getLogger('openleadr')
+
 SIGNER = XMLSigner(method=methods.detached,
                    c14n_algorithm="http://www.w3.org/2001/10/xml-exc-c14n#")
 VERIFIER = XMLVerifier()
+
 
 def parse_message(data, fingerprint=None, fingerprint_lookup=None):
     """
@@ -37,23 +41,28 @@ def parse_message(data, fingerprint=None, fingerprint_lookup=None):
     message_type, message_payload = message_dict['oadrPayload']['oadrSignedObject'].popitem()
     if 'ven_id' in message_payload:
         _validate_and_authenticate_message(data, message_dict, fingerprint, fingerprint_lookup)
-    return message_type, normalize_dict(message_payload)
+
+    message_payload = normalize_dict(message_payload)
+    logger.debug(message_payload)
+    return message_type, message_payload
+
 
 def create_message(message_type, cert=None, key=None, passphrase=None, **message_payload):
     """
     Create and optionally sign an OpenADR message. Returns an XML string.
     """
     # If we supply the payload as dataclasses, convert them to dicts
-    for k, v in message_payload.items():
-        if isinstance(v, list):
-            for i, item in enumerate(v):
-                if is_dataclass(item):
-                    v[i] = asdict(item)
-        elif is_dataclass(v):
-            message_payload[k] = asdict(v)
+    # for k, v in message_payload.items():
+    #     if isinstance(v, list):
+    #         for i, item in enumerate(v):
+    #             if is_dataclass(item):
+    #                 v[i] = asdict(item)
+    #     elif is_dataclass(v):
+    #         message_payload[k] = asdict(v)
 
-    preflight_message(message_type, message_payload)
-    signed_object = flatten_xml(TEMPLATES.get_template(f'{message_type}.xml').render(**message_payload))
+    message_payload = preflight_message(message_type, message_payload)
+    signed_object = flatten_xml(TEMPLATES.get_template(f'{message_type}.xml')
+                                         .render(**message_payload))
     envelope = TEMPLATES.get_template('oadrPayload.xml')
     if cert and key:
         tree = etree.fromstring(signed_object)
@@ -72,7 +81,9 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
                           signed_object=signed_object)
     return msg
 
-def _validate_and_authenticate_message(data, message_dict, fingerprint=None, fingerprint_lookup=None):
+
+def _validate_and_authenticate_message(data, message_dict, fingerprint=None,
+                                       fingerprint_lookup=None):
     if not fingerprint and not fingerprint_lookup:
         return
     tree = etree.fromstring(ensure_bytes(data))
@@ -86,6 +97,7 @@ def _validate_and_authenticate_message(data, message_dict, fingerprint=None, fin
         raise ValueError("The fingerprint does not match")
     VERIFIER.verify(tree, x509_cert=ensure_bytes(cert), expect_references=2)
     _verify_replay_protect(message_dict)
+
 
 def _create_replay_protect():
     dt_element = Element("{http://openadr.org/oadr-2.0b/2012/07/xmldsig-properties}timestamp")
@@ -101,10 +113,13 @@ def _create_replay_protect():
     el.append(nonce_element)
     return el
 
+
 def _verify_replay_protect(message_dict):
     try:
-        ts = message_dict['oadrPayload']['Signature']['Object']['SignatureProperties']['SignatureProperty']['ReplayProtect']['timestamp']
-        nonce = message_dict['oadrPayload']['Signature']['Object']['SignatureProperties']['SignatureProperty']['ReplayProtect']['nonce']
+        sig_props = message_dict['oadrPayload']['Signature']['Object']['SignatureProperties']
+        replay_protect = sign_props['SignatureProperty']['ReplayProtect']
+        ts = replay_protect['timestamp']
+        nonce = replay_protect['nonce']
     except KeyError:
         raise ValueError("Missing ReplayProtect")
     else:
@@ -115,11 +130,13 @@ def _verify_replay_protect(message_dict):
             raise ValueError("This combination of timestamp and nonce was already used")
     _update_nonce_cache(timestamp, nonce)
 
+
 def _update_nonce_cache(timestamp, nonce):
     for timestamp, nonce in list(NONCE_CACHE):
         if timestamp < datetime.now(timezone.utc) - REPLAY_PROTECT_MAX_TIME_DELTA:
             NONCE_CACHE.remove((timestamp, nonce))
     NONCE_CACHE.add((timestamp, nonce))
+
 
 # Replay protect settings
 REPLAY_PROTECT_MAX_TIME_DELTA = timedelta(seconds=5)

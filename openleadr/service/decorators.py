@@ -14,9 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import service, handler, VTNService
+def handler(message_type):
+    """
+    Decorator to mark a method as the handler for a specific message type.
+    """
+    def _actual_decorator(decorated_function):
+        decorated_function.__message_type__ = message_type
+        return decorated_function
+    return _actual_decorator
 
 
-@service('EiOpt')
-class OptService(VTNService):
-    pass
+def service(service_name):
+    """
+    Decorator to mark a class as an OpenADR Service for a specific endpoint.
+    """
+    def _actual_decorator(decorated_function):
+        decorated_function.__service_name__ = service_name
+        return decorated_function
+    return _actual_decorator

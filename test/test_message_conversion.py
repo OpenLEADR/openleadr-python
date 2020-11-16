@@ -20,26 +20,11 @@ from openleadr import enums
 from pprint import pprint
 from termcolor import colored
 from datetime import datetime, timezone, timedelta
+import pytest
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
-def test_messages():
-    for message_type, data in testcases:
-        _test_message(message_type, **data)
 
-def _test_message(message_type, **data):
-    message = create_message(message_type, **data)
-    # print(message)
-    parsed = parse_message(message)[1]
-
-    if parsed == data:
-        print(colored(f"pass {message_type}", "green"))
-    else:
-        pprint(data)
-        print(message)
-        pprint(parsed)
-        print(colored(f"fail {message_type}", "red"))
-        quit(1)
 
 def create_dummy_event(ven_id):
     """
@@ -128,11 +113,10 @@ testcases = [
                                                   'report_specifier': {'granularity': timedelta(seconds=900),
                                                                        'report_back_duration': timedelta(seconds=900),
                                                                        'report_interval': {'dtstart': datetime(2019, 11, 19, 11, 0, 18, 672768, tzinfo=timezone.utc),
-                                                                                           'duration': timedelta(seconds=7200),
-                                                                                           'tolerance': {'tolerate': {'startafter': timedelta(seconds=300)}}},
+                                                                                           'duration': timedelta(seconds=7200)},
                                                                        'report_specifier_id': '9c8bdc00e7',
-                                                                       'specifier_payload': {'r_id': 'd6e2e07485',
-                                                                                             'reading_type': 'Direct Read'}}}])),
+                                                                       'specifier_payloads': [{'r_id': 'd6e2e07485',
+                                                                                             'reading_type': 'Direct Read'}]}}])),
 ('oadrDistributeEvent', dict(request_id=generate_id(), response={'request_id': 123, 'response_code': 200, 'response_description': 'OK'}, events=[create_dummy_event(ven_id='123ABC')], vtn_id='VTN123')),
 ('oadrPoll', dict(ven_id='123ABC')),
 ('oadrQueryRegistration', dict(request_id=generate_id())),
@@ -142,99 +126,94 @@ testcases = [
                                                                             'granularity': timedelta(minutes=15),
                                                                             'report_back_duration': timedelta(minutes=15),
                                                                             'report_interval': {'dtstart': datetime.now(timezone.utc),
-                                                                                                'duration': timedelta(hours=2),
-                                                                                                'tolerance': {'tolerate': {'startafter': timedelta(minutes=5)}},
-                                                                                                'notification': timedelta(minutes=30),
-                                                                                                'ramp_up': timedelta(minutes=15),
-                                                                                                'recovery': timedelta(minutes=5)},
-                                                                            'specifier_payload': {'r_id': generate_id(),
-                                                                                                  'reading_type': 'Direct Read'}}},
+                                                                                                'duration': timedelta(hours=2)},
+                                                                            'specifier_payloads': [{'r_id': generate_id(),
+                                                                                                    'reading_type': 'Direct Read'}]}},
                                                       {'report_request_id': generate_id(),
                                                        'report_specifier': {'report_specifier_id': generate_id(),
                                                                             'granularity': timedelta(minutes=15),
                                                                             'report_back_duration': timedelta(minutes=15),
                                                                             'report_interval': {'dtstart': datetime.now(timezone.utc),
-                                                                                                'duration': timedelta(hours=2),
-                                                                                                'tolerance': {'tolerate': {'startafter': timedelta(minutes=5)}},
-                                                                                                'notification': timedelta(minutes=30),
-                                                                                                'ramp_up': timedelta(minutes=15),
-                                                                                                'recovery': timedelta(minutes=5)},
-                                                                            'specifier_payload': {'r_id': generate_id(),
-                                                                                                  'reading_type': 'Direct Read'}}}])),
+                                                                                                'duration': timedelta(hours=2)},
+                                                                            'specifier_payloads': [{'r_id': generate_id(),
+                                                                                                    'reading_type': 'Direct Read'}]}}])),
 ('oadrRequestEvent', dict(request_id=generate_id(), ven_id='123ABC')),
 ('oadrRequestReregistration', dict(ven_id='123ABC')),
 ('oadrRegisterReport', dict(request_id=generate_id(), reports=[{'report_id': generate_id(),
-                                                                       'report_descriptions': {
-                                                                            generate_id(): {
-                                                                            'report_subjects': [{'ven_id': '123ABC'}],
-                                                                            'report_data_sources': [{'ven_id': '123ABC'}],
-                                                                            'report_type': 'reading',
-                                                                            'reading_type': 'Direct Read',
-                                                                            'market_context': 'http://localhost',
-                                                                            'sampling_rate': {'min_period': timedelta(minutes=1), 'max_period': timedelta(minutes=1), 'on_change': True}}},
-                                                                       'report_request_id': generate_id(),
-                                                                       'report_specifier_id': generate_id(),
-                                                                       'report_name': 'HISTORY_USAGE',
-                                                                       'created_date_time': datetime.now(timezone.utc)}],
+                                                                'report_descriptions': [{
+                                                                     'r_id': generate_id(),
+                                                                     'report_subject': {'resource_id': '123ABC'},
+                                                                     'report_data_source': {'resource_id': '123ABC'},
+                                                                     'report_type': 'reading',
+                                                                     'reading_type': 'Direct Read',
+                                                                     'market_context': 'http://localhost',
+                                                                     'sampling_rate': {'min_period': timedelta(minutes=1), 'max_period': timedelta(minutes=1), 'on_change': True}}],
+                                                                'report_request_id': generate_id(),
+                                                                'report_specifier_id': generate_id(),
+                                                                'report_name': 'HISTORY_USAGE',
+                                                                'created_date_time': datetime.now(timezone.utc)}],
                                                         ven_id='123ABC',
                                                         report_request_id=generate_id())),
 ('oadrRegisterReport', {'request_id': '8a4f859883', 'reports': [{'report_id': generate_id(),
                                                                  'duration': timedelta(seconds=7200),
-                                                                 'report_descriptions': {'resource1_status': {
-                                                                                          'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                 'report_descriptions': [{'r_id': generate_id(),
+                                                                                          'report_data_source': {'resource_id': 'resource1'},
                                                                                           'report_type': 'x-resourceStatus',
                                                                                           'reading_type': 'x-notApplicable',
                                                                                           'market_context': 'http://MarketContext1',
-                                                                                          'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}},
+                                                                                          'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}],
                                                                   'report_request_id': '0',
                                                                   'report_specifier_id': '789ed6cd4e_telemetry_status',
                                                                   'report_name': 'METADATA_TELEMETRY_STATUS',
                                                                   'created_date_time': datetime(2019, 11, 20, 15, 4, 52, 638621, tzinfo=timezone.utc)},
                                                                  {'report_id': generate_id(),
                                                                   'duration': timedelta(seconds=7200),
-                                                                  'report_descriptions': {'resource1_energy': {
-                                                                                           'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                  'report_descriptions': [{'r_id': 'resource1_energy',
+                                                                                           'report_data_source': {'resource_id': 'resource1'},
                                                                                            'report_type': 'usage',
-                                                                                           'energy_real': {'item_description': 'RealEnergy',
+                                                                                           'measurement': {'item_name': 'energyReal',
+                                                                                                           'item_description': 'RealEnergy',
                                                                                                            'item_units': 'Wh',
                                                                                                            'si_scale_code': 'n'},
                                                                                            'reading_type': 'Direct Read',
                                                                                            'market_context': 'http://MarketContext1',
                                                                                            'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}},
-                                                                                          'resource1_power': {
-                                                                                           'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                                          {'r_id': 'resource1_power',
+                                                                                           'report_data_source': {'resource_id': 'resource1'},
                                                                                            'report_type': 'usage',
-                                                                                           'power_real': {'item_description': 'RealPower',
-                                                                                                          'item_units': 'W',
-                                                                                                          'si_scale_code': 'n',
-                                                                                                          'power_attributes': {'hertz': 60, 'voltage': 110, 'ac': False}},
+                                                                                           'measurement': {'item_name': 'powerReal',
+                                                                                                           'item_description': 'RealPower',
+                                                                                                           'item_units': 'W',
+                                                                                                           'si_scale_code': 'n'},
                                                                                             'reading_type': 'Direct Read',
                                                                                             'market_context': 'http://MarketContext1',
-                                                                                            'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}},
+                                                                                            'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}],
                                                                   'report_request_id': '0',
                                                                   'report_specifier_id': '789ed6cd4e_telemetry_usage',
                                                                   'report_name': 'METADATA_TELEMETRY_USAGE',
                                                                   'created_date_time': datetime(2019, 11, 20, 15, 4, 52, 638621, tzinfo=timezone.utc)},
                                                                  {'report_id': generate_id(),
                                                                   'duration': timedelta(seconds=7200),
-                                                                  'report_descriptions': {'resource1_energy': {
-                                                                                           'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                  'report_descriptions': [{'r_id': 'resource1_energy',
+                                                                                           'report_data_source': {'resource_id': 'resource1'},
                                                                                            'report_type': 'usage',
-                                                                                           'energy_real': {'item_description': 'RealEnergy',
+                                                                                           'measurement': {'item_name': 'energyReal',
+                                                                                                           'item_description': 'RealEnergy',
                                                                                                            'item_units': 'Wh',
                                                                                                            'si_scale_code': 'n'},
                                                                                            'reading_type': 'Direct Read',
                                                                                            'market_context': 'http://MarketContext1',
                                                                                            'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}},
-                                                                                          'resource1_power': {
-                                                                                           'report_data_sources': [{'resource_id': 'resource1'}],
+                                                                                          {'r_id': 'resource1_power',
+                                                                                           'report_data_source': {'resource_id': 'resource1'},
                                                                                            'report_type': 'usage',
-                                                                                           'power_real': {'item_description': 'RealPower',
-                                                                                                          'item_units': 'W', 'si_scale_code': 'n',
-                                                                                                          'power_attributes': {'hertz': 60, 'voltage': 110, 'ac': False}},
-                                                                                           'reading_type': 'Direct Read',
-                                                                                           'market_context': 'http://MarketContext1',
-                                                                                           'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}},
+                                                                                           'measurement': {'item_name': 'powerReal',
+                                                                                                           'item_description': 'RealPower',
+                                                                                                           'item_units': 'W',
+                                                                                                           'si_scale_code': 'n'},
+                                                                                            'reading_type': 'Direct Read',
+                                                                                            'market_context': 'http://MarketContext1',
+                                                                                            'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}],
                                                                   'report_request_id': '0',
                                                                   'report_specifier_id': '789ed6cd4e_history_usage',
                                                                   'report_name': 'METADATA_HISTORY_USAGE',
@@ -243,34 +222,26 @@ testcases = [
 ('oadrResponse', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': None}, ven_id='123ABC')),
 ('oadrUpdatedReport', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, ven_id='123ABC', cancel_report={'request_id': generate_id(), 'report_request_id': [generate_id(), generate_id(), generate_id()], 'report_to_follow': False, 'ven_id': '123ABC'})),
 ('oadrUpdateReport', dict(request_id=generate_id(), reports=[{'report_id': generate_id(),
-                                                                                  'report_name': enums.REPORT_NAME.values[0],
-                                                                                  'created_date_time': datetime.now(timezone.utc),
-                                                                                  'report_request_id': generate_id(),
-                                                                                  'report_specifier_id': generate_id(),
-                                                                                  'report_descriptions': {generate_id(): {'report_subjects': [{'ven_id': '123ABC'}, {'ven_id': 'DEF456'}],
-                                                                                                                          'report_data_sources': [{'ven_id': '123ABC'}],
-                                                                                                                          'report_type': enums.REPORT_TYPE.values[0],
-                                                                                                                          'reading_type': enums.READING_TYPE.values[0],
-                                                                                                                          'market_context': 'http://localhost',
-                                                                                                                          'sampling_rate': {'min_period': timedelta(minutes=1),
-                                                                                                                                            'max_period': timedelta(minutes=2),
-                                                                                                                                            'on_change': False}}}}], ven_id='123ABC'))
-# for report_name in enums.REPORT_NAME.values:
-#     for reading_type in enums.READING_TYPE.values:
-#         for report_type in enums.REPORT_TYPE.values:
-#             ('oadrUpdateReport', dict(request_id=generate_id(), reports=[{'report_id': generate_id()),
-#                                                                                   'report_name': report_name,
-#                                                                                   'created_date_time': datetime.now(timezone.utc),
-#                                                                                   'report_request_id': generate_id(),
-#                                                                                   'report_specifier_id': generate_id(),
-#                                                                                   'report_descriptions': [{'r_id': generate_id(),
-#                                                                                                            'report_subjects': [{'ven_id': '123ABC'}, {'ven_id': 'DEF456'}],
-#                                                                                                            'report_data_sources': [{'ven_id': '123ABC'}],
-#                                                                                                            'report_type': report_type,
-#                                                                                                            'reading_type': reading_type,
-#                                                                                                            'market_context': 'http://localhost',
-#                                                                                                            'sampling_rate': {'min_period': timedelta(minutes=1),
-#                                                                                                                              'max_period': timedelta(minutes=2),
-#                                                                                                                              'on_change': False}}]}], ven_id='123ABC')
+                                                              'report_name': enums.REPORT_NAME.values[0],
+                                                              'created_date_time': datetime.now(timezone.utc),
+                                                              'report_request_id': generate_id(),
+                                                              'report_specifier_id': generate_id(),
+                                                              'report_descriptions': [{'r_id': generate_id(),
+                                                                                       'report_subject': {'resource_id': '123ABC'},
+                                                                                       'report_data_source': {'resource_id': '123ABC'},
+                                                                                       'report_type': enums.REPORT_TYPE.values[0],
+                                                                                       'reading_type': enums.READING_TYPE.values[0],
+                                                                                       'market_context': 'http://localhost',
+                                                                                       'sampling_rate': {'min_period': timedelta(minutes=1),
+                                                                                                         'max_period': timedelta(minutes=2),
+                                                                                                         'on_change': False}}
+                                                                                        ]}], ven_id='123ABC'))
 
 ]
+
+@pytest.mark.parametrize('message_type,data', testcases)
+def test_message(message_type, data):
+    message = create_message(message_type, **data)
+    print(message)
+    parsed = parse_message(message)[1]
+    assert parsed == data

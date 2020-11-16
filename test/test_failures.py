@@ -11,13 +11,14 @@ async def test_http_level_error(start_server):
     client = OpenADRClient(vtn_url="http://this.is.an.error", ven_name=VEN_NAME)
     client.on_event = _client_on_event
     await client.run()
+    await client.client_session.close()
 
 @pytest.mark.asyncio
 async def test_openadr_error(start_server):
     client = OpenADRClient(vtn_url=f"http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b", ven_name=VEN_NAME)
     client.on_event = _client_on_event
     await client.run()
-
+    await client.client_session.close()
 
 @pytest.mark.asyncio
 async def test_signature_error(start_server_with_signatures):
@@ -25,7 +26,9 @@ async def test_signature_error(start_server_with_signatures):
                            vtn_fingerprint="INVALID")
     client.on_event = _client_on_event
     await client.run()
-    await asyncio.sleep(3)
+    await asyncio.sleep(0)
+    await client.client_session.close()
+
 
 ##########################################################################################
 

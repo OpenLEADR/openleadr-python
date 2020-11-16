@@ -37,15 +37,7 @@ KEYFILE =  os.path.join(os.path.dirname(os.path.dirname(__file__)), "key.pem")
 
 async def _on_create_party_registration(payload):
     registration_id = generate_id()
-    payload = {'response': {'response_code': 200,
-                            'response_description': 'OK',
-                            'request_id': payload['request_id']},
-               'ven_id': VEN_ID,
-               'registration_id': registration_id,
-               'profiles': [{'profile_name': '2.0b',
-                             'transports': {'transport_name': 'simpleHttp'}}],
-               'requested_oadr_poll_freq': timedelta(seconds=10)}
-    return 'oadrCreatedPartyRegistration', payload
+    return VEN_ID, registration_id
 
 @pytest.fixture
 async def start_server():
@@ -61,15 +53,11 @@ async def start_server():
 
 @pytest.fixture
 async def start_server_with_signatures():
-    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr', fingerprint_lookup=fingerprint_lookup)
+    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr', fingerprint_lookup=fingerprint_lookup, http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
-
-    runner = web.AppRunner(server.app)
-    await runner.setup()
-    site = web.TCPSite(runner, 'localhost', SERVER_PORT)
-    await site.start()
+    await server.run_async()
     yield
-    await runner.cleanup()
+    await server.stop()
 
 
 @pytest.mark.asyncio
@@ -107,5 +95,6 @@ async def test_create_party_registration_with_signatures(start_server_with_signa
     response_type, response_payload = await client.create_party_registration()
     assert response_type == 'oadrCreatedPartyRegistration'
     assert response_payload['ven_id'] == VEN_ID
+    await client.stop()
 
 

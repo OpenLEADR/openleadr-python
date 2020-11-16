@@ -8,6 +8,8 @@
     {% for report_request in report_requests %}
     {% include 'parts/oadrReportRequest.xml' %}
     {% endfor %}
+    {% if ven_id is defined and ven_id is not none %}
     <ei:venID>{{ ven_id }}</ei:venID>
+    {% endif %}
   </oadr:oadrRegisteredReport>
 </oadr:oadrSignedObject>

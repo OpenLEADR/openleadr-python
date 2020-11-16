@@ -14,25 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def handler(message_type):
-    """
-    Decorator to mark a method as the handler for a specific message type.
-    """
-    def _actual_decorator(decorated_function):
-        decorated_function.__message_type__ = message_type
-        return decorated_function
-    return _actual_decorator
-
-def service(service_name):
-    """
-    Decorator to mark a class as an OpenADR Service for a specific endpoint.
-    """
-    def _actual_decorator(decorated_function):
-        decorated_function.__service_name__ = service_name
-        return decorated_function
-    return _actual_decorator
-
-# The classes below all register to the api
+from .decorators import handler, service
 from .vtn_service import VTNService
 from .event_service import EventService
 from .poll_service import PollService

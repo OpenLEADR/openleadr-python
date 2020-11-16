@@ -46,3 +46,26 @@ def test_oadr_event():
 
 
 
+def test_oadr_report():
+    report = objects.Report(
+        created_date_time=datetime.now(),
+        duration=timedelta(hours=1),
+        report_specifier_id='id001',
+        report_descriptions=[
+            objects.ReportDescription(
+                r_id='report001',
+                market_context='market001',
+                reading_type=enums.READING_TYPE.DIRECT_READ,
+                report_subject=objects.Target(
+
+                ),
+                report_data_source=objects.Target(
+                    resource_id='resource001'
+                ),
+                report_type=enums.REPORT_TYPE.READING,
+                sampling_rate=timedelta(seconds=10),
+                measurement=enums.MEASUREMENTS.VOLTAGE
+            )
+        ],
+        report_name=enums.REPORT_NAME.HISTORY_USAGE)
+
