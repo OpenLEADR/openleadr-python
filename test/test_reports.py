@@ -4,6 +4,7 @@ import pytest
 from datetime import timedelta
 from functools import partial
 import logging
+from random import random
 
 loop = asyncio.get_event_loop()
 loop.set_debug(True)
@@ -12,9 +13,10 @@ enable_default_logging()
 
 async def collect_data(future=None):
     print("Collect Data")
+    value = 100 * random()
     if future:
-        future.set_result(True)
-    return 3.14
+        future.set_result(value)
+    return value
 
 async def lookup_ven(ven_name=None, ven_id=None):
     """
@@ -29,7 +31,10 @@ async def receive_data(data, future=None):
 
 async def on_update_report(report, futures=None):
     if futures:
-        futures.pop().set_result(report)
+        for future in futures:
+            if future.done() is False:
+                future.set_result(report)
+                break
     pass
 
 async def on_register_report(resource_id, measurement, unit, scale,
@@ -39,9 +44,9 @@ async def on_register_report(resource_id, measurement, unit, scale,
     """
     print(f"Called on register report {resource_id}, {measurement}, {unit}, {scale}, {min_sampling_interval}, {max_sampling_interval}")
     if futures:
-        futures.pop().set_result(True)
+        futures.pop(0).set_result(True)
     if receive_futures:
-        callback = partial(receive_data, future=receive_futures.pop())
+        callback = partial(receive_data, future=receive_futures.pop(0))
     else:
         callback = receive_data
     print(f"Returning from on register report {callback}, {min_sampling_interval}")
@@ -177,8 +182,15 @@ async def test_update_reports():
     loop = asyncio.get_event_loop()
     server = OpenADRServer(vtn_id='testvtn')
 
-    register_report_futures = [loop.create_future() for i in range(2)]
-    receive_report_futures = [loop.create_future() for i in range(4)]
+    register_report_future_1 = loop.create_future()
+    register_report_future_2 = loop.create_future()
+    register_report_futures = [register_report_future_1, register_report_future_2]
+
+    receive_report_future_1 = loop.create_future()
+    receive_report_future_2 = loop.create_future()
+    receive_report_future_3 = loop.create_future()
+    receive_report_future_4 = loop.create_future()
+    receive_report_futures = [receive_report_future_1, receive_report_future_2, receive_report_future_3, receive_report_future_4]
     server.add_handler('on_register_report', partial(on_register_report, futures=register_report_futures, receive_futures=receive_report_futures))
 
     party_future = loop.create_future()
@@ -229,7 +241,7 @@ async def test_update_reports():
     await party_future
 
     print("Awaiting report futures")
-    await asyncio.gather(*register_report_futures)
+    await asyncio.gather(register_report_future_1, register_report_future_2)
     await asyncio.sleep(0.1)
     assert len(server.services['report_service'].report_callbacks) == 4
 
@@ -240,7 +252,13 @@ async def test_update_reports():
     await future_4
 
     print("Awaiting update report futures")
-    await asyncio.gather(*receive_report_futures)
+    await asyncio.gather(receive_report_future_1, receive_report_future_2, receive_report_future_3, receive_report_future_4)
+    print("Done gathering")
+
+    assert receive_report_future_1.result()[0][1] == future_1.result()
+    assert receive_report_future_2.result()[0][1] == future_2.result()
+    assert receive_report_future_3.result()[0][1] == future_3.result()
+    assert receive_report_future_4.result()[0][1] == future_4.result()
 
     await client.stop()
     await server.stop()
