@@ -96,12 +96,19 @@ class RegistrationService(VTNService):
         if iscoroutine(result):
             result = await result
 
-        if result is not False:
-            response_payload = {'ven_id': result[0],
-                                'registration_id': result[1],
-                                'profiles': [{'profile_name': payload['profile_name'],
-                                              'transports': [{'transport_name': payload['transport_name']}]}],
-                                'requested_oadr_poll_freq': self.poll_freq}
+        if result is not False and result is not None:
+            if len(result) != 2:
+                logger.error("Your on_create_party_registration handler should return either "
+                             "'False' (if the client is rejected) or a (ven_id, registration_id) "
+                             "tuple. Will REJECT the client for now.")
+                response_payload = {}
+            else:
+                ven_id, registration_id = result
+                response_payload = {'ven_id': result[0],
+                                    'registration_id': result[1],
+                                    'profiles': [{'profile_name': payload['profile_name'],
+                                                  'transports': [{'transport_name': payload['transport_name']}]}],
+                                    'requested_oadr_poll_freq': self.poll_freq}
         else:
             response_payload = {}
         return 'oadrCreatedPartyRegistration', response_payload
