@@ -256,6 +256,16 @@ def normalize_dict(ordered_dict):
                         and d[key]['payload_int'] is not None:
                     d[key] = int(d[key]['payload_int']['value'])
 
+        # Report payloads contain an r_id and a type-wrapped payload_float
+        elif key == 'report_payload':
+            if 'payload_float' in d[key] and 'value' in d[key]['payload_float']:
+                v = d[key].pop('payload_float')
+                d[key]['value'] = float(v['value'])
+            elif 'payload_int' in d[key] and 'value' in d[key]['payload_int']:
+                v = d[key].pop('payload_float')
+                d[key]['value'] = int(v['value'])
+
+
         # All values other than 'false' must be interpreted as True for testEvent (rule 006)
         elif key == 'test_event' and not isinstance(d[key], bool):
             d[key] = True
