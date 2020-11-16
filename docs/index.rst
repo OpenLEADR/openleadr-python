@@ -33,7 +33,7 @@ This project is licensed under the Apache 2.0 license.
 Development and contributing
 ============================
 
-The source code of this project can be found on `GitHub <https://github.com/openleadr>`_. Feature requests, bug reports and pull requests can be posted there.
+The source code of this project can be found on `GitHub <https://github.com/openleadr>`_. Feature requests, bug reports and pull requests are most welcome and can be posted there.
 
 Library Installation
 ====================
@@ -89,6 +89,7 @@ Table of Contents
    client
    server
    examples
+   reporting
    logging
    representations
    message_signing

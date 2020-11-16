@@ -73,7 +73,6 @@ class RegistrationService(VTNService):
         """
         Return the profiles we support.
         """
-        print("Server: on query registration")
         if hasattr(self, 'on_query_registration'):
             result = self.on_query_registration(payload)
             if iscoroutine(result):
