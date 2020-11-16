@@ -18,7 +18,6 @@ from asyncio import iscoroutine
 from http import HTTPStatus
 import os
 import logging
-from termcolor import colored
 
 from aiohttp import web
 from jinja2 import Environment, PackageLoader, select_autoescape
