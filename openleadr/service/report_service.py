@@ -173,17 +173,19 @@ class ReportService(VTNService):
         """
         for report in payload['reports']:
             report_request_id = report['report_request_id']
+            if not self.report_callbacks:
+                result = self.on_update_report(report)
+                if iscoroutine(result):
+                    result = await result
+                continue
+
             for r_id, values in group_by(report['intervals'], 'report_payload.r_id').items():
                 # Find the callback thot we registered.
                 if (report_request_id, r_id) in self.report_callbacks:
                     # Collect the values
-                    values = [(ri['dtstart'], ri['report_payload']['value']) for ri in report['intervals']]
+                    values = [(ri['dtstart'], ri['report_payload']['value']) for ri in values]
                     # Call the callback function to deliver the values
                     result = self.report_callbacks[(report_request_id, r_id)](values)
-                    if iscoroutine(result):
-                        result = await result
-                else:
-                    result = self.on_update_report(report)
                     if iscoroutine(result):
                         result = await result
 
