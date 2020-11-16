@@ -39,10 +39,12 @@ def parse_message(data, fingerprint=None, fingerprint_lookup=None):
     """
     message_dict = xmltodict.parse(data, process_namespaces=True, namespaces=NAMESPACES)
     message_type, message_payload = message_dict['oadrPayload']['oadrSignedObject'].popitem()
-    logger.debug(message_payload)
     if 'ven_id' in message_payload:
         _validate_and_authenticate_message(data, message_dict, fingerprint, fingerprint_lookup)
-    return message_type, normalize_dict(message_payload)
+
+    message_payload = normalize_dict(message_payload)
+    logger.debug(message_payload)
+    return message_type, message_payload
 
 
 def create_message(message_type, cert=None, key=None, passphrase=None, **message_payload):
