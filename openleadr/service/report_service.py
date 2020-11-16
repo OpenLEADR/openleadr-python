@@ -98,14 +98,21 @@ class ReportService(VTNService):
                 result = await gather(*result)      # Now we have r_id, callback, sampling_rate
             report_requests = result
 
+        for i, report_request in enumerate(report_requests):
+            if report_request is not None:
+                if not all(len(rrq) in (3,4) for rrq in report_request):
+                    logger.error("Your on_register_report handler did not return a valid response")
+
         # Validate the report requests
         for i, report_request in enumerate(report_requests):
+            if report_request is None:
+                continue
             # Check if all sampling rates per report_request are the same
             sampling_interval = min(rrq[2] for rrq in report_request if rrq is not None)
             if not all(rrq is not None and report_request[0][2] == sampling_interval for rrq in report_request):
                 logger.error("OpenADR does not support multiple different sampling rates per "
                              "report. OpenLEADR will set all sampling rates to "
-                             f"{min_sampling_interval}")
+                             f"{sampling_interval}")
 
         # Form the report request
         oadr_report_requests = []
@@ -117,7 +124,13 @@ class ReportService(VTNService):
             report_specifier_id = orig_report['report_specifier_id']
             report_request_id = generate_id()
             specifier_payloads = []
-            for r_id, callback, sampling_interval in report_request:
+            for rrq in report_request:
+                if len(rrq) == 3:
+                    r_id, callback, sampling_interval = rrq
+                    report_interval = sampling_interval
+                elif len(rrq) == 4:
+                    r_id, callback, sampling_interval, report_interval = rrq
+
                 report_description = find_by(orig_report['report_descriptions'], 'r_id', r_id)
                 reading_type = report_description['reading_type']
                 specifier_payloads.append(objects.SpecifierPayload(r_id=r_id,
@@ -128,7 +141,7 @@ class ReportService(VTNService):
             # Add the ReportSpecifier to the ReportRequest
             report_specifier = objects.ReportSpecifier(report_specifier_id=report_specifier_id,
                                                        granularity=sampling_interval,
-                                                       report_back_duration=sampling_interval,
+                                                       report_back_duration=report_interval,
                                                        specifier_payloads=specifier_payloads)
 
             # Add the ReportRequest to our outgoing message
@@ -148,7 +161,7 @@ class ReportService(VTNService):
         logger.warning("You should implement and register your own on_register_report handler "
                        "if you want to receive reports from a VEN. This handler will receive an "
                        "oadrReport descriptor, and should return a list of"
-                       "(r_id, sampling_interval, report_interval, callable) "
+                       "(r_id, callback, sampling_interval) "
                        "tuples for the report segments you wish to receive. "
                        "Not requesting any reports at this moment.")
         return None
@@ -160,11 +173,11 @@ class ReportService(VTNService):
         """
         for report in payload['reports']:
             report_request_id = report['report_request_id']
-            for r_id, values in group_by(report['intervals.report_payload'], 'r_id'):
+            for r_id, values in group_by(report['intervals'], 'report_payload.r_id').items():
                 # Find the callback thot we registered.
                 if (report_request_id, r_id) in self.report_callbacks:
                     # Collect the values
-                    values = [(ri['dtstart'], rd['report_payload']['value']) for ri in report['intervals']]
+                    values = [(ri['dtstart'], ri['report_payload']['value']) for ri in report['intervals']]
                     # Call the callback function to deliver the values
                     result = self.report_callbacks[(report_request_id, r_id)](values)
                     if iscoroutine(result):

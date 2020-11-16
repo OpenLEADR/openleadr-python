@@ -25,6 +25,7 @@ from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from random import randint
 import logging
+import inspect
 
 import aiohttp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -67,8 +68,9 @@ class OpenADRClient:
         self.poll_frequency = None
         self.debug = debug
         self.reports = []
-        self.report_callables = {}              # Holds the callables for each specific report
+        self.report_callbacks = {}              # Holds the callbacks for each specific report
         self.report_requests = []               # Keep track of the report requests from the VTN
+        self.incomplete_reports = {}            # Holds reports that are being populated over time
         self.pending_reports = asyncio.Queue()  # Holds reports that are waiting to be sent
         self.scheduler = AsyncIOScheduler()
         self.client_session = None
@@ -166,7 +168,8 @@ class OpenADRClient:
 
         setattr(self, handler, callback)
 
-    def add_report(self, callable, resource_id, measurement,
+    def add_report(self, callback, resource_id, measurement,
+                   data_collection_mode='incremental',
                    report_specifier_id=None, r_id=None,
                    report_name=enums.REPORT_NAME.TELEMETRY_USAGE,
                    reading_type=enums.READING_TYPE.DIRECT_READ,
@@ -176,18 +179,25 @@ class OpenADRClient:
         """
         Add a new reporting capability to the client.
 
-        :param callable callable: A callable or coroutine that will fetch the value for a specific
-                                  report. This callable will be passed the report_id and the r_id
+        :param callable callback: A callback or coroutine that will fetch the value for a specific
+                                  report. This callback will be passed the report_id and the r_id
                                   of the requested value.
         :param str resource_id: A specific name for this resource within this report.
         :param str measurement: The quantity that is being measured (openleadr.enums.MEASUREMENTS).
+        :param str data_collection_mode: Whether you want the data to be collected incrementally
+                                         or at once. If the VTN requests the sampling interval to be
+                                         higher than the reporting interval, this setting determines
+                                         if the callback should be called at the sampling rate (with
+                                         no args, assuming it returns the current value), or at the
+                                         reporting interval (with date_from and date_to as keyword
+                                         arguments). Choose 'incremental' for the former case, or
+                                         'full' for the latter case.
         :param str report_specifier_id: A unique identifier for this report. Leave this blank for a
                                         random generated id, or fill it in if your VTN depends on
                                         this being a known value, or if it needs to be constant
                                         between restarts of the client.
         :param str r_id: A unique identifier for a datapoint in a report. The same remarks apply as
                          for the report_specifier_id.
-        :param str report_id: A unique identifier for this report.
         :param str report_name: An OpenADR name for this report (one of openleadr.enums.REPORT_NAME)
         :param str reading_type: An OpenADR reading type (found in openleadr.enums.READING_TYPE)
         :param str report_type: An OpenADR report type (found in openleadr.enums.REPORT_TYPE)
@@ -221,6 +231,15 @@ class OpenADRClient:
             sampling_rate = objects.SamplingRate(min_period=sampling_rate,
                                                  max_period=sampling_rate,
                                                  on_change=False)
+
+        if data_collection_mode not in ('incremental', 'full'):
+            raise ValueError("The data_collection_mode should be 'incremental' or 'full'.")
+
+        if data_collection_mode == 'full':
+            args = inspect.signature(myfunc).parameters
+            if not ('date_from' in args and 'date_to' in args):
+                raise TypeError("Your callback function must accept the 'date_from' and 'date_to' "
+                                "arguments if used with data_collection_mode 'full'.")
 
         # Determine the correct item name, item description and unit
         if isinstance(measurement, objects.Measurement):
@@ -262,6 +281,7 @@ class OpenADRClient:
                                     report_specifier_id=report_specifier_id)
             self.reports.append(report)
 
+
         # Add the new report description to the report
         target = objects.Target(resource_id=resource_id)
         r_id = generate_id()
@@ -273,7 +293,7 @@ class OpenADRClient:
                                                        sampling_rate=sampling_rate,
                                                        measurement=item_base,
                                                        market_context='Market01')
-        self.report_callables[(report_specifier_id, r_id)] = callable
+        self.report_callbacks[(report.report_specifier_id, r_id)] = callback
         report.report_descriptions.append(report_description)
 
     ###########################################################################
@@ -494,7 +514,7 @@ class OpenADRClient:
 
             # Parse the report interval to set limits on the data collection
             if 'report_interval' in report_request['report_specifier']:
-                report_interval = report_request['report_specifier']
+                report_interval = report_request['report_specifier']['report_interval']
                 report_start = report_interval['dtstart']
                 report_duration = report_interval['duration']
             else:
@@ -503,41 +523,73 @@ class OpenADRClient:
 
             requested_r_ids.append(r_id)
 
-        callable = partial(self.update_report, report_request_id=report_request_id)
-        job = self.scheduler.add_job(func=callable,
+        callback = partial(self.update_report, report_request_id=report_request_id)
+        job = self.scheduler.add_job(func=callback,
                                      trigger='cron',
                                      **cron_config(granularity))
+
         self.report_requests.append({'report_request_id': report_request_id,
                                      'report_specifier_id': report_specifier_id,
+                                     'report_back_duration': report_back_duration,
                                      'r_ids': requested_r_ids,
-                                     'granularity': granularity,
-                                     'job': job})
+                                     'granularity': granularity})
 
     async def update_report(self, report_request_id):
         """
-        Call the previously registered report callable and send the result as a message to the VTN.
+        Call the previously registered report callback and send the result as a message to the VTN.
         """
+        logger.debug(f"Running update_report for {report_request_id}")
         report_request = find_by(self.report_requests, 'report_request_id', report_request_id)
-        report = find_by(self.reports, 'report_specifier_id', report_request['report_specifier_id'])
-        intervals = []
+        granularity = report_request['granularity']
+        report_back_duration = report_request['report_back_duration']
+        report_specifier_id = report_request['report_specifier_id']
+
+        if report_request_id in self.incomplete_reports:
+            logger.debug("We were already compiling this report")
+            outgoing_report = self.incomplete_reports[report_request_id]
+        else:
+            logger.debug("There is no report in progress")
+            report = find_by(self.reports, 'report_specifier_id', report_request['report_specifier_id'])
+            outgoing_report = objects.Report(report_request_id=report_request_id,
+                                             report_specifier_id=report.report_specifier_id,
+                                             report_name=report.report_name,
+                                             intervals=[])
+
+            data_collection_mode = report.data_collection_mode
+            if data_collection_mode == 'full':
+                date_from = datetime.now(timezone.utc) - report_back_duration
+                callback = report_callbacks[(report.report_specifier_id, r_id)]
+
+
+        intervals = outgoing_report.intervals or []
         for r_id in report_request['r_ids']:
-            report_callable = self.report_callables[(report.report_specifier_id, r_id)]
-            result = report_callable()
+            report_callback = self.report_callbacks[(report_specifier_id, r_id)]
+            result = report_callback()
             if asyncio.iscoroutine(result):
                 result = await result
             if isinstance(result, (int, float)):
                 result = [(datetime.now(timezone.utc), result)]
             for dt, value in result:
-                report_payload = objects.ReportPayload(r_id=r_id, value=result)
-                intervals.append(objects.ReportInterval(dtstart=datetime.now(timezone.utc),
+                logger.info(f"Adding {dt}, {value} to report")
+                report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                intervals.append(objects.ReportInterval(dtstart=dt,
                                                         report_payload=report_payload))
-
-        # breakpoint()
-        report = objects.Report(report_request_id=report_request_id,
-                                report_specifier_id=report.report_specifier_id,
-                                report_name=report.report_name,
-                                intervals=intervals)
-        await self.pending_reports.put(report)
+        outgoing_report.intervals = intervals
+        logger.info(f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
+        # Figure out if the report is complete after this sampling
+        if report_back_duration is not None and report_back_duration > granularity:
+            report_interval = report_back_duration.total_seconds()
+            sampling_interval = granularity.total_seconds()
+            expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
+            if len(outgoing_report.intervals) == expected_len:
+                logger.info("The report is now complete with all the values. Will queue for sending.")
+                await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
+            else:
+                logger.debug("The report is not yet complete, will hold until it is.")
+                self.incomplete_reports[report_request_id] = outgoing_report
+        else:
+            logger.info("Report is sent at the sampling rate, queueing now")
+            await self.pending_reports.put(outgoing_report)
 
     async def cancel_report(self, payload):
         """
@@ -602,11 +654,9 @@ class OpenADRClient:
             logger.error(f"{err.__class__.__name__}: {str(err)}")
             return None, {}
         except Exception as err:
-            print(f"!!!!!!!!!!!!!!!!!!!! REQUEST ERROR {err} !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            logger.error(f"Request error {err.__class__.__name__}:{err}")
             return None, {}
         try:
-            if 'content' not in locals():
-                print("!!!!!!!!!!!!!!!! CONTENT IS NOT DEFINED HERE !!!!!!!!!!!!!!!!!!!!!")
             message_type, message_payload = self._parse_message(content)
         except Exception as err:
             logger.error(f"The incoming message could not be parsed or validated.")

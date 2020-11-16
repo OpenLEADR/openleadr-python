@@ -224,6 +224,7 @@ class Report:
     dtstart: datetime = None                # For delivering values
     duration: timedelta = None              # For delivering values
     intervals: List[ReportInterval] = None  # For delivering values
+    data_collection_mode = 'incremental'
 
     def __post_init__(self):
         if self.created_date_time is None:

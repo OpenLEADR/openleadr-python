@@ -41,14 +41,14 @@
       {% if report.report_descriptions %}
       {% for report_description in report.report_descriptions %}
       {% include 'parts/oadrReportDescription.xml' %}
+      {% endfor %}
+      {% endif %}
       <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
       <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>
       {% if report.report_name %}
       <ei:reportName>{{ report.report_name }}</ei:reportName>
       {% endif %}
       <ei:createdDateTime>{{ report.created_date_time|datetimeformat }}</ei:createdDateTime>
-      {% endfor %}
-      {% endif %}
     </oadr:oadrReport>
     {% endfor %}
     {% endif %}

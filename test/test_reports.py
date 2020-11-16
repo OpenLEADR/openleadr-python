@@ -1,16 +1,20 @@
-from openleadr import OpenADRClient, OpenADRServer
+from openleadr import OpenADRClient, OpenADRServer, enable_default_logging
 import asyncio
 import pytest
 from datetime import timedelta
 from functools import partial
 import logging
 
+loop = asyncio.get_event_loop()
+loop.set_debug(True)
+
+enable_default_logging()
+
 async def collect_data(future=None):
-    # print("Collect Data")
+    print("Collect Data")
     if future:
         future.set_result(True)
     return 3.14
-
 
 async def lookup_ven(ven_name=None, ven_id=None):
     """
@@ -18,19 +22,42 @@ async def lookup_ven(ven_name=None, ven_id=None):
     """
     return {'ven_id': '1234'}
 
-async def on_update_report(report, futures=None):
-    if futures:
-        futures.pop().set_result(True)
+async def receive_data(data, future=None):
+    if future:
+        future.set_result(data)
     pass
 
-async def on_register_report(report, futures=None):
+async def on_update_report(report, futures=None):
+    if futures:
+        futures.pop().set_result(report)
+    pass
+
+async def on_register_report(resource_id, measurement, unit, scale,
+                             min_sampling_interval, max_sampling_interval, bundling=1, futures=None, receive_futures=None):
+    """
+    Deal with this report.
+    """
+    print(f"Called on register report {resource_id}, {measurement}, {unit}, {scale}, {min_sampling_interval}, {max_sampling_interval}")
+    if futures:
+        futures.pop().set_result(True)
+    if receive_futures:
+        callback = partial(receive_data, future=receive_futures.pop())
+    else:
+        callback = receive_data
+    print(f"Returning from on register report {callback}, {min_sampling_interval}")
+    if bundling > 1:
+        return callback, min_sampling_interval, bundling * min_sampling_interval
+    return callback, min_sampling_interval
+
+async def on_register_report_full(report, futures=None):
     """
     Deal with this report.
     """
     if futures:
         futures.pop().set_result(True)
     granularity = min(*[rd['sampling_rate']['min_period'] for rd in report['report_descriptions']])
-    return (on_update_report, granularity, [rd['r_id'] for rd in report['report_descriptions'] if report['report_name'] == 'METADATA_TELEMETRY_USAGE'])
+    report_requests = [(rd['r_id'], on_update_report, granularity) for rd in report['report_descriptions'] if report['report_name'] == 'METADATA_TELEMETRY_USAGE']
+    return report_requests
 
 async def on_create_party_registration(ven_name, future=None):
     if future:
@@ -55,22 +82,72 @@ async def test_report_registration():
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b',)
 
     # Add 4 reports
-    client.add_report(callable=collect_data,
+    client.add_report(callback=collect_data,
                       report_specifier_id='AmpereReport',
                       resource_id='Device001',
                       measurement='current',
                       unit='A')
-    client.add_report(callable=collect_data,
+    client.add_report(callback=collect_data,
                       report_specifier_id='AmpereReport',
                       resource_id='Device002',
                       measurement='current',
                       unit='A')
-    client.add_report(callable=collect_data,
+    client.add_report(callback=collect_data,
                       report_specifier_id='VoltageReport',
                       resource_id='Device001',
                       measurement='voltage',
                       unit='V')
-    client.add_report(callable=collect_data,
+    client.add_report(callback=collect_data,
+                      report_specifier_id='VoltageReport',
+                      resource_id='Device002',
+                      measurement='voltage',
+                      unit='V')
+
+
+    asyncio.create_task(server.run_async())
+    await asyncio.sleep(1)
+    # Register the client
+    await client.create_party_registration()
+
+    # Register the reports
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 2
+    assert len(server.services['report_service'].report_callbacks) == 4
+    await client.stop()
+    await server.stop()
+
+@pytest.mark.asyncio
+async def test_report_registration_full():
+    """
+    Test the registration of two reports with two r_ids each.
+    """
+    # Create a server
+    logger = logging.getLogger('openleadr')
+    logger.setLevel(logging.DEBUG)
+    server = OpenADRServer(vtn_id='testvtn')
+    server.add_handler('on_register_report', on_register_report_full)
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+
+    # Create a client
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b',)
+
+    # Add 4 reports
+    client.add_report(callback=collect_data,
+                      report_specifier_id='AmpereReport',
+                      resource_id='Device001',
+                      measurement='current',
+                      unit='A')
+    client.add_report(callback=collect_data,
+                      report_specifier_id='AmpereReport',
+                      resource_id='Device002',
+                      measurement='current',
+                      unit='A')
+    client.add_report(callback=collect_data,
+                      report_specifier_id='VoltageReport',
+                      resource_id='Device001',
+                      measurement='voltage',
+                      unit='V')
+    client.add_report(callback=collect_data,
                       report_specifier_id='VoltageReport',
                       resource_id='Device002',
                       measurement='voltage',
@@ -85,6 +162,7 @@ async def test_report_registration():
     # Register the reports
     await client.register_reports(client.reports)
     assert len(client.report_requests) == 2
+    assert len(server.services['report_service'].report_callbacks) == 4
     await client.stop()
     await server.stop()
 
@@ -100,77 +178,143 @@ async def test_update_reports():
     server = OpenADRServer(vtn_id='testvtn')
 
     register_report_futures = [loop.create_future() for i in range(2)]
-    server.add_handler('on_register_report', partial(on_register_report, futures=register_report_futures))
+    receive_report_futures = [loop.create_future() for i in range(4)]
+    server.add_handler('on_register_report', partial(on_register_report, futures=register_report_futures, receive_futures=receive_report_futures))
 
     party_future = loop.create_future()
     server.add_handler('on_create_party_registration', partial(on_create_party_registration, future=party_future))
-
-    update_report_futures = [loop.create_future() for i in range(2)]
-    server.add_handler('on_update_report', partial(on_update_report, futures=update_report_futures))
 
     # Create a client
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
 
     # Add 4 reports
     future_1 = loop.create_future()
-    client.add_report(callable=partial(collect_data, future=future_1),
+    client.add_report(callback=partial(collect_data, future=future_1),
                       report_specifier_id='AmpereReport',
                       resource_id='Device001',
                       measurement='current',
                       sampling_rate=timedelta(seconds=2),
                       unit='A')
     future_2 = loop.create_future()
-    client.add_report(callable=partial(collect_data, future=future_2),
+    client.add_report(callback=partial(collect_data, future=future_2),
                       report_specifier_id='AmpereReport',
                       resource_id='Device002',
                       measurement='current',
                       sampling_rate=timedelta(seconds=2),
                       unit='A')
     future_3 = loop.create_future()
-    client.add_report(callable=partial(collect_data, future=future_3),
+    client.add_report(callback=partial(collect_data, future=future_3),
                       report_specifier_id='VoltageReport',
                       resource_id='Device001',
                       measurement='voltage',
                       sampling_rate=timedelta(seconds=2),
                       unit='V')
     future_4 = loop.create_future()
-    client.add_report(callable=partial(collect_data, future=future_4),
+    client.add_report(callback=partial(collect_data, future=future_4),
                       report_specifier_id='VoltageReport',
                       resource_id='Device002',
                       measurement='voltage',
                       sampling_rate=timedelta(seconds=2),
                       unit='V')
 
-
     assert len(client.reports) == 2
     asyncio.create_task(server.run_async())
     await asyncio.sleep(1)
 
     # Run the client asynchronously
-    # print("Running the client")
+    print("Running the client")
     asyncio.create_task(client.run())
 
-    # print("Awaiting party future")
+    print("Awaiting party future")
     await party_future
 
-    # print("Awaiting report futures")
+    print("Awaiting report futures")
     await asyncio.gather(*register_report_futures)
+    await asyncio.sleep(0.1)
+    assert len(server.services['report_service'].report_callbacks) == 4
 
-    # breakpoint()
-
-    # print("Awaiting data collection futures")
+    print("Awaiting data collection futures")
     await future_1
     await future_2
     await future_3
     await future_4
 
-    await asyncio.gather(*update_report_futures)
+    print("Awaiting update report futures")
+    await asyncio.gather(*receive_report_futures)
+
     await client.stop()
     await server.stop()
 
+async def get_historic_data(date_from, date_to):
+    pass
+
+async def collect_data_multi(futures=None):
+    print("Data Collected")
+    if futures:
+        for i, future in enumerate(futures):
+            if future.done() is False:
+                print(f"Marking future {i} as done")
+                future.set_result(True)
+                break
+    return 3.14
+
+@pytest.mark.asyncio
+async def test_incremental_reports():
+    loop = asyncio.get_event_loop()
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    collect_futures = [loop.create_future() for i in range(2)]
+    client.add_report(callback=partial(collect_data_multi, futures=collect_futures),
+                      report_specifier_id='myhistory',
+                      measurement='voltage',
+                      resource_id='mydevice',
+                      sampling_rate=timedelta(seconds=2))
+
+    server = OpenADRServer(vtn_id='myvtn')
+
+    register_report_future = loop.create_future()
+    update_report_future = loop.create_future()
+    server.add_handler('on_register_report', partial(on_register_report,
+                                                     bundling=2,
+                                                     futures=[register_report_future],
+                                                     receive_futures=[update_report_future]))
+
+    party_future = loop.create_future()
+    server.add_handler('on_create_party_registration',
+                       partial(on_create_party_registration, future=party_future))
+
+    loop.create_task(server.run_async())
+    await asyncio.sleep(1)
+    await client.run()
+    print("Awaiting party future")
+    await party_future
+
+    print("Awaiting register report future")
+    await register_report_future
+
+    print("Awaiting first data collection future... ", end="")
+    await collect_futures[0]
+    print("check")
+
+    await asyncio.sleep(1)
+    print("Checking that the report was not yet sent... ", end="")
+    assert update_report_future.done() is False
+    print("check")
+    print("Awaiting data collection second future... ", end="")
+    await collect_futures[1]
+    print("check")
+
+    print("Awaiting report update future")
+    result = await update_report_future
+    assert len(result) == 2
+
+    await server.stop()
+    await client.stop()
+    await asyncio.sleep(0)
+
+
 def test_add_report_invalid_unit(caplog):
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
-    client.add_report(callable=print,
+    client.add_report(callback=print,
                       report_specifier_id='myreport',
                       measurement='voltage',
                       resource_id='mydevice',
@@ -181,7 +325,7 @@ def test_add_report_invalid_unit(caplog):
 def test_add_report_invalid_scale():
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
     with pytest.raises(ValueError):
-        client.add_report(callable=print,
+        client.add_report(callback=print,
                           report_specifier_id='myreport',
                           measurement='current',
                           resource_id='mydevice',
@@ -191,7 +335,7 @@ def test_add_report_invalid_scale():
 
 def test_add_report_non_standard_measurement():
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
-    client.add_report(callable=print,
+    client.add_report(callback=print,
                       report_specifier_id='myreport',
                       measurement='rainbows',
                       resource_id='mydevice',
