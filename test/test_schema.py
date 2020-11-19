@@ -260,21 +260,7 @@ testcases = [
 @pytest.mark.parametrize("msg_type,payload", testcases)
 def test_message(msg_type, payload):
     try:
-        with open(os.path.join('example_messages', f'{msg_type}.xml'), 'w') as file:
-            message = create_message(msg_type, **payload)
-            print(indent_xml(message),file=file)
-            # print(type, file=file)
-            # print("="*len(type), file=file)
-            # print("", file=file)
-            # print("OpenADR payload:", file=file)
-            # print("..code-block:xml", file=file)
-            # print("", file=file)
-            # print(indent_xml(message), file=file)
-            # print("", file=file)
-            # print("openleadr representation:", file=file)
-            # print("..code-block:python3", file=file)
-            # print("", file=file)
-            # pprint(payload, stream=file)
+        message = create_message(msg_type, **payload)
         etree.fromstring(message.encode('utf-8'), parser)
         print(colored(f"pass: {msg_type} OK", "green"))
     except etree.XMLSyntaxError as err:
