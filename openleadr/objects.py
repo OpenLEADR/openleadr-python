@@ -179,7 +179,7 @@ class Measurement:
     power_attributes: PowerAttributes = None
 
     def __post_init__(self):
-        if self.item_name not in ('voltage', 'current', 'energyReal', 'energyReactive',
+        if self.item_name not in ('voltage', 'energyReal', 'energyReactive',
                                   'energyApparent', 'powerReal', 'powerApparent',
                                   'powerReactive', 'frequency',  'pulseCount', 'temperature',
                                   'therm', 'currency', 'currencyPerKW', 'currencyPerKWh',
