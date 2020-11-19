@@ -26,6 +26,7 @@ from http import HTTPStatus
 from random import randint
 import logging
 import inspect
+import ssl
 
 import aiohttp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -43,7 +44,7 @@ class OpenADRClient:
     you can always choose to call them manually.
     """
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
-                 passphrase=None, vtn_fingerprint=None, show_fingerprint=True):
+                 passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -58,6 +59,8 @@ class OpenADRClient:
                                 verify incomnig messages
         :param str show_fingerprint: Whether to print your own fingerprint
                                      on startup. Defaults to True.
+        :param str ca_file: The path to the PEM-formatted CA file for validating the VTN server's
+                            certificate.
         """
 
         self.ven_name = ven_name
@@ -76,17 +79,21 @@ class OpenADRClient:
         self.client_session = None
         self.report_queue_task = None
 
+        self.cert_path = cert
+        self.key_path = key
+        self.passphrase = passphrase
+        self.ca_file = ca_file
+
         if cert and key:
             with open(cert, 'rb') as file:
                 cert = file.read()
             with open(key, 'rb') as file:
                 key = file.read()
-
             if show_fingerprint:
                 print("")
                 print("*" * 80)
-                print("Your VEN Certificate Fingerprint is "
-                      f"{certificate_fingerprint(cert).center(80)}")
+                print("Your VEN Certificate Fingerprint is ".center(80))
+                print(f"{certificate_fingerprint(cert).center(80)}".center(80))
                 print("Please deliver this fingerprint to the VTN.".center(80))
                 print("You do not need to keep this a secret.".center(80))
                 print("*" * 80)
@@ -96,8 +103,6 @@ class OpenADRClient:
                                        cert=cert,
                                        key=key,
                                        passphrase=passphrase)
-        self._parse_message = partial(parse_message,
-                                      fingerprint=vtn_fingerprint)
 
     async def run(self):
         """
@@ -657,7 +662,7 @@ class OpenADRClient:
             logger.error(f"Request error {err.__class__.__name__}:{err}")
             return None, {}
         try:
-            message_type, message_payload = self._parse_message(content)
+            message_type, message_payload = parse_message(content)
         except Exception as err:
             logger.error(f"The incoming message could not be parsed or validated.")
             return None, {}
@@ -714,4 +719,13 @@ class OpenADRClient:
 
     async def _ensure_client_session(self):
         if not self.client_session:
-            self.client_session = aiohttp.ClientSession()
+            if self.cert_path:
+                ssl_context = ssl.create_default_context(cafile=self.ca_file,
+                                                         purpose=ssl.Purpose.CLIENT_AUTH)
+                ssl_context.load_cert_chain(self.cert_path, self.key_path, self.passphrase)
+                ssl_context.check_hostname = False
+                connector = aiohttp.TCPConnector(ssl=ssl_context)
+                self.client_session = aiohttp.ClientSession(connector=connector)
+                print("Created Client Session")
+            else:
+                self.client_session = aiohttp.ClientSession()

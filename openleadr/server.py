@@ -46,8 +46,8 @@ class OpenADRServer:
 
     def __init__(self, vtn_id, cert=None, key=None, passphrase=None, fingerprint_lookup=None,
                  show_fingerprint=True, http_port=8080, http_host='127.0.0.1', http_cert=None,
-                 http_key=None, http_key_password=None, http_path_prefix='/OpenADR2/Simple/2.0b',
-                 requested_poll_freq=timedelta(seconds=10)):
+                 http_key=None, http_key_passphrase=None, http_path_prefix='/OpenADR2/Simple/2.0b',
+                 requested_poll_freq=timedelta(seconds=10), http_ca_file=None):
         """
         Create a new OpenADR VTN (Server).
 
@@ -68,7 +68,8 @@ class OpenADRServer:
         :param http_host str: The host or IP address to bind the server to (default: 127.0.0.1).
         :param http_cert str: The path to the PEM certificate for securing HTTP traffic.
         :param http_key str: The path to the PEM private key for securing HTTP traffic.
-        :param http_key_password str: The password for the HTTP private key.
+        :param http_ca_file str: The path to the CA-file that client certificates are checked against.
+        :param http_key_passphrase str: The passphrase for the HTTP private key.
         """
         # Set up the message queues
         self.message_queues = {}
@@ -90,8 +91,10 @@ class OpenADRServer:
 
         # Create SSL context for running the server
         if http_cert and http_key:
-            self.ssl_context = ssl.create_default_context()
-            self.ssl_context.load_cert_chain(http_cert, http_key, http_key_password)
+            self.ssl_context = ssl.create_default_context(cafile=http_ca_file,
+                                                           purpose=ssl.Purpose.CLIENT_AUTH)
+            self.ssl_context.verify_mode = ssl.CERT_REQUIRED
+            self.ssl_context.load_cert_chain(http_cert, http_key, http_key_passphrase)
         else:
             self.ssl_context = None
 
@@ -112,7 +115,7 @@ class OpenADRServer:
                 print("")
         VTNService._create_message = partial(create_message, cert=cert, key=key,
                                              passphrase=passphrase)
-        VTNService._parse_message = partial(parse_message, fingerprint_lookup=fingerprint_lookup)
+        VTNService.fingerprint_lookup = staticmethod(fingerprint_lookup)
         self.__setattr__ = self.add_handler
 
     def run(self):
@@ -126,10 +129,7 @@ class OpenADRServer:
 
     async def run_async(self):
         """
-        Starts the asyncio-loop and runs the server in it. This function is
-        blocking. For other ways to run the server in a more flexible context,
-        please refer to the `aiohttp documentation
-        <https://docs.aiohttp.org/en/stable/web_advanced.html#aiohttp-web-app-runners>`_.
+        Starts the server in an already-running asyncio loop.
         """
         self.app_runner = web.AppRunner(self.app)
         await self.app_runner.setup()
@@ -193,7 +193,7 @@ class OpenADRServer:
 
     async def request_report(self):
         """
-
+        Request a report from the client.
         """
 
     def add_handler(self, name, func):

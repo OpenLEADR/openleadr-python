@@ -26,7 +26,7 @@ from pprint import pprint
 import pytest
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
-SCHEMA_LOCATION = os.path.join('schema', 'oadr_20b.xsd')
+SCHEMA_LOCATION = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'openleadr', 'schema', 'oadr_20b.xsd')
 
 schema_root = etree.parse(SCHEMA_LOCATION)
 schema = etree.XMLSchema(schema_root)
