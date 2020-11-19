@@ -1,29 +1,86 @@
-# SPDX-License-Identifier: Apache-2.0
+from openleadr.enums import STATUS_CODES
 
-# Copyright 2020 Contributors to OpenLEADR
+class ProtocolError(Exception):
+    pass
 
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#     http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-from .enums import STATUS_CODES
-
-
-class OpenADRError(Exception):
-    def __init__(self, status, description):
-        assert status in self.status_codes.values, (f"Invalid status code {status} "
-                                                    "while raising OpenADRError")
+class HTTPError(Exception):
+    def __init__(self, status=500, description=None):
         super().__init__()
-        self.status = status
-        self.description = description
+        self.response_code = status
+        self.response_description = description
 
-    def __str__(self):
-        return f'Error {self.status} {self.status_codes[self.status]}: {self.description}'
+class OutOfSequenceError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.OUT_OF_SEQUENCE
+        self.response_description = description
+
+
+class NotAllowedError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.NOT_ALLOWED
+        self.response_description = description
+
+
+class InvalidIdError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.INVALID_ID
+        self.response_description = description
+
+
+class NotRecognizedError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.NOT_RECOGNIZED
+        self.response_description = description
+
+
+class InvalidDataError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.INVALID_DATA
+        self.response_description = description
+
+
+class ComplianceError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.COMPLIANCE_ERROR
+        self.response_description = description
+
+
+class SignalNotSupportedError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.SIGNAL_NOT_SUPPORTED
+        self.response_description = description
+
+
+class ReportNotSupportedError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.REPORT_NOT_SUPPORTED
+        self.response_description = description
+
+
+class TargetMismatchError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.TARGET_MISMATCH
+        self.response_description = description
+
+
+class NotRegisteredOrAuthorizedError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.NOT_REGISTERED_OR_AUTHORIZED
+        self.response_description = description
+
+
+class DeploymentError(ProtocolError):
+    def __init__(self, description=None):
+        super().__init__()
+        self.response_code = STATUS_CODES.DEPLOYMENT_ERROR_OTHER
+        self.response_description = description

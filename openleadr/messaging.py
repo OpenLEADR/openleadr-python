@@ -20,6 +20,7 @@ from jinja2 import Environment, PackageLoader
 from signxml import XMLSigner, XMLVerifier, methods
 from uuid import uuid4
 from lxml.etree import Element
+import os
 
 from .utils import *
 from .preflight import preflight_message
@@ -32,18 +33,24 @@ SIGNER = XMLSigner(method=methods.detached,
                    c14n_algorithm="http://www.w3.org/2001/10/xml-exc-c14n#")
 VERIFIER = XMLVerifier()
 
+XML_SCHEMA_LOCATION = os.path.join(os.path.dirname(__file__), 'schema', 'oadr_20b.xsd')
 
-def parse_message(data, fingerprint=None, fingerprint_lookup=None):
+with open(XML_SCHEMA_LOCATION) as file:
+    XML_SCHEMA = etree.XMLSchema(etree.parse(file))
+XML_PARSER = etree.XMLParser(schema=XML_SCHEMA)
+
+
+
+def parse_message(data):
     """
     Parse a message and distill its usable parts. Returns a message type and payload.
+    :param data str: The XML string that is received
+
+    Returns a message type (str) and a message payload (dict)
     """
     message_dict = xmltodict.parse(data, process_namespaces=True, namespaces=NAMESPACES)
     message_type, message_payload = message_dict['oadrPayload']['oadrSignedObject'].popitem()
-    if 'ven_id' in message_payload:
-        _validate_and_authenticate_message(data, message_dict, fingerprint, fingerprint_lookup)
-
     message_payload = normalize_dict(message_payload)
-    logger.debug(message_payload)
     return message_type, message_payload
 
 
@@ -51,15 +58,6 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
     """
     Create and optionally sign an OpenADR message. Returns an XML string.
     """
-    # If we supply the payload as dataclasses, convert them to dicts
-    # for k, v in message_payload.items():
-    #     if isinstance(v, list):
-    #         for i, item in enumerate(v):
-    #             if is_dataclass(item):
-    #                 v[i] = asdict(item)
-    #     elif is_dataclass(v):
-    #         message_payload[k] = asdict(v)
-
     message_payload = preflight_message(message_type, message_payload)
     signed_object = flatten_xml(TEMPLATES.get_template(f'{message_type}.xml')
                                          .render(**message_payload))
@@ -82,21 +80,72 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
     return msg
 
 
-def _validate_and_authenticate_message(data, message_dict, fingerprint=None,
-                                       fingerprint_lookup=None):
-    if not fingerprint and not fingerprint_lookup:
-        return
-    tree = etree.fromstring(ensure_bytes(data))
-    cert = extract_pem_cert(tree)
-    ven_id = tree.find('.//{http://docs.oasis-open.org/ns/energyinterop/201110}venID').text
-    cert_fingerprint = certificate_fingerprint(cert)
-    if not fingerprint:
-        fingerprint = fingerprint_lookup(ven_id)
+def validate_xml_schema(content):
+    """
+    Validates the XML tree against the schema. Return the XML tree.
+    """
+    try:
+        tree = etree.fromstring(content, XML_PARSER)
+    except Exception as err:
+        print("XML Validation Error")
+        breakpoint()
+        print("Hang")
+    else:
+        return tree
 
-    if fingerprint != certificate_fingerprint(cert):
-        raise ValueError("The fingerprint does not match")
-    VERIFIER.verify(tree, x509_cert=ensure_bytes(cert), expect_references=2)
-    _verify_replay_protect(message_dict)
+def validate_xml_signature(xml_tree):
+    cert = extract_pem_cert(xml_tree)
+    VERIFIER.verify(xml_tree, x509_cert=ensure_bytes(cert), expect_references=2)
+    _verify_replay_protect(xml_tree)
+
+async def authenticate_message(request, message_tree, message_payload, fingerprint_lookup):
+    if request.secure and 'ven_id' in message_payload:
+        print("Getting cert fingerprint from request")
+        connection_fingerprint = get_cert_fingerprint_from_request(request)
+        print("Checking cert fingerprint")
+        if connection_fingerprint is None:
+            msg = ("Your request must use a client side SSL certificate, of which the "
+                   "fingerprint must match the fingerprint that you have given to this VTN")
+            raise errors.NotRegisteredOrAuthorizedError(msg)
+
+        try:
+            expected_fingerprint = fingerprint_lookup(message_payload['ven_id'])
+            if iscoroutine(expected_fingerprint):
+                expected_fingerprint = await expected_fingerprint
+        except ValueError:
+            msg = (f"Your venID {ven_id} is not known to this VTN. Make sure you use the venID "
+                   "that you receive from this VTN during the registration step")
+            raise errors.NotRegisteredOrAuthorizedError(msg)
+
+        if expected_fingerprint is None:
+            msg =("This VTN server does not know what your certificate fingerprint is. Please "
+                  "deliver your fingerprint to the VTN (outside of OpenADR). You used the "
+                  "following fingerprint to make this request:")
+            raise errors.NotRegisteredOrAuthorizedError(msg)
+
+        print("Checking connection fingerprint")
+        if connection_fingerprint != expected_fingerprint:
+            msg = (f"The fingerprint of your HTTPS certificate {connection_fingerprint} "
+                   f"does not match the expected fingerprint {expected_fingerprint}")
+            raise errors.NotRegisteredOrAuthorizedError(msg)
+
+        print("Checking message fingerprint")
+        message_cert = extract_pem_cert(message_tree)
+        message_fingerprint = certificate_fingerprint(message_cert)
+        if message_fingerprint != expected_fingerprint:
+            msg = (f"The fingerprint of the certificate used to sign the message "
+                   f"{message_fingerprint} did not match the fingerprint that this "
+                   f"VTN has for you {expected_fingerprint}. Make sure you use the correct "
+                   "certificate to sign your messages.")
+            raise errors.NotRegisteredOrAuthorizedError(msg)
+
+        print("Validating XML signature")
+        try:
+            validate_xml_signature(message_tree)
+        except ValueError:
+            msg = ("The message signature did not match the message contents. Please make sure "
+                   "you are using the correct XMLDSig algorithm and C14n canonicalization.")
+            raise error.NotRegisteredOrAuthorizedError(msg)
 
 
 def _create_replay_protect():
@@ -114,29 +163,25 @@ def _create_replay_protect():
     return el
 
 
-def _verify_replay_protect(message_dict):
+def _verify_replay_protect(xml_tree):
     try:
-        sig_props = message_dict['oadrPayload']['Signature']['Object']['SignatureProperties']
-        replay_protect = sign_props['SignatureProperty']['ReplayProtect']
-        ts = replay_protect['timestamp']
-        nonce = replay_protect['nonce']
-    except KeyError:
-        raise ValueError("Missing ReplayProtect")
+        ns = "{http://openadr.org/oadr-2.0b/2012/07/xmldsig-properties}"
+        timestamp = parse_datetime(xml_tree.findtext(f".//{ns}timestamp"))
+        nonce = xml_tree.findtext(f".//{ns}nonce")
+    except Exception as err:
+        raise ValueError("Missing or malformed ReplayProtect element in the message signature.")
     else:
-        timestamp = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%f%z")
         if timestamp < datetime.now(timezone.utc) - REPLAY_PROTECT_MAX_TIME_DELTA:
-            raise ValueError("Message is too old")
+            raise ValueError("The message was signed too long ago.")
         elif (timestamp, nonce) in NONCE_CACHE:
-            raise ValueError("This combination of timestamp and nonce was already used")
+            raise ValueError("This combination of timestamp and nonce was already used.")
     _update_nonce_cache(timestamp, nonce)
-
 
 def _update_nonce_cache(timestamp, nonce):
     for timestamp, nonce in list(NONCE_CACHE):
         if timestamp < datetime.now(timezone.utc) - REPLAY_PROTECT_MAX_TIME_DELTA:
             NONCE_CACHE.remove((timestamp, nonce))
     NONCE_CACHE.add((timestamp, nonce))
-
 
 # Replay protect settings
 REPLAY_PROTECT_MAX_TIME_DELTA = timedelta(seconds=5)

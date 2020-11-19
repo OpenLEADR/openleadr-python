@@ -202,12 +202,22 @@ class MEASUREMENTS(metaclass=Enum):
                                   item_units='V',
                                   acceptable_units=('V',),
                                   si_scale_code='none')
-    CURRENT = objects.Measurement(item_name='current',
-                                  item_description='Current',
-                                  item_units='A',
-                                  acceptable_units=('A',),
-                                  si_scale_code='none')
+    # CURRENT = objects.Measurement(item_name='current',
+    #                               item_description='Current',
+    #                               item_units='A',
+    #                               acceptable_units=('A',),
+    #                               si_scale_code='none')
     ENERGY_REAL = objects.Measurement(item_name='energyReal',
+                                      item_description='RealEnergy',
+                                      item_units='Wh',
+                                      acceptable_units=('Wh',),
+                                      si_scale_code='none')
+    REAL_ENERGY = objects.Measurement(item_name='energyReal',
+                                      item_description='RealEnergy',
+                                      item_units='Wh',
+                                      acceptable_units=('Wh',),
+                                      si_scale_code='none')
+    ACTIVE_ENERGY = objects.Measurement(item_name='energyReal',
                                       item_description='RealEnergy',
                                       item_units='Wh',
                                       acceptable_units=('Wh',),
@@ -217,7 +227,17 @@ class MEASUREMENTS(metaclass=Enum):
                                           item_units='VArh',
                                           acceptable_units=('VArh',),
                                           si_scale_code='none')
+    REACTIVE_ENERGY = objects.Measurement(item_name='energyReal',
+                                          item_description='RealEnergy',
+                                          item_units='VArh',
+                                          acceptable_units=('VArh',),
+                                          si_scale_code='none')
     ENERGY_APPARENT = objects.Measurement(item_name='energyReal',
+                                          item_description='ApparentEnergy',
+                                          item_units='VAh',
+                                          acceptable_units=('VAh',),
+                                          si_scale_code='none')
+    APPARENT_ENERGY = objects.Measurement(item_name='energyReal',
                                           item_description='ApparentEnergy',
                                           item_units='VAh',
                                           acceptable_units=('VAh',),
@@ -226,17 +246,58 @@ class MEASUREMENTS(metaclass=Enum):
                                        item_description='RealPower',
                                        item_units='W',
                                        acceptable_units=('W',),
-                                       si_scale_code='none')
+                                       si_scale_code='none',
+                                         power_attributes=objects.PowerAttributes(hertz=50,
+                                                                                  voltage=230,
+                                                                                  ac=True))
+    REAL_POWER = objects.Measurement(item_name='powerReal',
+                                       item_description='RealPower',
+                                       item_units='W',
+                                       acceptable_units=('W',),
+                                       si_scale_code='none',
+                                         power_attributes=objects.PowerAttributes(hertz=50,
+                                                                                  voltage=230,
+                                                                                  ac=True))
+    POWER_REAL = objects.Measurement(item_name='powerReal',
+                                       item_description='RealPower',
+                                       item_units='W',
+                                       acceptable_units=('W',),
+                                       si_scale_code='none',
+                                         power_attributes=objects.PowerAttributes(hertz=50,
+                                                                                  voltage=230,
+                                                                                  ac=True))
     REACTIVE_POWER = objects.Measurement(item_name='powerReactive',
                                          item_description='ReactivePower',
                                          item_units='VAr',
                                          acceptable_units=('VAr',),
-                                         si_scale_code='none')
+                                         si_scale_code='none',
+                                         power_attributes=objects.PowerAttributes(hertz=50,
+                                                                                  voltage=230,
+                                                                                  ac=True))
+    POWER_REACTIVE = objects.Measurement(item_name='powerReactive',
+                                         item_description='ReactivePower',
+                                         item_units='VAr',
+                                         acceptable_units=('VAr',),
+                                         si_scale_code='none',
+                                         power_attributes=objects.PowerAttributes(hertz=50,
+                                                                                  voltage=230,
+                                                                                  ac=True))
     APPARENT_POWER = objects.Measurement(item_name='powerApparent',
                                          item_description='ApparentPower',
                                          item_units='VA',
                                          acceptable_units=('VA',),
-                                         si_scale_code='none')
+                                         si_scale_code='none',
+                                         power_attributes=objects.PowerAttributes(hertz=50,
+                                                                                  voltage=230,
+                                                                                  ac=True))
+    POWER_APPARENT = objects.Measurement(item_name='powerApparent',
+                                         item_description='ApparentPower',
+                                         item_units='VA',
+                                         acceptable_units=('VA',),
+                                         si_scale_code='none',
+                                         power_attributes=objects.PowerAttributes(hertz=50,
+                                                                                  voltage=230,
+                                                                                  ac=True))
     FREQUENCY = objects.Measurement(item_name='frequency',
                                     item_description='Frequency',
                                     item_units='Hz',

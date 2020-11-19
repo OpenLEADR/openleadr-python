@@ -417,6 +417,8 @@ def ensure_bytes(obj):
     """
     Converts a utf-8 str object to bytes.
     """
+    if obj is None:
+        return obj
     if isinstance(obj, bytes):
         return obj
     if isinstance(obj, str):
@@ -429,6 +431,8 @@ def ensure_str(obj):
     """
     Converts bytes to a utf-8 string.
     """
+    if obj is None:
+        return None
     if isinstance(obj, str):
         return obj
     if isinstance(obj, bytes):
@@ -436,15 +440,16 @@ def ensure_str(obj):
     else:
         raise TypeError("Must be bytes or str")
 
+def certificate_fingerprint_from_der(der_bytes):
+    hash = hashlib.sha256(der_bytes).digest().hex()
+    return ":".join([hash[i-2:i].upper() for i in range(-20, 0, 2)])
 
 def certificate_fingerprint(certificate_str):
     """
     Calculate the fingerprint for the given certificate, as defined by OpenADR.
     """
-    der_cert = ssl.PEM_cert_to_DER_cert(ensure_str(certificate_str))
-    hash = hashlib.sha256(der_cert).digest().hex()
-    return ":".join([hash[i-2:i].upper() for i in range(-20, 0, 2)])
-
+    der_bytes = ssl.PEM_cert_to_DER_cert(ensure_str(certificate_str))
+    return certificate_fingerprint_from_der(der_bytes)
 
 def extract_pem_cert(tree):
     """
@@ -535,3 +540,16 @@ def cron_config(interval):
         minute = "0"
         hour = f"*/{int(interval.total_seconds/3600)}"
     return {"second": second, "minute": minute, "hour": hour}
+
+def get_cert_fingerprint_from_request(request):
+    ssl_object = request.transport.get_extra_info('ssl_object')
+    if ssl_object:
+        der_bytes = ssl_object.getpeercert(binary_form=True)
+        if der_bytes:
+            return certificate_fingerprint_from_der(der_bytes)
+
+def get_certificate_common_name(request):
+    cert = request.transport.get_extra_info('peercert')
+    if cert:
+        subject = dict(x[0] for x in cert['subject'])
+        return subject.get('commonName')

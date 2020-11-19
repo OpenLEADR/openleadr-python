@@ -1,12 +1,14 @@
   {% if report_description.measurement %}
-  <{{ report_description.measurement.item_name }} xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale">
-    <itemDescription>{{ report_description.measurement.item_description }}</itemDescription>
-    <itemUnits>{{ report_description.measurement.item_units }}</itemUnits>
+  <power:{{ report_description.measurement.item_name }} xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power" >
+    <power:itemDescription>{{ report_description.measurement.item_description }}</power:itemDescription>
+    <power:itemUnits>{{ report_description.measurement.item_units }}</power:itemUnits>
     <scale:siScaleCode>{{ report_description.measurement.si_scale_code }}</scale:siScaleCode>
     {% if report_description.measurement.power_attributes %}
-      <hertz>{{ report_description.measurement.power_attributes.hertz }}</hertz>
-      <voltage>{{ report_description.measurement.power_attributes.voltage }}</voltage>
-      <ac>{{ report_description.measurement.power_attributes.ac|booleanformat }}</ac>
+    <power:powerAttributes>
+      <power:hertz>{{ report_description.measurement.power_attributes.hertz }}</power:hertz>
+      <power:voltage>{{ report_description.measurement.power_attributes.voltage }}</power:voltage>
+      <power:ac>{{ report_description.measurement.power_attributes.ac|booleanformat }}</power:ac>
+    </power:powerAttributes>
     {% endif %}
-  </{{ report_description.measurement.item_name }}>
+  </power:{{ report_description.measurement.item_name }}>
   {% endif %}
