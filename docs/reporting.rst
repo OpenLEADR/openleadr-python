@@ -87,8 +87,8 @@ If, instead, you already have a system where historic data can be extracted, and
 
 The two requirements for this kind of data collection are:
 
-1. Your callback must accept arguments named ``date_from``, ``date_to`` and ``sampling_rate``
-2. You must specify ``data_collection_mode = 'full'`` when adding the report.
+1. Your callback must accept arguments named ``date_from``, ``date_to`` and ``sampling_interval``
+2. You must specify ``data_collection_mode='full'`` when adding the report.
 
 Here's an example:
 
