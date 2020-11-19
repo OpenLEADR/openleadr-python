@@ -2,3 +2,11 @@ python_env/
 __pycache__
 pyopenadr.egg-info
 docs/_build/
+build/
+openleadr.egg-info/
+htmlcov/
+examples/
+dist/
+.pytest_cache/
+.ipynb_checkpoints/
+static/
