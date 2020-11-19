@@ -240,9 +240,10 @@ class OpenADRClient:
 
         if data_collection_mode == 'full':
             args = inspect.signature(callback).parameters
-            if not ('date_from' in args and 'date_to' in args):
-                raise TypeError("Your callback function must accept the 'date_from' and 'date_to' "
-                                "arguments if used with data_collection_mode 'full'.")
+            if not ('date_from' in args and 'date_to' in args and 'sampling_interval' in args):
+                raise TypeError("Your callback function must accept the 'date_from', 'date_to' "
+                                "and 'sampling_interval' arguments if used "
+                                "with data_collection_mode 'full'.")
 
         # Determine the correct item name, item description and unit
         if isinstance(measurement, objects.Measurement):
@@ -280,7 +281,8 @@ class OpenADRClient:
             report_specifier_id = report_specifier_id or generate_id()
             report = objects.Report(created_date_time=datetime.now(),
                                     report_name=report_name,
-                                    report_specifier_id=report_specifier_id)
+                                    report_specifier_id=report_specifier_id,
+                                    data_collection_mode=data_collection_mode)
             self.reports.append(report)
 
         # Add the new report description to the report
@@ -438,12 +440,12 @@ class OpenADRClient:
         # Handle the subscriptions that the VTN is interested in.
         if 'report_requests' in response_payload:
             for report_request in response_payload['report_requests']:
-                result = await self.create_report(report_request)
+                await self.create_report(report_request)
 
         message_type = 'oadrCreatedReport'
         message_payload = {}
 
-        return response_type, response_payload
+        return message_type, message_payload
 
     async def create_report(self, report_request):
         """
@@ -457,10 +459,6 @@ class OpenADRClient:
         report_specifier_id = report_request['report_specifier']['report_specifier_id']
         report_back_duration = report_request['report_specifier'].get('report_back_duration')
         granularity = report_request['report_specifier']['granularity']
-        if 'report_interval' in report_request['report_specifier']:
-            report_interval = report_request['report_specifier']['report_interval']
-        else:
-            report_interval = None
 
         # Check if this report actually exists
         report = find_by(self.reports, 'report_specifier_id', report_specifier_id)
@@ -473,9 +471,6 @@ class OpenADRClient:
         requested_r_ids = []
         for specifier_payload in report_request['report_specifier']['specifier_payloads']:
             r_id = specifier_payload['r_id']
-            reading_type = specifier_payload['reading_type']
-            # Look up this report in our own reports index to make sure it is valid
-
             # Check if the requested r_id actually exists
             rd = find_by(report.report_descriptions, 'r_id', r_id)
             if not rd:
@@ -512,27 +507,21 @@ class OpenADRClient:
                 # If no granularity is specified, set it to the lowest sampling rate.
                 granularity = rd.sampling_rate.max_period
 
-            # Parse the report interval to set limits on the data collection
-            if 'report_interval' in report_request['report_specifier']:
-                report_interval = report_request['report_specifier']['report_interval']
-                report_start = report_interval['dtstart']
-                report_duration = report_interval['duration']
-            else:
-                report_start = datetime.now(timezone.utc)
-                duration = None
-
             requested_r_ids.append(r_id)
 
         callback = partial(self.update_report, report_request_id=report_request_id)
+
+        reporting_interval = report_back_duration or granularity
         job = self.scheduler.add_job(func=callback,
                                      trigger='cron',
-                                     **cron_config(granularity))
+                                     **cron_config(reporting_interval))
 
         self.report_requests.append({'report_request_id': report_request_id,
                                      'report_specifier_id': report_specifier_id,
                                      'report_back_duration': report_back_duration,
                                      'r_ids': requested_r_ids,
-                                     'granularity': granularity})
+                                     'granularity': granularity,
+                                     'job': job})
 
     async def update_report(self, report_request_id):
         """
@@ -543,35 +532,56 @@ class OpenADRClient:
         granularity = report_request['granularity']
         report_back_duration = report_request['report_back_duration']
         report_specifier_id = report_request['report_specifier_id']
+        report = find_by(self.reports, 'report_specifier_id', report_specifier_id)
+        data_collection_mode = report.data_collection_mode
 
         if report_request_id in self.incomplete_reports:
             logger.debug("We were already compiling this report")
             outgoing_report = self.incomplete_reports[report_request_id]
         else:
             logger.debug("There is no report in progress")
-            report = find_by(self.reports, 'report_specifier_id', report_request['report_specifier_id'])
             outgoing_report = objects.Report(report_request_id=report_request_id,
                                              report_specifier_id=report.report_specifier_id,
                                              report_name=report.report_name,
                                              intervals=[])
 
         intervals = outgoing_report.intervals or []
-        for r_id in report_request['r_ids']:
-            report_callback = self.report_callbacks[(report_specifier_id, r_id)]
-            result = report_callback()
-            if asyncio.iscoroutine(result):
-                result = await result
-            if isinstance(result, (int, float)):
-                result = [(datetime.now(timezone.utc), result)]
-            for dt, value in result:
-                logger.info(f"Adding {dt}, {value} to report")
-                report_payload = objects.ReportPayload(r_id=r_id, value=value)
-                intervals.append(objects.ReportInterval(dtstart=dt,
-                                                        report_payload=report_payload))
+        if data_collection_mode == 'full':
+            if report_back_duration is None:
+                report_back_duration = granularity
+            date_to = datetime.now(timezone.utc)
+            date_from = date_to - max(report_back_duration, granularity)
+            for r_id in report_request['r_ids']:
+                report_callback = self.report_callbacks[(report_specifier_id, r_id)]
+                result = report_callback(date_from=date_from,
+                                         date_to=date_to,
+                                         sampling_interval=granularity)
+                if asyncio.iscoroutine(result):
+                    result = await result
+                for dt, value in result:
+                    report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                    intervals.append(objects.ReportInterval(dtstart=dt,
+                                                            report_payload=report_payload))
+
+        else:
+            for r_id in report_request['r_ids']:
+                report_callback = self.report_callbacks[(report_specifier_id, r_id)]
+                result = report_callback()
+                if asyncio.iscoroutine(result):
+                    result = await result
+                if isinstance(result, (int, float)):
+                    result = [(datetime.now(timezone.utc), result)]
+                for dt, value in result:
+                    logger.info(f"Adding {dt}, {value} to report")
+                    report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                    intervals.append(objects.ReportInterval(dtstart=dt,
+                                                            report_payload=report_payload))
         outgoing_report.intervals = intervals
         logger.info(f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
+
         # Figure out if the report is complete after this sampling
-        if report_back_duration is not None and report_back_duration > granularity:
+        if data_collection_mode == 'incremental' and report_back_duration is not None\
+                and report_back_duration > granularity:
             report_interval = report_back_duration.total_seconds()
             sampling_interval = granularity.total_seconds()
             expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
@@ -582,7 +592,7 @@ class OpenADRClient:
                 logger.debug("The report is not yet complete, will hold until it is.")
                 self.incomplete_reports[report_request_id] = outgoing_report
         else:
-            logger.info("Report is sent at the sampling rate, queueing now")
+            logger.info("Report will be sent now.")
             await self.pending_reports.put(outgoing_report)
 
     async def cancel_report(self, payload):
@@ -597,6 +607,7 @@ class OpenADRClient:
 
         while True:
             report = await self.pending_reports.get()
+            logger.info("Sending report!!!")
 
             service = 'EiReport'
             message = self._create_message('oadrUpdateReport', reports=[report])
@@ -604,10 +615,10 @@ class OpenADRClient:
             try:
                 response_type, response_payload = await self._perform_request(service, message)
             except Exception as err:
-                breakpoint()
-
-            if 'cancel_report' in response_payload:
-                await self.cancel_report(response_payload['cancel_report'])
+                logger.error(f"Unable to send the report to the VTN. Error: {err}")
+            else:
+                if 'cancel_report' in response_payload:
+                    await self.cancel_report(response_payload['cancel_report'])
 
     ###########################################################################
     #                                                                         #
@@ -653,7 +664,7 @@ class OpenADRClient:
         try:
             message_type, message_payload = parse_message(content)
         except Exception as err:
-            logger.error("The incoming message could not be parsed or validated.")
+            logger.error(f"The incoming message could not be parsed or validated: {err}")
             return None, {}
         return message_type, message_payload
 

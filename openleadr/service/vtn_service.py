@@ -78,7 +78,7 @@ class VTNService:
             # If we throw a http-related error, deal with it here
             response = web.Response(text=err.response_description,
                                     status=err.response_status)
-        except Exception as err:
+        except Exception:
             # In case of some other error, return a HTTP 500
             response = web.Response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
         else:

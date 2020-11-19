@@ -1,10 +1,11 @@
 from openleadr import OpenADRClient, OpenADRServer, enable_default_logging
 import asyncio
 import pytest
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import partial
 import logging
 from random import random
+import time
 
 loop = asyncio.get_event_loop()
 loop.set_debug(True)
@@ -49,9 +50,10 @@ async def on_register_report(resource_id, measurement, unit, scale,
         callback = partial(receive_data, future=receive_futures.pop(0))
     else:
         callback = receive_data
-    print(f"Returning from on register report {callback}, {min_sampling_interval}")
     if bundling > 1:
+        print(f"Returning from on register report {callback}, {min_sampling_interval}, {bundling * min_sampling_interval}")
         return callback, min_sampling_interval, bundling * min_sampling_interval
+    print(f"Returning from on register report {callback}, {min_sampling_interval}")
     return callback, min_sampling_interval
 
 async def on_register_report_full(report, futures=None):
@@ -133,7 +135,7 @@ async def test_report_registration_full():
     server.add_handler('on_create_party_registration', on_create_party_registration)
 
     # Create a client
-    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b',)
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
 
     # Add 4 reports
     client.add_report(callback=collect_data,
@@ -158,7 +160,7 @@ async def test_report_registration_full():
                       unit='V')
 
 
-    asyncio.create_task(server.run_async())
+    await server.run_async()
     await asyncio.sleep(0.1)
     # Register the client
     await client.create_party_registration()
@@ -169,6 +171,7 @@ async def test_report_registration_full():
     assert len(server.services['report_service'].report_callbacks) == 4
     await client.stop()
     await server.stop()
+
 
 @pytest.mark.asyncio
 async def test_update_reports():
@@ -327,6 +330,67 @@ async def test_incremental_reports():
     await server.stop()
     await client.stop()
     await asyncio.sleep(0)
+
+
+
+async def collect_data_history(date_from, date_to, sampling_interval, futures):
+    data = [(date_from, 1.0), (date_to, 2.0)]
+    if futures:
+        for future in futures:
+            if future.done() is False:
+                future.set_result(data)
+                break
+    return data
+
+
+@pytest.mark.asyncio
+async def test_update_report_data_collection_mode_full():
+    loop = asyncio.get_event_loop()
+
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    data_collection_future = loop.create_future()
+    client.add_report(callback=partial(collect_data_history, futures=[data_collection_future]),
+                      resource_id='Device001',
+                      measurement='power_real',
+                      data_collection_mode='full',
+                      sampling_rate=timedelta(seconds=1),
+                      unit='W')
+
+    report_register_future = loop.create_future()
+    report_received_future = loop.create_future()
+    party_registration_future = loop.create_future()
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', partial(on_create_party_registration, future=party_registration_future))
+    server.add_handler('on_register_report', partial(on_register_report,
+                                                     bundling=2,
+                                                     futures=[report_register_future],
+                                                     receive_futures=[report_received_future]))
+
+    await server.run_async()
+    await asyncio.sleep(0.1)
+
+    print(f"The time is now {datetime.now()}")
+    t = time.time()
+    wait_for = int(t/2) * 2 + 2 - t
+    await asyncio.sleep(wait_for)
+    print(f"The time is now {datetime.now()}, running client")
+    await client.run()
+
+    await party_registration_future
+    await report_register_future
+    await asyncio.sleep(1)
+    print(f"The time is now {datetime.now()}, checking if report was triggered")
+    assert data_collection_future.done() is False
+
+    print("Waiting for the data collection to occur")
+    await data_collection_future
+
+    print("Waiting for the report to be received")
+    await report_received_future
+
+    print("Done")
+    await server.stop()
+    await client.stop()
 
 
 def test_add_report_invalid_unit(caplog):
