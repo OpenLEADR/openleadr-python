@@ -19,21 +19,19 @@ OpenADR Client for Python
 """
 
 import asyncio
-from functools import partial
-from dataclasses import asdict
+import inspect
+import logging
+import ssl
 from datetime import datetime, timedelta, timezone
+from functools import partial
 from http import HTTPStatus
 from random import randint
-import logging
-import inspect
-import ssl
 
 import aiohttp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from openleadr import enums, objects
 from openleadr.messaging import create_message, parse_message
-from openleadr.utils import peek, generate_id, certificate_fingerprint, find_by, cron_config
-import xmltodict
+from openleadr.utils import generate_id, certificate_fingerprint, find_by, cron_config
 
 logger = logging.getLogger('openleadr')
 
@@ -241,7 +239,7 @@ class OpenADRClient:
             raise ValueError("The data_collection_mode should be 'incremental' or 'full'.")
 
         if data_collection_mode == 'full':
-            args = inspect.signature(myfunc).parameters
+            args = inspect.signature(callback).parameters
             if not ('date_from' in args and 'date_to' in args):
                 raise TypeError("Your callback function must accept the 'date_from' and 'date_to' "
                                 "arguments if used with data_collection_mode 'full'.")
@@ -284,7 +282,6 @@ class OpenADRClient:
                                     report_name=report_name,
                                     report_specifier_id=report_specifier_id)
             self.reports.append(report)
-
 
         # Add the new report description to the report
         target = objects.Target(resource_id=resource_id)
@@ -361,7 +358,7 @@ class OpenADRClient:
         if ven_id:
             payload['ven_id'] = ven_id
         message = self._create_message('oadrCreatePartyRegistration',
-                                       request_id=generate_id(),
+                                       request_id=request_id,
                                        **payload)
         response_type, response_payload = await self._perform_request(service, message)
         if response_type is None:
@@ -430,7 +427,7 @@ class OpenADRClient:
         oadrCreateReport message that tells us which reports are to be sent.
         """
         request_id = generate_id()
-        payload = {'request_id': generate_id(),
+        payload = {'request_id': request_id,
                    'ven_id': self.ven_id,
                    'reports': reports}
 
@@ -477,7 +474,6 @@ class OpenADRClient:
         for specifier_payload in report_request['report_specifier']['specifier_payloads']:
             r_id = specifier_payload['r_id']
             reading_type = specifier_payload['reading_type']
-
             # Look up this report in our own reports index to make sure it is valid
 
             # Check if the requested r_id actually exists
@@ -558,12 +554,6 @@ class OpenADRClient:
                                              report_specifier_id=report.report_specifier_id,
                                              report_name=report.report_name,
                                              intervals=[])
-
-            data_collection_mode = report.data_collection_mode
-            if data_collection_mode == 'full':
-                date_from = datetime.now(timezone.utc) - report_back_duration
-                callback = report_callbacks[(report.report_specifier_id, r_id)]
-
 
         intervals = outgoing_report.intervals or []
         for r_id in report_request['r_ids']:
@@ -648,8 +638,8 @@ class OpenADRClient:
             async with self.client_session.post(url, data=message) as req:
                 content = await req.read()
                 if req.status != HTTPStatus.OK:
-                    logger.warning(f"Non-OK status when performing a request "
-                                   f"to {url} with data {message}: {req.status} {content.decode('utf-8')}")
+                    logger.warning(f"Non-OK status when performing a request to {url} with data "
+                                   f"{message}: {req.status} {content.decode('utf-8')}")
                     return None, {}
                 logger.debug(content.decode('utf-8'))
         except aiohttp.client_exceptions.ClientConnectorError as err:
@@ -663,12 +653,12 @@ class OpenADRClient:
         try:
             message_type, message_payload = parse_message(content)
         except Exception as err:
-            logger.error(f"The incoming message could not be parsed or validated.")
+            logger.error("The incoming message could not be parsed or validated.")
             return None, {}
         return message_type, message_payload
 
     async def _on_event(self, message):
-        logger.debug(f"The VEN received an event")
+        logger.debug("The VEN received an event")
         try:
             result = self.on_event(message)
             if asyncio.iscoroutine(result):

@@ -20,11 +20,13 @@ from jinja2 import Environment, PackageLoader
 from signxml import XMLSigner, XMLVerifier, methods
 from uuid import uuid4
 from lxml.etree import Element
+from asyncio import iscoroutine
+from openleadr import errors
+from datetime import datetime, timezone, timedelta
 import os
 
-from .utils import *
+from openleadr import utils
 from .preflight import preflight_message
-from dataclasses import is_dataclass, asdict
 
 import logging
 logger = logging.getLogger('openleadr')
@@ -40,7 +42,6 @@ with open(XML_SCHEMA_LOCATION) as file:
 XML_PARSER = etree.XMLParser(schema=XML_SCHEMA)
 
 
-
 def parse_message(data):
     """
     Parse a message and distill its usable parts. Returns a message type and payload.
@@ -50,7 +51,7 @@ def parse_message(data):
     """
     message_dict = xmltodict.parse(data, process_namespaces=True, namespaces=NAMESPACES)
     message_type, message_payload = message_dict['oadrPayload']['oadrSignedObject'].popitem()
-    message_payload = normalize_dict(message_payload)
+    message_payload = utils.normalize_dict(message_payload)
     return message_type, message_payload
 
 
@@ -59,15 +60,15 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
     Create and optionally sign an OpenADR message. Returns an XML string.
     """
     message_payload = preflight_message(message_type, message_payload)
-    signed_object = flatten_xml(TEMPLATES.get_template(f'{message_type}.xml')
-                                         .render(**message_payload))
+    template = TEMPLATES.get_template(f'{message_type}.xml')
+    signed_object = utils.flatten_xml(template.render(**message_payload))
     envelope = TEMPLATES.get_template('oadrPayload.xml')
     if cert and key:
         tree = etree.fromstring(signed_object)
         signature_tree = SIGNER.sign(tree,
                                      key=key,
                                      cert=cert,
-                                     passphrase=ensure_bytes(passphrase),
+                                     passphrase=utils.ensure_bytes(passphrase),
                                      reference_uri="#oadrSignedObject",
                                      signature_properties=_create_replay_protect())
         signature = etree.tostring(signature_tree).decode('utf-8')
@@ -86,22 +87,22 @@ def validate_xml_schema(content):
     """
     try:
         tree = etree.fromstring(content, XML_PARSER)
-    except Exception as err:
-        print("XML Validation Error")
-        breakpoint()
-        print("Hang")
+    except Exception:
+        logger.warning("XML Validation error in incoming message")
     else:
         return tree
 
+
 def validate_xml_signature(xml_tree):
-    cert = extract_pem_cert(xml_tree)
-    VERIFIER.verify(xml_tree, x509_cert=ensure_bytes(cert), expect_references=2)
+    cert = utils.extract_pem_cert(xml_tree)
+    VERIFIER.verify(xml_tree, x509_cert=utils.ensure_bytes(cert), expect_references=2)
     _verify_replay_protect(xml_tree)
+
 
 async def authenticate_message(request, message_tree, message_payload, fingerprint_lookup):
     if request.secure and 'ven_id' in message_payload:
         print("Getting cert fingerprint from request")
-        connection_fingerprint = get_cert_fingerprint_from_request(request)
+        connection_fingerprint = utils.get_cert_fingerprint_from_request(request)
         print("Checking cert fingerprint")
         if connection_fingerprint is None:
             msg = ("Your request must use a client side SSL certificate, of which the "
@@ -109,7 +110,8 @@ async def authenticate_message(request, message_tree, message_payload, fingerpri
             raise errors.NotRegisteredOrAuthorizedError(msg)
 
         try:
-            expected_fingerprint = fingerprint_lookup(message_payload['ven_id'])
+            ven_id = message_payload.get('ven_id')
+            expected_fingerprint = fingerprint_lookup(ven_id)
             if iscoroutine(expected_fingerprint):
                 expected_fingerprint = await expected_fingerprint
         except ValueError:
@@ -118,9 +120,9 @@ async def authenticate_message(request, message_tree, message_payload, fingerpri
             raise errors.NotRegisteredOrAuthorizedError(msg)
 
         if expected_fingerprint is None:
-            msg =("This VTN server does not know what your certificate fingerprint is. Please "
-                  "deliver your fingerprint to the VTN (outside of OpenADR). You used the "
-                  "following fingerprint to make this request:")
+            msg = ("This VTN server does not know what your certificate fingerprint is. Please "
+                   "deliver your fingerprint to the VTN (outside of OpenADR). You used the "
+                   "following fingerprint to make this request:")
             raise errors.NotRegisteredOrAuthorizedError(msg)
 
         print("Checking connection fingerprint")
@@ -130,8 +132,8 @@ async def authenticate_message(request, message_tree, message_payload, fingerpri
             raise errors.NotRegisteredOrAuthorizedError(msg)
 
         print("Checking message fingerprint")
-        message_cert = extract_pem_cert(message_tree)
-        message_fingerprint = certificate_fingerprint(message_cert)
+        message_cert = utils.extract_pem_cert(message_tree)
+        message_fingerprint = utils.certificate_fingerprint(message_cert)
         if message_fingerprint != expected_fingerprint:
             msg = (f"The fingerprint of the certificate used to sign the message "
                    f"{message_fingerprint} did not match the fingerprint that this "
@@ -145,12 +147,12 @@ async def authenticate_message(request, message_tree, message_payload, fingerpri
         except ValueError:
             msg = ("The message signature did not match the message contents. Please make sure "
                    "you are using the correct XMLDSig algorithm and C14n canonicalization.")
-            raise error.NotRegisteredOrAuthorizedError(msg)
+            raise errors.NotRegisteredOrAuthorizedError(msg)
 
 
 def _create_replay_protect():
     dt_element = Element("{http://openadr.org/oadr-2.0b/2012/07/xmldsig-properties}timestamp")
-    dt_element.text = datetimeformat(datetime.now(timezone.utc))
+    dt_element.text = utils.datetimeformat(datetime.now(timezone.utc))
 
     nonce_element = Element("{http://openadr.org/oadr-2.0b/2012/07/xmldsig-properties}nonce")
     nonce_element.text = uuid4().hex
@@ -166,9 +168,9 @@ def _create_replay_protect():
 def _verify_replay_protect(xml_tree):
     try:
         ns = "{http://openadr.org/oadr-2.0b/2012/07/xmldsig-properties}"
-        timestamp = parse_datetime(xml_tree.findtext(f".//{ns}timestamp"))
+        timestamp = utils.parse_datetime(xml_tree.findtext(f".//{ns}timestamp"))
         nonce = xml_tree.findtext(f".//{ns}nonce")
-    except Exception as err:
+    except Exception:
         raise ValueError("Missing or malformed ReplayProtect element in the message signature.")
     else:
         if timestamp < datetime.now(timezone.utc) - REPLAY_PROTECT_MAX_TIME_DELTA:
@@ -177,11 +179,13 @@ def _verify_replay_protect(xml_tree):
             raise ValueError("This combination of timestamp and nonce was already used.")
     _update_nonce_cache(timestamp, nonce)
 
+
 def _update_nonce_cache(timestamp, nonce):
     for timestamp, nonce in list(NONCE_CACHE):
         if timestamp < datetime.now(timezone.utc) - REPLAY_PROTECT_MAX_TIME_DELTA:
             NONCE_CACHE.remove((timestamp, nonce))
     NONCE_CACHE.add((timestamp, nonce))
+
 
 # Replay protect settings
 REPLAY_PROTECT_MAX_TIME_DELTA = timedelta(seconds=5)
@@ -189,9 +193,9 @@ NONCE_CACHE = set()
 
 # Settings for jinja2
 TEMPLATES = Environment(loader=PackageLoader('openleadr', 'templates'))
-TEMPLATES.filters['datetimeformat'] = datetimeformat
-TEMPLATES.filters['timedeltaformat'] = timedeltaformat
-TEMPLATES.filters['booleanformat'] = booleanformat
+TEMPLATES.filters['datetimeformat'] = utils.datetimeformat
+TEMPLATES.filters['timedeltaformat'] = utils.timedeltaformat
+TEMPLATES.filters['booleanformat'] = utils.booleanformat
 TEMPLATES.trim_blocks = True
 TEMPLATES.lstrip_blocks = True
 

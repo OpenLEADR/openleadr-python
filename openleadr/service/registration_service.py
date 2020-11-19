@@ -15,7 +15,6 @@
 # limitations under the License.
 
 from . import service, handler, VTNService
-from datetime import timedelta
 from asyncio import iscoroutine
 import logging
 logger = logging.getLogger('openleadr')
@@ -103,10 +102,11 @@ class RegistrationService(VTNService):
                 response_payload = {}
             else:
                 ven_id, registration_id = result
+                transports = [{'transport_name': payload['transport_name']}]
                 response_payload = {'ven_id': result[0],
                                     'registration_id': result[1],
                                     'profiles': [{'profile_name': payload['profile_name'],
-                                                  'transports': [{'transport_name': payload['transport_name']}]}],
+                                                  'transports': transports}],
                                     'requested_oadr_poll_freq': self.poll_freq}
         else:
             response_payload = {}

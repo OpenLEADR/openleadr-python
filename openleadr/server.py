@@ -18,7 +18,7 @@ import asyncio
 from aiohttp import web
 from openleadr.service import EventService, PollService, RegistrationService, ReportService, \
                               OptService, VTNService
-from openleadr.messaging import create_message, parse_message
+from openleadr.messaging import create_message
 from openleadr.utils import certificate_fingerprint, generate_id
 from openleadr import objects
 from functools import partial
@@ -92,7 +92,7 @@ class OpenADRServer:
         # Create SSL context for running the server
         if http_cert and http_key:
             self.ssl_context = ssl.create_default_context(cafile=http_ca_file,
-                                                           purpose=ssl.Purpose.CLIENT_AUTH)
+                                                          purpose=ssl.Purpose.CLIENT_AUTH)
             self.ssl_context.verify_mode = ssl.CERT_REQUIRED
             self.ssl_context.load_cert_chain(http_cert, http_key, http_key_passphrase)
         else:
@@ -107,7 +107,7 @@ class OpenADRServer:
             if show_fingerprint:
                 print("")
                 print("*" * 80)
-                print(f"Your VTN Certificate Fingerprint is "
+                print("Your VTN Certificate Fingerprint is "
                       f"{certificate_fingerprint(cert)}".center(80))
                 print("Please deliver this fingerprint to the VENs that connect to you.".center(80))
                 print("You do not need to keep this a secret.".center(80))
@@ -138,10 +138,11 @@ class OpenADRServer:
                            host=self.http_host,
                            ssl_context=self.ssl_context)
         await site.start()
+        protocol = 'https' if self.ssl_context else 'http'
         print("")
         print("*" * 80)
-        print(f"Your VTN Server is now running at ".center(80))
-        print(f"{'https' if self.ssl_context else 'http'}://{self.http_host}:{self.http_port}{self.http_path_prefix}".center(80))
+        print("Your VTN Server is now running at ".center(80))
+        print(f"{protocol}://{self.http_host}:{self.http_port}{self.http_path_prefix}".center(80))
         print("*" * 80)
         print("")
 

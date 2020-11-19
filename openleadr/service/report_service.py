@@ -89,18 +89,19 @@ class ReportService(VTNService):
                           for rd in report['report_descriptions']]
                 if iscoroutine(result[0]):
                     result = await gather(*result)
-                result = [(report['report_descriptions'][i]['r_id'], *result[i]) for i in range(len(report['report_descriptions']))]
+                result = [(report['report_descriptions'][i]['r_id'], *result[i])
+                          for i in range(len(report['report_descriptions']))]
                 report_requests.append(result)
         else:
             # Use the 'full' mode for openADR reporting
-            result = [self.on_register_report(report) for report in payload['reports']]     # Now we have r_id, callback, sampling_rate
+            result = [self.on_register_report(report) for report in payload['reports']]
             if iscoroutine(result[0]):
                 result = await gather(*result)      # Now we have r_id, callback, sampling_rate
             report_requests = result
 
         for i, report_request in enumerate(report_requests):
             if report_request is not None:
-                if not all(len(rrq) in (3,4) for rrq in report_request):
+                if not all(len(rrq) in (3, 4) for rrq in report_request):
                     logger.error("Your on_register_report handler did not return a valid response")
 
         # Validate the report requests

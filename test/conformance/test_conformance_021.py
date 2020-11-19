@@ -63,7 +63,7 @@ class EventFormatter(json.JSONEncoder):
             return timedeltaformat(obj)
         if isinstance(obj, datetime):
             return datetimeformat(obj)
-        if isinstance(obj, boolean):
+        if isinstance(obj, bool):
             return booleanformat(obj)
         return json.JSONEncoder.default(self, obj)
 
@@ -71,12 +71,6 @@ DB = sqlite3.connect(":memory:")
 with DB:
     DB.execute("CREATE TABLE vens (ven_id STRING, ven_name STRING, online BOOLEAN, last_seen DATETIME, registration_id STRING)")
     DB.execute("CREATE TABLE events (event_id STRING, ven_id STRING, request_id STRING, status STRING, event JSON, created_at DATETIME, updated_at DATETIME)")
-
-def lookup_ven(ven_name):
-    with DB:
-        DB.execute("SELECT * FROM vens WHERE ven_name = ?", (ven_name,))
-        ven = cur.fetchone()
-    return ven
 
 def add_ven(ven_name, ven_id, registration_id):
     with DB:

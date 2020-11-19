@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# flake8: noqa
+
 from .decorators import handler, service
 from .vtn_service import VTNService
 from .event_service import EventService

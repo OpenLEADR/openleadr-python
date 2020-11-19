@@ -14,11 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asyncio import iscoroutine
 from datetime import datetime, timedelta, timezone
 from dataclasses import is_dataclass, asdict
-import random
-import string
 from collections import OrderedDict
 import itertools
 import re
@@ -133,13 +130,6 @@ def normalize_dict(ordered_dict):
             d[key + "s"] = new_targets
             key = key + "s"
 
-        # Dig up the properties inside some specific target identifiers
-        # if key in ("aggregated_pnode", "pnode", "service_delivery_point"):
-        #     d[key] = d[key]["node"]
-
-        # if key in ("end_device_asset", "meter_asset"):
-        #     d[key] = d[key]["mrid"]
-
         # Group all reports as a list of dicts under the key "pending_reports"
         if key == "pending_reports":
             if isinstance(d[key], dict) and 'report_request_id' in d[key] \
@@ -226,10 +216,6 @@ def normalize_dict(ordered_dict):
             d['event_id'] = qeid['event_id']
             d['modification_number'] = qeid['modification_number']
 
-# Promote the contents of the tolerance items
-# if key == "tolerance" and "tolerate" in d["tolerance"] and len(d["tolerance"]["tolerate"]) == 1:
-#     d["tolerance"] = d["tolerance"]["tolerate"].values()[0]
-
         # Durations are encapsulated in their own object, remove this nesting
         elif isinstance(d[key], dict) and "duration" in d[key] and len(d[key]) == 1:
             d[key] = d[key]["duration"]
@@ -264,7 +250,6 @@ def normalize_dict(ordered_dict):
             elif 'payload_int' in d[key] and 'value' in d[key]['payload_int']:
                 v = d[key].pop('payload_float')
                 d[key]['value'] = int(v['value'])
-
 
         # All values other than 'false' must be interpreted as True for testEvent (rule 006)
         elif key == 'test_event' and not isinstance(d[key], bool):
@@ -388,7 +373,7 @@ def timedeltaformat(value):
     if days:
         formatted += f"{days}D"
     if hours or minutes or seconds:
-        formatted += f"T"
+        formatted += "T"
     if hours:
         formatted += f"{hours}H"
     if minutes:
@@ -440,9 +425,11 @@ def ensure_str(obj):
     else:
         raise TypeError("Must be bytes or str")
 
+
 def certificate_fingerprint_from_der(der_bytes):
     hash = hashlib.sha256(der_bytes).digest().hex()
     return ":".join([hash[i-2:i].upper() for i in range(-20, 0, 2)])
+
 
 def certificate_fingerprint(certificate_str):
     """
@@ -450,6 +437,7 @@ def certificate_fingerprint(certificate_str):
     """
     der_bytes = ssl.PEM_cert_to_DER_cert(ensure_str(certificate_str))
     return certificate_fingerprint_from_der(der_bytes)
+
 
 def extract_pem_cert(tree):
     """
@@ -462,24 +450,6 @@ def extract_pem_cert(tree):
     """
     cert = tree.find('.//{http://www.w3.org/2000/09/xmldsig#}X509Certificate').text
     return "-----BEGIN CERTIFICATE-----\n" + cert + "-----END CERTIFICATE-----\n"
-
-
-def group_by(list_of_dicts, key, pop=False):
-    """
-    Groups a list of dictionaries into a dict.
-    """
-    grouped = {}
-    for item in list_of_dicts:
-        if key not in item:
-            raise KeyError(f"{key} was not in the list item")
-        if item[key] not in grouped:
-            grouped[item[key]] = []
-        if pop:
-            item_key = item.pop(key)
-        else:
-            item_key = item[key]
-        grouped[item_key].append(item)
-    return grouped
 
 
 def find_by(dict_or_list, key, value, *args):
@@ -508,6 +478,7 @@ def find_by(dict_or_list, key, value, *args):
     else:
         return None
 
+
 def group_by(list_, key, pop_key=False):
     """
     Return a dict that groups values
@@ -522,6 +493,7 @@ def group_by(list_, key, pop_key=False):
             grouped[value] = []
         grouped[value].append(item)
     return grouped
+
 
 def cron_config(interval):
     """
@@ -541,12 +513,14 @@ def cron_config(interval):
         hour = f"*/{int(interval.total_seconds/3600)}"
     return {"second": second, "minute": minute, "hour": hour}
 
+
 def get_cert_fingerprint_from_request(request):
     ssl_object = request.transport.get_extra_info('ssl_object')
     if ssl_object:
         der_bytes = ssl_object.getpeercert(binary_form=True)
         if der_bytes:
             return certificate_fingerprint_from_der(der_bytes)
+
 
 def get_certificate_common_name(request):
     cert = request.transport.get_extra_info('peercert')

@@ -171,8 +171,8 @@ class STATUS_CODES(metaclass=Enum):
 
 
 class SECURITY_LEVEL:
-    STANDARD: 'STANDARD'
-    HIGH: 'HIGH'
+    STANDARD = 'STANDARD'
+    HIGH = 'HIGH'
 
 
 _CURRENCIES = ("AFN", "ALL", "AMD", "ANG", "AOA", "ARS", "AUD", "AWG", "AZN", "BAM",
@@ -218,10 +218,10 @@ class MEASUREMENTS(metaclass=Enum):
                                       acceptable_units=('Wh',),
                                       si_scale_code='none')
     ACTIVE_ENERGY = objects.Measurement(item_name='energyReal',
-                                      item_description='RealEnergy',
-                                      item_units='Wh',
-                                      acceptable_units=('Wh',),
-                                      si_scale_code='none')
+                                        item_description='RealEnergy',
+                                        item_units='Wh',
+                                        acceptable_units=('Wh',),
+                                        si_scale_code='none')
     ENERGY_REACTIVE = objects.Measurement(item_name='energyReal',
                                           item_description='RealEnergy',
                                           item_units='VArh',
@@ -247,25 +247,25 @@ class MEASUREMENTS(metaclass=Enum):
                                        item_units='W',
                                        acceptable_units=('W',),
                                        si_scale_code='none',
-                                         power_attributes=objects.PowerAttributes(hertz=50,
-                                                                                  voltage=230,
-                                                                                  ac=True))
+                                       power_attributes=objects.PowerAttributes(hertz=50,
+                                                                                voltage=230,
+                                                                                ac=True))
     REAL_POWER = objects.Measurement(item_name='powerReal',
-                                       item_description='RealPower',
-                                       item_units='W',
-                                       acceptable_units=('W',),
-                                       si_scale_code='none',
-                                         power_attributes=objects.PowerAttributes(hertz=50,
-                                                                                  voltage=230,
-                                                                                  ac=True))
+                                     item_description='RealPower',
+                                     item_units='W',
+                                     acceptable_units=('W',),
+                                     si_scale_code='none',
+                                     power_attributes=objects.PowerAttributes(hertz=50,
+                                                                              voltage=230,
+                                                                              ac=True))
     POWER_REAL = objects.Measurement(item_name='powerReal',
-                                       item_description='RealPower',
-                                       item_units='W',
-                                       acceptable_units=('W',),
-                                       si_scale_code='none',
-                                         power_attributes=objects.PowerAttributes(hertz=50,
-                                                                                  voltage=230,
-                                                                                  ac=True))
+                                     item_description='RealPower',
+                                     item_units='W',
+                                     acceptable_units=('W',),
+                                     si_scale_code='none',
+                                     power_attributes=objects.PowerAttributes(hertz=50,
+                                                                              voltage=230,
+                                                                              ac=True))
     REACTIVE_POWER = objects.Measurement(item_name='powerReactive',
                                          item_description='ReactivePower',
                                          item_units='VAr',

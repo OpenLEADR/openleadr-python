@@ -16,7 +16,7 @@
 
 from datetime import datetime, timedelta, timezone
 from dataclasses import asdict, is_dataclass
-from openleadr import objects, enums
+from openleadr import enums
 import logging
 logger = logging.getLogger('openleadr')
 

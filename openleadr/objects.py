@@ -147,6 +147,7 @@ class Event:
             self.active_period = ActivePeriod(dtstart=dtstart,
                                               duration=duration)
 
+
 @dataclass
 class Response:
     response_code: int

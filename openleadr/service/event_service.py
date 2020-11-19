@@ -15,9 +15,10 @@
 # limitations under the License.
 
 from . import service, handler, VTNService
-from datetime import datetime, timedelta, timezone
 from asyncio import iscoroutine
 from .. import objects
+import logging
+logger = logging.getLogger('openleadr')
 
 
 @service('EiEvent')

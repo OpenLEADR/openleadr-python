@@ -1,13 +1,16 @@
 from openleadr.enums import STATUS_CODES
 
+
 class ProtocolError(Exception):
     pass
+
 
 class HTTPError(Exception):
     def __init__(self, status=500, description=None):
         super().__init__()
         self.response_code = status
         self.response_description = description
+
 
 class OutOfSequenceError(ProtocolError):
     def __init__(self, description=None):

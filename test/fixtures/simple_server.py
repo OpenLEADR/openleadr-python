@@ -35,7 +35,7 @@ class EventFormatter(json.JSONEncoder):
             return timedeltaformat(obj)
         if isinstance(obj, datetime):
             return datetimeformat(obj)
-        if isinstance(obj, boolean):
+        if isinstance(obj, bool):
             return booleanformat(obj)
         return json.JSONEncoder.default(self, obj)
 
@@ -47,7 +47,7 @@ with DB:
 def lookup_ven(ven_name):
     with DB:
         DB.execute("SELECT * FROM vens WHERE ven_name = ?", (ven_name,))
-        ven = cur.fetchone()
+        ven = DB.fetchone()
     return ven
 
 def add_ven(ven_name, ven_id, registration_id):

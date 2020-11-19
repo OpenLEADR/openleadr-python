@@ -16,19 +16,16 @@
 
 from asyncio import iscoroutine
 from http import HTTPStatus
-import os
 import logging
 
 from aiohttp import web
-from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .. import errors
 from ..enums import STATUS_CODES
-from ..messaging import create_message, parse_message, validate_xml_schema, validate_xml_signature, authenticate_message
-from ..utils import generate_id, get_cert_fingerprint_from_request, ensure_str, extract_pem_cert, certificate_fingerprint
+from ..messaging import parse_message, validate_xml_schema, authenticate_message
+from ..utils import generate_id
 
 from dataclasses import is_dataclass, asdict
-from lxml import etree
 
 logger = logging.getLogger('openleadr')
 
@@ -84,8 +81,6 @@ class VTNService:
         except Exception as err:
             # In case of some other error, return a HTTP 500
             response = web.Response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
         else:
             # We've successfully handled this message
             msg = self._create_message(response_type, **response_payload)
@@ -118,7 +113,7 @@ class VTNService:
 
         else:
             response_type, response_payload = self.error_response(message_type,
-                                                                  STATES_CODES.COMPLIANCE_ERROR,
+                                                                  STATUS_CODES.COMPLIANCE_ERROR,
                                                                   "A message of type "
                                                                   f"{message_type} should not be "
                                                                   "sent to this endpoint")
