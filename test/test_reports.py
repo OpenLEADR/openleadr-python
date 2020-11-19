@@ -88,15 +88,15 @@ async def test_report_registration():
 
     # Add 4 reports
     client.add_report(callback=collect_data,
-                      report_specifier_id='AmpereReport',
+                      report_specifier_id='PowerReport',
                       resource_id='Device001',
-                      measurement='current',
-                      unit='A')
+                      measurement='power_real',
+                      unit='W')
     client.add_report(callback=collect_data,
-                      report_specifier_id='AmpereReport',
+                      report_specifier_id='PowerReport',
                       resource_id='Device002',
-                      measurement='current',
-                      unit='A')
+                      measurement='power_real',
+                      unit='W')
     client.add_report(callback=collect_data,
                       report_specifier_id='VoltageReport',
                       resource_id='Device001',
@@ -107,7 +107,6 @@ async def test_report_registration():
                       resource_id='Device002',
                       measurement='voltage',
                       unit='V')
-
 
     asyncio.create_task(server.run_async())
     await asyncio.sleep(1)
@@ -138,15 +137,15 @@ async def test_report_registration_full():
 
     # Add 4 reports
     client.add_report(callback=collect_data,
-                      report_specifier_id='AmpereReport',
+                      report_specifier_id='PowerReport',
                       resource_id='Device001',
-                      measurement='current',
-                      unit='A')
+                      measurement='power_real',
+                      unit='W')
     client.add_report(callback=collect_data,
-                      report_specifier_id='AmpereReport',
+                      report_specifier_id='PowerReport',
                       resource_id='Device002',
-                      measurement='current',
-                      unit='A')
+                      measurement='power_real',
+                      unit='W')
     client.add_report(callback=collect_data,
                       report_specifier_id='VoltageReport',
                       resource_id='Device001',
@@ -202,18 +201,18 @@ async def test_update_reports():
     # Add 4 reports
     future_1 = loop.create_future()
     client.add_report(callback=partial(collect_data, future=future_1),
-                      report_specifier_id='AmpereReport',
+                      report_specifier_id='PowerReport',
                       resource_id='Device001',
-                      measurement='current',
+                      measurement='power_real',
                       sampling_rate=timedelta(seconds=2),
-                      unit='A')
+                      unit='W')
     future_2 = loop.create_future()
     client.add_report(callback=partial(collect_data, future=future_2),
-                      report_specifier_id='AmpereReport',
+                      report_specifier_id='PowerReport',
                       resource_id='Device002',
-                      measurement='current',
+                      measurement='power_real',
                       sampling_rate=timedelta(seconds=2),
-                      unit='A')
+                      unit='W')
     future_3 = loop.create_future()
     client.add_report(callback=partial(collect_data, future=future_3),
                       report_specifier_id='VoltageReport',
@@ -345,10 +344,10 @@ def test_add_report_invalid_scale():
     with pytest.raises(ValueError):
         client.add_report(callback=print,
                           report_specifier_id='myreport',
-                          measurement='current',
+                          measurement='power_real',
                           resource_id='mydevice',
                           sampling_rate=timedelta(seconds=10),
-                          unit='A',
+                          unit='W',
                           scale='xxx')
 
 def test_add_report_non_standard_measurement():
@@ -359,9 +358,7 @@ def test_add_report_non_standard_measurement():
                       resource_id='mydevice',
                       sampling_rate=timedelta(seconds=10),
                       unit='A')
-
-    assert client.reports[0].report_descriptions[0].measurement.item_name == 'customUnit'
-    assert client.reports[0].report_descriptions[0].measurement.item_description == 'rainbows'
+    assert len(client.reports) == 0
 
 if __name__ == "__main__":
     asyncio.run(test_update_reports())

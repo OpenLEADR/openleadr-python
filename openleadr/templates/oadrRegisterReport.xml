@@ -19,6 +19,8 @@
   {% endfor %}
       {% if report.report_request_id is defined and report.report_request_id is not none %}
       <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
+      {% else %}
+      <ei:reportRequestID></ei:reportRequestID>
       {% endif %}
       <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>
       <ei:reportName>{{ report.report_name }}</ei:reportName>

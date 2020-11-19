@@ -251,12 +251,11 @@ class OpenADRClient:
             item_base = measurement
         elif measurement.upper() in enums.MEASUREMENTS.members:
             item_base = enums.MEASUREMENTS[measurement.upper()]
-        elif isinstance(measurement, str):
-            item_base = objects.Measurement(item_name='customUnit',
-                                            item_description=measurement,
-                                            item_units=unit)
         else:
-            raise ValueError("measurement should be one of the MEASUREMENTS from enums, or a str")
+            logger.error("Support for non-standard measurements is not yet functional. "
+                         "See https://github.com/OpenLEADR/openleadr-python/issues/20 for status.")
+            return
+
         if scale is not None:
             if scale in enums.SI_SCALE_CODE.values:
                 item_base.si_scale_code = scale
