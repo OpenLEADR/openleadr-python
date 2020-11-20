@@ -90,15 +90,15 @@ async def test_report_registration():
 
     # Add 4 reports
     client.add_report(callback=collect_data,
-                      report_specifier_id='PowerReport',
+                      report_specifier_id='CurrentReport',
                       resource_id='Device001',
-                      measurement='power_real',
-                      unit='W')
+                      measurement='current',
+                      unit='A')
     client.add_report(callback=collect_data,
-                      report_specifier_id='PowerReport',
+                      report_specifier_id='CurrentReport',
                       resource_id='Device002',
-                      measurement='power_real',
-                      unit='W')
+                      measurement='current',
+                      unit='A')
     client.add_report(callback=collect_data,
                       report_specifier_id='VoltageReport',
                       resource_id='Device001',
@@ -422,7 +422,11 @@ def test_add_report_non_standard_measurement():
                       resource_id='mydevice',
                       sampling_rate=timedelta(seconds=10),
                       unit='A')
-    assert len(client.reports) == 0
+    assert len(client.reports) == 1
+    assert client.reports[0].report_descriptions[0].measurement.item_name == 'customUnit'
+    assert client.reports[0].report_descriptions[0].measurement.item_description == 'rainbows'
+
+
 
 if __name__ == "__main__":
     asyncio.run(test_update_reports())

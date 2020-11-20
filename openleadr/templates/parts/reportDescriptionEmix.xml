@@ -1,7 +1,7 @@
   {% if report_description.measurement %}
-  <power:{{ report_description.measurement.item_name }} xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power" >
-    <power:itemDescription>{{ report_description.measurement.item_description }}</power:itemDescription>
-    <power:itemUnits>{{ report_description.measurement.item_units }}</power:itemUnits>
+  <{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:{{ report_description.measurement.item_name }} xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power" >
+    <{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:itemDescription>{{ report_description.measurement.item_description }}</{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:itemDescription>
+    <{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:itemUnits>{{ report_description.measurement.item_units }}</{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:itemUnits>
     <scale:siScaleCode>{{ report_description.measurement.si_scale_code }}</scale:siScaleCode>
     {% if report_description.measurement.power_attributes %}
     <power:powerAttributes>
@@ -10,5 +10,5 @@
       <power:ac>{{ report_description.measurement.power_attributes.ac|booleanformat }}</power:ac>
     </power:powerAttributes>
     {% endif %}
-  </power:{{ report_description.measurement.item_name }}>
+  </{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:{{ report_description.measurement.item_name }}>
   {% endif %}
