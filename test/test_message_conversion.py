@@ -53,10 +53,12 @@ def create_dummy_event(ven_id):
                                     {"duration": timedelta(minutes=1), "uid": 7, "signal_payload": 10.0},
                                     {"duration": timedelta(minutes=1), "uid": 8, "signal_payload": 20.0}],
                     "signal_name": "LOAD_CONTROL",
-                    #"signal_name": "simple",
-                    #"signal_type": "level",
                     "signal_type": "x-loadControlCapacity",
                     "signal_id": generate_id(),
+                    "measurement": {"item_name": "voltage",
+                                    "item_description": "voltage",
+                                    "item_units": "V",
+                                    "si_scale_code": "none"},
                     "current_value": 0.0}]
     event_targets = [{"ven_id": 'VEN001'}, {"ven_id": 'VEN002'}]
     event = {'active_period': active_period,

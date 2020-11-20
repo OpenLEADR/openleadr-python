@@ -164,11 +164,11 @@ def normalize_dict(ordered_dict):
             else:
                 d[key + 's'] = [d.pop(key)]
 
-        elif key == 'report_description':
-            report_descriptions = d.pop(key)
-            if not isinstance(report_descriptions, list):
-                report_descriptions = [report_descriptions]
-            for description in report_descriptions:
+        elif key in ('report_description', 'event_signal'):
+            descriptions = d.pop(key)
+            if not isinstance(descriptions, list):
+                descriptions = [descriptions]
+            for description in descriptions:
                 # We want to make the identification of the measurement universal
                 if 'voltage' in description:
                     item_name, item = 'voltage', description.pop('voltage')
@@ -206,7 +206,7 @@ def normalize_dict(ordered_dict):
                     break
                 description['measurement'] = {'item_name': item_name,
                                               **item}
-            d['report_descriptions'] = report_descriptions
+            d[key + 's'] = descriptions
 
         # Promote the contents of the Qualified Event ID
         elif key == "qualified_event_id" and isinstance(d['qualified_event_id'], dict):

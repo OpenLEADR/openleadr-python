@@ -3,7 +3,7 @@
         {% include 'parts/eiEventDescriptor.xml' %}
         {% include 'parts/eiActivePeriod.xml' %}
         <ei:eiEventSignals>
-            {% for signal in event.event_signals %}
+            {% for event_signal in event.event_signals %}
                 {% include 'parts/eiEventSignal.xml' %}
             {% endfor %}
         </ei:eiEventSignals>
