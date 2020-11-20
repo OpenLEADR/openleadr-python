@@ -20,6 +20,17 @@ Version Main features                      Target timeframe
 Changelog
 ---------
 
+openleadr 0.5.3
+~~~~~~~~~~~~~~~
+
+Released: 20 november 2020
+
+New features:
+
+- Support for custom units in Reports is back, and is now compliant with the XML Schema.
+- Support for specifying the measurement (unit) in an EventSignal is added, and builds on the work of the report units.
+
+
 openleadr 0.5.2
 ~~~~~~~~~~~~~~~
 
