@@ -652,7 +652,6 @@ class OpenADRClient:
                 if req.status != HTTPStatus.OK:
                     logger.warning(f"Non-OK status when performing a request to {url} with data "
                                    f"{message}: {req.status} {content.decode('utf-8')}")
-                    return None, {}
                 logger.debug(content.decode('utf-8'))
         except aiohttp.client_exceptions.ClientConnectorError as err:
             # Could not connect to server
