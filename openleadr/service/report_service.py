@@ -121,7 +121,7 @@ class ReportService(VTNService):
 
         # Validate the report requests
         for i, report_request in enumerate(report_requests):
-            if report_request is None:
+            if report_request is None or len(report_request) == 0:
                 continue
             # Check if all sampling rates per report_request are the same
             sampling_interval = min(rrq[2] for rrq in report_request if rrq is not None)
@@ -194,9 +194,8 @@ class ReportService(VTNService):
                 if iscoroutine(result):
                     result = await result
                 continue
-
             for r_id, values in group_by(report['intervals'], 'report_payload.r_id').items():
-                # Find the callback thot we registered.
+                # Find the callback that was registered.
                 if (report_request_id, r_id) in self.report_callbacks:
                     # Collect the values
                     values = [(ri['dtstart'], ri['report_payload']['value']) for ri in values]
