@@ -56,8 +56,14 @@ class VTNService:
                                            self.fingerprint_lookup)
 
             # Pass the message off to the handler and get the response type and payload
-            response_type, response_payload = await self.handle_message(message_type,
-                                                                        message_payload)
+            try:
+                response_type, response_payload = await self.handle_message(message_type,
+                                                                            message_payload)
+            except Exception as err:
+                logger.error("An exception occurred during the execution of your handler: "
+                             f"{err.__class__.__name__}: {err}")
+                raise err
+
             if 'response' not in response_payload:
                 response_payload['response'] = {'response_status': 200,
                                                 'response_description': 'OK',
