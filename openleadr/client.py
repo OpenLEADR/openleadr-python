@@ -674,25 +674,45 @@ class OpenADRClient:
 
     async def _on_event(self, message):
         logger.debug("The VEN received an event")
+        events = message['events']
         try:
-            result = self.on_event(message)
-            if asyncio.iscoroutine(result):
-                result = await result
+            results = [self.on_event(event) for event in message['events']]
+            if asyncio.iscoroutine(results[0]):
+                results = await asyncio.gather(*results, return_exceptions=False)
+            for i, result in enumerate(results):
+                if result not in ('optIn', 'optOut'):
+                    logger.error("Your on_event handler must return 'optIn' or 'optOut'; "
+                                 f"you supplied {result}. Please fix your on_event handler.")
+                    results[i] = 'optOut'
         except Exception as err:
             logger.error("Your on_event handler encountered an error. Will Opt Out of the event. "
                          f"The error was {err.__class__.__name__}: {str(err)}")
-            result = 'optOut'
+            results = ['optOut'] * len(events)
 
-        if result not in ('optIn', 'optOut'):
-            logger.error("Your on_event handler must return 'optIn' or 'optOut'; "
-                         f"you supplied {result}. Please fix your on_event handler.")
-            result = 'optOut'
+        print("Done executing on_event for events")
+        if len(events) == 1:
+            logger.debug(f"Now responding with {results[0]}")
+        else:
+            logger.debug(f"Responding to multiple events: {results}.")
 
-        logger.debug(f"Now responding with {result}")
-        request_id = message['request_id']
-        event_id = message['events'][0]['event_descriptor']['event_id']
-        await self.created_event(request_id, event_id, result)
-        return
+        event_responses = [{'response_code': 200,
+                            'response_description': 'OK',
+                            'opt_type': results[i],
+                            'request_id': message['request_id'],
+                            'modification_number': 1,
+                            'event_id': events[i]['event_descriptor']['event_id']}
+                            for i, event in enumerate(events)]
+
+        response = {'response_code': 200,
+                    'response_description': 'OK',
+                    'request_id': message['request_id']}
+        message = self._create_message('oadrCreatedEvent',
+                                       response=response,
+                                       event_responses=event_responses)
+        service = 'EiEvent'
+        response_type, response_payload = await self._perform_request(service, message)
+        logger.info(response_type, response_payload)
+
 
     async def _poll(self):
         logger.debug("Now polling for new messages")
@@ -709,7 +729,8 @@ class OpenADRClient:
             await self.create_party_registration()
 
         if response_type == 'oadrDistributeEvent':
-            await self._on_event(response_payload)
+            if len(response_payload['events']) > 0:
+                await self._on_event(response_payload)
 
         elif response_type == 'oadrUpdateReport':
             await self._on_report(response_payload)

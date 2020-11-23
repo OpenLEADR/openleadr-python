@@ -8,7 +8,7 @@
         <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
         {% endif %}
       </ei:eiResponse>
-      {% if event_responses is defined and event_response is not none %}
+      {% if event_responses is defined and event_responses is not none %}
       <ei:eventResponses>
         {% for event_response in event_responses %}
         <ei:eventResponse>
