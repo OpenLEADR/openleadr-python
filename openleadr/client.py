@@ -113,6 +113,7 @@ class OpenADRClient:
 
         if not self.ven_id:
             logger.error("No VEN ID received from the VTN, aborting.")
+            await self.stop()
             return
 
         if self.reports:
@@ -171,7 +172,7 @@ class OpenADRClient:
 
         setattr(self, handler, callback)
 
-    def add_report(self, callback, resource_id, measurement,
+    def add_report(self, callback, resource_id, measurement=None,
                    data_collection_mode='incremental',
                    report_specifier_id=None, r_id=None,
                    report_name=enums.REPORT_NAME.TELEMETRY_USAGE,
@@ -187,6 +188,7 @@ class OpenADRClient:
                                   of the requested value.
         :param str resource_id: A specific name for this resource within this report.
         :param str measurement: The quantity that is being measured (openleadr.enums.MEASUREMENTS).
+                                Optional for TELEMETRY_STATUS reports.
         :param str data_collection_mode: Whether you want the data to be collected incrementally
                                          or at once. If the VTN requests the sampling interval to be
                                          higher than the reporting interval, this setting determines
@@ -246,7 +248,9 @@ class OpenADRClient:
                                 "with data_collection_mode 'full'.")
 
         # Determine the correct item name, item description and unit
-        if isinstance(measurement, objects.Measurement):
+        if report_name == 'TELEMETRY_STATUS':
+            item_base = None
+        elif isinstance(measurement, objects.Measurement):
             item_base = measurement
         elif measurement.upper() in enums.MEASUREMENTS.members:
             item_base = enums.MEASUREMENTS[measurement.upper()]
@@ -256,7 +260,7 @@ class OpenADRClient:
                                             item_units=unit,
                                             si_scale_code=scale)
 
-        if scale is not None:
+        if report_name != 'TELEMETRY_STATUS' and scale is not None:
             if scale in enums.SI_SCALE_CODE.values:
                 item_base.si_scale_code = scale
             else:
@@ -608,7 +612,6 @@ class OpenADRClient:
 
         while True:
             report = await self.pending_reports.get()
-            logger.info("Sending report!!!")
 
             service = 'EiReport'
             message = self._create_message('oadrUpdateReport', reports=[report])
@@ -727,6 +730,5 @@ class OpenADRClient:
                 ssl_context.check_hostname = False
                 connector = aiohttp.TCPConnector(ssl=ssl_context)
                 self.client_session = aiohttp.ClientSession(connector=connector)
-                print("Created Client Session")
             else:
                 self.client_session = aiohttp.ClientSession()

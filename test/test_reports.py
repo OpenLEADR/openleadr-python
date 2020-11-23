@@ -122,6 +122,63 @@ async def test_report_registration():
     await client.stop()
     await server.stop()
 
+async def collect_status():
+    return 1
+
+@pytest.mark.asyncio
+async def test_report_registration_with_status_report():
+    """
+    Test the registration of two reports with two r_ids each.
+    """
+    # Create a server
+    logger = logging.getLogger('openleadr')
+    logger.setLevel(logging.DEBUG)
+    server = OpenADRServer(vtn_id='testvtn')
+    server.add_handler('on_register_report', on_register_report)
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+
+    # Create a client
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b',)
+
+    # Add 4 reports
+    client.add_report(callback=collect_data,
+                      report_specifier_id='CurrentReport',
+                      resource_id='Device001',
+                      measurement='current',
+                      unit='A')
+    client.add_report(callback=collect_data,
+                      report_specifier_id='CurrentReport',
+                      resource_id='Device002',
+                      measurement='current',
+                      unit='A')
+    client.add_report(callback=collect_data,
+                      report_specifier_id='VoltageReport',
+                      resource_id='Device001',
+                      measurement='voltage',
+                      unit='V')
+    client.add_report(callback=collect_data,
+                      report_specifier_id='VoltageReport',
+                      resource_id='Device002',
+                      measurement='voltage',
+                      unit='V')
+    client.add_report(callback=collect_status,
+                      report_name='TELEMETRY_STATUS',
+                      report_specifier_id='StatusReport',
+                      resource_id='Device001')
+
+    asyncio.create_task(server.run_async())
+    await asyncio.sleep(1)
+    # Register the client
+    await client.create_party_registration()
+
+    # Register the reports
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 3
+    assert len(server.services['report_service'].report_callbacks) == 5
+    await client.stop()
+    await server.stop()
+
+
 @pytest.mark.asyncio
 async def test_report_registration_full():
     """

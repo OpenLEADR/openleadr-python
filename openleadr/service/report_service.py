@@ -80,17 +80,32 @@ class ReportService(VTNService):
                 'min_sampling_interval' in args, 'max_sampling_interval' in args,
                 'unit' in args, 'scale' in args]):
             for report in payload['reports']:
-                result = [self.on_register_report(resource_id=rd['report_subject']['resource_id'],
-                                                  measurement=rd['measurement']['item_description'],
-                                                  unit=rd['measurement']['item_units'],
-                                                  scale=rd['measurement']['si_scale_code'],
-                                                  min_sampling_interval=rd['sampling_rate']['min_period'],
-                                                  max_sampling_interval=rd['sampling_rate']['max_period'])
-                          for rd in report['report_descriptions']]
+                if report['report_name'] == 'METADATA_TELEMETRY_STATUS':
+                    result = [self.on_register_report(resource_id=rd['report_subject']['resource_id'],
+                                                      measurement='Status',
+                                                      unit=None,
+                                                      scale=None,
+                                                      min_sampling_interval=rd['sampling_rate']['min_period'],
+                                                      max_sampling_interval=rd['sampling_rate']['max_period'])
+                              for rd in report['report_descriptions']]
+                elif report['report_name'] == 'METADATA_TELEMETRY_USAGE':
+                    result = [self.on_register_report(resource_id=rd['report_subject']['resource_id'],
+                                                      measurement=rd['measurement']['item_description'],
+                                                      unit=rd['measurement']['item_units'],
+                                                      scale=rd['measurement']['si_scale_code'],
+                                                      min_sampling_interval=rd['sampling_rate']['min_period'],
+                                                      max_sampling_interval=rd['sampling_rate']['max_period'])
+                              for rd in report['report_descriptions']]
+                else:
+                    logger.warning("Reports other than TELEMETRY_USAGE and TELEMETRY_STATUS are "
+                                   f"not yet supported. Skipping report {report['report_name']}.")
+                    report_requests.append(None)
+                    break
+
                 if iscoroutine(result[0]):
                     result = await gather(*result)
                 result = [(report['report_descriptions'][i]['r_id'], *result[i])
-                          for i in range(len(report['report_descriptions']))]
+                          for i in range(len(report['report_descriptions'])) if result[i] is not None]
                 report_requests.append(result)
         else:
             # Use the 'full' mode for openADR reporting
