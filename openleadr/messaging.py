@@ -87,8 +87,8 @@ def validate_xml_schema(content):
     """
     try:
         tree = etree.fromstring(content, XML_PARSER)
-    except Exception:
-        logger.warning("XML Validation error in incoming message")
+    except Exception as err:
+        logger.warning(f"XML Validation error in incoming message: {err}")
     else:
         return tree
 
