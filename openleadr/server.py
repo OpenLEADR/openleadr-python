@@ -149,7 +149,7 @@ class OpenADRServer:
     async def stop(self):
         await self.app_runner.cleanup()
 
-    async def add_event(self, ven_id, signal_name, signal_type, intervals, target, callback):
+    def add_event(self, ven_id, signal_name, signal_type, intervals, target, callback):
         """
         Convenience method to add an event with a single signal.
         :param str ven_id: The ven_id to whom this event must be delivered.
@@ -183,7 +183,7 @@ class OpenADRServer:
                               targets=target)
         if ven_id not in self.message_queues:
             self.message_queues[ven_id] = asyncio.Queue()
-        await self.message_queues[ven_id].put(event)
+        self.message_queues[ven_id].put_nowait(event)
         self.services['event_service'].pending_events[event_id] = callback
 
     async def add_raw_event(self, ven_id, event):
