@@ -32,7 +32,8 @@ import logging
 logger = logging.getLogger('openleadr')
 
 SIGNER = XMLSigner(method=methods.detached,
-                   c14n_algorithm="http://www.w3.org/2001/10/xml-exc-c14n#")
+                   c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+SIGNER.namespaces['oadr'] = "http://openadr.org/oadr-2.0b/2012/07"
 VERIFIER = XMLVerifier()
 
 XML_SCHEMA_LOCATION = os.path.join(os.path.dirname(__file__), 'schema', 'oadr_20b.xsd')

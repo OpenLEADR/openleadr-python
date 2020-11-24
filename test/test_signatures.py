@@ -15,11 +15,12 @@
 # limitations under the License.
 
 
-from openleadr.utils import generate_id, certificate_fingerprint
-from openleadr.messaging import create_message, parse_message
+from openleadr.utils import generate_id, certificate_fingerprint, ensure_bytes
+from openleadr.messaging import create_message, parse_message, validate_xml_signature, validate_xml_schema
 from hashlib import sha256
 from base64 import b64encode
 from datetime import datetime, timedelta, timezone
+from lxml import etree
 import os
 
 with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'cert.pem'), 'rb') as file:
@@ -30,6 +31,8 @@ TEST_KEY_PASSWORD = 'openadr'
 
 def test_message_validation():
     msg = create_message('oadrPoll', ven_id='123', cert=TEST_CERT, key=TEST_KEY, passphrase='openadr')
+    tree = etree.fromstring(msg.encode('utf-8'))
+    validate_xml_signature(tree)
     parsed_type, parsed_message = parse_message(msg)
     assert parsed_type == 'oadrPoll'
 
@@ -79,4 +82,7 @@ def test_message_validation_complex():
                          cert=TEST_CERT,
                          key=TEST_KEY,
                          passphrase='openadr')
+    tree = etree.fromstring(msg.encode('utf-8'))
+    validate_xml_signature(tree)
     parsed_type, parsed_msg = parse_message(msg)
+

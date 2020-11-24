@@ -1,4 +1,4 @@
-<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
   <oadr:oadrPoll ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <ei:venID>{{ ven_id }}</ei:venID>
   </oadr:oadrPoll>

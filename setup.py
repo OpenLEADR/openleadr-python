@@ -31,5 +31,5 @@ setup(name='openleadr',
       url='https://openleadr.elaad.io',
       packages=['openleadr', 'openleadr.service'],
       include_package_data=True,
-      install_requires=['xmltodict', 'aiohttp', 'apscheduler', 'jinja2', 'signxml>=2.8.1<3.0.0'],
+      install_requires=['xmltodict', 'aiohttp', 'apscheduler', 'jinja2', 'signxml-openadr==2.9.1'],
       entry_points={'console_scripts': ['fingerprint = openleadr.fingerprint:show_fingerprint']})
