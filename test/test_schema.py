@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openleadr.utils import generate_id, indent_xml
-from openleadr.messaging import create_message
+from openleadr.utils import generate_id, indent_xml, ensure_bytes
+from openleadr.messaging import create_message, validate_xml_schema
 from openleadr import enums
 from lxml import etree
 import os
@@ -126,8 +126,8 @@ testcases = [
                                                                                            'duration': timedelta(seconds=7200),
                                                                                            'tolerance': {'tolerate': {'startafter': timedelta(seconds=300)}}},
                                                                        'report_specifier_id': '9c8bdc00e7',
-                                                                       'specifier_payload': {'r_id': 'd6e2e07485',
-                                                                                             'reading_type': 'Direct Read'}}}])),
+                                                                       'specifier_payloads': [{'r_id': 'd6e2e07485',
+                                                                                             'reading_type': 'Direct Read'}]}}])),
 ('oadrDistributeEvent', dict(request_id=generate_id(), response={'request_id': 123, 'response_code': 200, 'response_description': 'OK'}, events=[create_dummy_event(ven_id='123ABC')], vtn_id='VTN123')),
 ('oadrPoll', dict(ven_id='123ABC')),
 ('oadrQueryRegistration', dict(request_id=generate_id())),
@@ -142,8 +142,8 @@ testcases = [
                                                                                                 'notification': timedelta(minutes=30),
                                                                                                 'ramp_up': timedelta(minutes=15),
                                                                                                 'recovery': timedelta(minutes=5)},
-                                                                            'specifier_payload': {'r_id': generate_id(),
-                                                                                                  'reading_type': 'Direct Read'}}},
+                                                                            'specifier_payloads': [{'r_id': generate_id(),
+                                                                                                  'reading_type': 'Direct Read'}]}},
                                                       {'report_request_id': generate_id(),
                                                        'report_specifier': {'report_specifier_id': generate_id(),
                                                                             'granularity': timedelta(minutes=15),
@@ -154,8 +154,8 @@ testcases = [
                                                                                                 'notification': timedelta(minutes=30),
                                                                                                 'ramp_up': timedelta(minutes=15),
                                                                                                 'recovery': timedelta(minutes=5)},
-                                                                            'specifier_payload': {'r_id': generate_id(),
-                                                                                                  'reading_type': 'Direct Read'}}}])),
+                                                                            'specifier_payloads': [{'r_id': generate_id(),
+                                                                                                  'reading_type': 'Direct Read'}]}}])),
 ('oadrRequestEvent', dict(request_id=generate_id(), ven_id='123ABC')),
 ('oadrRequestReregistration', dict(ven_id='123ABC')),
 ('oadrRegisterReport', dict(request_id=generate_id(), reports=[{'report_id': generate_id(),
@@ -203,7 +203,8 @@ testcases = [
                                                                                            'measurement': {'item_name': 'powerReal',
                                                                                                            'item_description': 'RealPower',
                                                                                                            'item_units': 'W',
-                                                                                                           'si_scale_code': 'n'},
+                                                                                                           'si_scale_code': 'n',
+                                                                                                           'power_attributes': {'hertz': 50, 'ac': True, 'voltage': 230}},
                                                                                             'reading_type': 'Direct Read',
                                                                                             'market_context': 'http://MarketContext1',
                                                                                             'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}],
@@ -229,7 +230,8 @@ testcases = [
                                                                                            'measurement': {'item_name': 'powerReal',
                                                                                                            'item_description': 'RealPower',
                                                                                                            'item_units': 'W',
-                                                                                                           'si_scale_code': 'n'},
+                                                                                                           'si_scale_code': 'n',
+                                                                                                           'power_attributes': {'hertz': 50, 'ac': True, 'voltage': 230}},
                                                                                             'reading_type': 'Direct Read',
                                                                                             'market_context': 'http://MarketContext1',
                                                                                             'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}],
@@ -245,27 +247,21 @@ testcases = [
                                                                                   'created_date_time': datetime.now(timezone.utc),
                                                                                   'report_request_id': generate_id(),
                                                                                   'report_specifier_id': generate_id(),
-                                                                                  'report_descriptions': {generate_id(): {'report_subjects': [{'ven_id': '123ABC'}, {'ven_id': 'DEF456'}],
+                                                                                  'report_descriptions': [{'r_id': generate_id(),
+                                                                                                            'report_subjects': [{'ven_id': '123ABC'}, {'ven_id': 'DEF456'}],
                                                                                                                           'report_data_sources': [{'ven_id': '123ABC'}],
-                                                                                                                          'report_type': enums.REPORT_TYPE.values[0],
-                                                                                                                          'reading_type': enums.READING_TYPE.values[0],
+                                                                                                                          'report_type': enums.REPORT_TYPE.USAGE,
+                                                                                                                          'reading_type': enums.READING_TYPE.DIRECT_READ,
                                                                                                                           'market_context': 'http://localhost',
                                                                                                                           'sampling_rate': {'min_period': timedelta(minutes=1),
                                                                                                                                             'max_period': timedelta(minutes=2),
-                                                                                                                                            'on_change': False}}}}], ven_id='123ABC'))
+                                                                                                                                            'on_change': False}}]}], ven_id='123ABC'))
 ]
 
 
 
 @pytest.mark.parametrize("msg_type,payload", testcases)
 def test_message(msg_type, payload):
-    try:
-        message = create_message(msg_type, **payload)
-        etree.fromstring(message.encode('utf-8'), parser)
-        print(colored(f"pass: {msg_type} OK", "green"))
-    except etree.XMLSyntaxError as err:
-        print(colored(f"fail: {msg_type} failed validation: {err}", "red"))
-        print(message)
-        return False
-    except jinja2.exceptions.UndefinedError as err:
-        print(colored(f"fail: {msg_type} failed message construction: {err}", "yellow"))
+    message = create_message(msg_type, **payload)
+    print(message)
+    tree = validate_xml_schema(ensure_bytes(message))
