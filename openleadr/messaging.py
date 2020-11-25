@@ -86,16 +86,21 @@ def validate_xml_schema(content):
     """
     Validates the XML tree against the schema. Return the XML tree.
     """
-    try:
-        tree = etree.fromstring(content, XML_PARSER)
-    except Exception as err:
-        logger.warning(f"XML Validation error in incoming message: {err}")
-    else:
-        return tree
+    tree = etree.fromstring(content, XML_PARSER)
+    return tree
 
 
-def validate_xml_signature(xml_tree):
+def validate_xml_signature(xml_tree, cert_fingerprint=None):
+    """
+    Validate the XMLDSIG signature and the ReplayProtect element.
+    """
     cert = utils.extract_pem_cert(xml_tree)
+    if cert_fingerprint:
+        fingerprint = utils.certificate_fingerprint(cert)
+        if fingerprint != cert_fingerprint:
+            raise error.FingerprintMismatch("The certificate fingerprint was incorrect. "
+                                            f"Expected: {cert_fingerprint};"
+                                            f"Received: {fingerprint}")
     VERIFIER.verify(xml_tree, x509_cert=utils.ensure_bytes(cert), expect_references=2)
     _verify_replay_protect(xml_tree)
 

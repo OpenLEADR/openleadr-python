@@ -19,6 +19,8 @@ from http import HTTPStatus
 import logging
 
 from aiohttp import web
+from lxml.etree import XMLSyntaxError
+from signxml.exceptions import InvalidSignature
 
 from .. import errors
 from ..enums import STATUS_CODES
@@ -67,7 +69,7 @@ class VTNService:
             if 'response' not in response_payload:
                 response_payload['response'] = {'response_status': 200,
                                                 'response_description': 'OK',
-                                                'request_id': message_payload['request_id']}
+                                                'request_id': message_payload.get('request_id')}
             response_payload['vtn_id'] = self.vtn_id
             if 'ven_id' not in response_payload:
                 response_payload['ven_id'] = message_payload.get('ven_id')
@@ -84,8 +86,21 @@ class VTNService:
             # If we throw a http-related error, deal with it here
             response = web.Response(text=err.response_description,
                                     status=err.response_status)
-        except Exception:
+        except XMLSyntaxError as err:
+            logger.warning(f"XML schema validation of incoming message failed: {err}.")
+            response = web.Response(text=f'XML failed validation: {err}',
+                                    status=HTTPStatus.BAD_REQUEST)
+        except errors.FingerprintMismatch as err:
+            logger.warning(err)
+            response = web.Response(text=f'Fingerprint mismatch',
+                                    status=HTTPStatus.FORBIDDEN)
+        except InvalidSignature:
+            logger.warning("Incoming message had invalid signature, ignoring.")
+            response = web.Response(text=f'Invalid Signature',
+                                    status=HTTPStatus.FORBIDDEN)
+        except Exception as err:
             # In case of some other error, return a HTTP 500
+            logger.error(f"The VTN server encountered an error: {err.__class__.__name__}: {err}")
             response = web.Response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
         else:
             # We've successfully handled this message

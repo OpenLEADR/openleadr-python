@@ -81,7 +81,7 @@ class RegistrationService(VTNService):
         # If you don't provide a default handler, just give out the info
         response_payload = {'request_id': payload['request_id'],
                             'profiles': [{'profile_name': '2.0b',
-                                          'transports': {'transport_name': 'simpleHttp'}}],
+                                          'transports': [{'transport_name': 'simpleHttp'}]}],
                             'requested_oadr_poll_freq': self.poll_freq}
         return 'oadrCreatedPartyRegistration', response_payload
 

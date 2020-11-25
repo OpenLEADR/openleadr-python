@@ -4,6 +4,9 @@ from openleadr.enums import STATUS_CODES
 class ProtocolError(Exception):
     pass
 
+class FingerprintMismatch(Exception):
+    pass
+
 
 class HTTPError(Exception):
     def __init__(self, status=500, description=None):

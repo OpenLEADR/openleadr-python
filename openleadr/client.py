@@ -28,9 +28,12 @@ from http import HTTPStatus
 from random import randint
 
 import aiohttp
+from lxml.etree import XMLSyntaxError
+from signxml.exceptions import InvalidSignature
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from openleadr import enums, objects
-from openleadr.messaging import create_message, parse_message
+from openleadr import enums, objects, errors
+from openleadr.messaging import create_message, parse_message, \
+                                validate_xml_schema, validate_xml_signature
 from openleadr.utils import generate_id, certificate_fingerprint, find_by, cron_config
 
 logger = logging.getLogger('openleadr')
@@ -67,7 +70,9 @@ class OpenADRClient:
         self.vtn_url = vtn_url
         self.ven_id = None
         self.poll_frequency = None
+        self.vtn_fingerprint = vtn_fingerprint
         self.debug = debug
+
         self.reports = []
         self.report_callbacks = {}              # Holds the callbacks for each specific report
         self.report_requests = []               # Keep track of the report requests from the VTN
@@ -666,7 +671,19 @@ class OpenADRClient:
             logger.error(f"Request error {err.__class__.__name__}:{err}")
             return None, {}
         try:
+            tree = validate_xml_schema(content)
+            if self.vtn_fingerprint:
+                validate_xml_signature(tree)
             message_type, message_payload = parse_message(content)
+        except XMLSyntaxError as err:
+            logger.warning(f"Incoming message did not pass XML schema validation: {err}")
+            return None, {}
+        except errors.FingerprintMismatch as err:
+            logger.warning(err)
+            return None, {}
+        except InvalidSignature:
+            logger.warning("Incoming message had invalid signature, ignoring.")
+            return None, {}
         except Exception as err:
             logger.error(f"The incoming message could not be parsed or validated: {err}")
             return None, {}
