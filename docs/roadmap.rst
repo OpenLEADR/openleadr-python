@@ -20,6 +20,26 @@ Version Main features                      Target timeframe
 Changelog
 ---------
 
+openleadr 0.5.5
+~~~~~~~~~~~~~~~
+
+Released: 23 november 2020
+
+New features:
+
+- Message signing now uses the correct C14n algorithm, as required by OpenADR
+- Preliminary VEN support for multiple events in one DistributeEvent message
+
+openleadr 0.5.4
+~~~~~~~~~~~~~~~
+
+Released: 23 november 2020
+
+New features:
+
+- Preliminary support for TELEMETRY_STATUS reports
+- Changed the server.add_event to be a normal function (not a coroutine), which allows you to call it from a synchronous function if needed.
+
 openleadr 0.5.3
 ~~~~~~~~~~~~~~~
 
