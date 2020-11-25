@@ -144,10 +144,10 @@ class Event:
         if self.active_period is None:
             dtstart = min([i['dtstart']
                            if isinstance(i, dict) else i.dtstart
-                           for s in self.event_signals for i in s.intervals ])
+                           for s in self.event_signals for i in s.intervals])
             duration = max([i['dtstart'] + i['duration']
                             if isinstance(i, dict) else i.dtstart + i.duration
-                            for s in self.event_signals for i in s.intervals ]) - dtstart
+                            for s in self.event_signals for i in s.intervals]) - dtstart
             self.active_period = ActivePeriod(dtstart=dtstart,
                                               duration=duration)
 

@@ -718,7 +718,7 @@ class OpenADRClient:
                             'request_id': message['request_id'],
                             'modification_number': 1,
                             'event_id': events[i]['event_descriptor']['event_id']}
-                            for i, event in enumerate(events)]
+                           for i, event in enumerate(events)]
 
         response = {'response_code': 200,
                     'response_description': 'OK',
@@ -729,7 +729,6 @@ class OpenADRClient:
         service = 'EiEvent'
         response_type, response_payload = await self._perform_request(service, message)
         logger.info(response_type, response_payload)
-
 
     async def _poll(self):
         logger.debug("Now polling for new messages")

@@ -92,11 +92,11 @@ class VTNService:
                                     status=HTTPStatus.BAD_REQUEST)
         except errors.FingerprintMismatch as err:
             logger.warning(err)
-            response = web.Response(text=f'Fingerprint mismatch',
+            response = web.Response(text='Fingerprint mismatch',
                                     status=HTTPStatus.FORBIDDEN)
         except InvalidSignature:
             logger.warning("Incoming message had invalid signature, ignoring.")
-            response = web.Response(text=f'Invalid Signature',
+            response = web.Response(text='Invalid Signature',
                                     status=HTTPStatus.FORBIDDEN)
         except Exception as err:
             # In case of some other error, return a HTTP 500
