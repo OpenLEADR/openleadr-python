@@ -108,7 +108,12 @@ def normalize_dict(ordered_dict):
         elif value in ('true', 'false'):
             d[key] = parse_boolean(value)
         elif isinstance(value, str):
-            d[key] = parse_int(value) or parse_float(value) or value
+            if re.match(r'^-?\d+$', value):
+                d[key] = int(value)
+            elif re.match(r'^-?[\d.]+$', value):
+                d[key] = float(value)
+            else:
+                d[key] = value
         else:
             d[key] = value
 
@@ -312,22 +317,6 @@ def parse_duration(value):
     if _seconds:
         seconds = int(_seconds[:-1])
     return timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
-
-
-def parse_int(value):
-    matches = re.match(r'^[\d-]+$', value)
-    if not matches:
-        return False
-    else:
-        return int(value)
-
-
-def parse_float(value):
-    matches = re.match(r'^[\d.-]+$', value)
-    if not matches:
-        return False
-    else:
-        return float(value)
 
 
 def parse_boolean(value):
