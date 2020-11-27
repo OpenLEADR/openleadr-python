@@ -77,7 +77,7 @@ class EventService(VTNService):
                 result = await(result)
         return 'oadrResponse', {}
 
-    def on_create_event(self, payload):
+    def on_created_event(self, payload):
         """
         Placeholder for the on_created_event handler.
         """
