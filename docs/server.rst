@@ -15,7 +15,7 @@ If a client (VEN) wants to register for the first time, it will go through a Reg
 
 .. admonition:: Implementation Checklist
 
-    1. Create a handler that decides what to do with new registrations, based on their ``venID``.
+    1. Create a handler that decides what to do with new registrations, based on their registration info.
 
 
 The client will send a :ref:`oadrQueryRegistration` message. The server will respond with a :ref:`oadrCreatedPartyRegistration` message containing a list of its capabilities, notably the implemented OpenADR protocol versions and the available Transport Mechanisms (HTTP and/or XMPP).
@@ -24,7 +24,7 @@ The client will then usually send a :ref:`oadrCreatePartyRegistration` message, 
 
 In the case that the registration is accepted, the VTN will generate a RegistrationID for this VEN and respond with a :ref:`oadrCreatedPartyRegistration` message.
 
-In your application, when a VEN sends a :ref:`oadrCreatePartyRegistration` request, it will call your ``on_register_party`` handler. This handler must somehow look up what to do with this request, and respond with a ``registration_id``.
+In your application, when a VEN sends a :ref:`oadrCreatePartyRegistration` request, it will call your ``on_create_party_registration`` handler. This handler must somehow look up what to do with this request, and respond with a ``ven_id, registration_id`` tuple.
 
 Example implementation:
 
@@ -33,25 +33,27 @@ Example implementation:
     from openleadr.utils import generate_id
 
     async def on_create_party_registration(payload):
-        ven_id = payload['ven_id']
+        ven_name = payload['ven_name']
         # Check whether or not this VEN is allowed to register
         result = await database.query("""SELECT COUNT(*)
                                            FROM vens
-                                          WHERE ven_id = ?""",
-                                      (payload['ven_id'],))
+                                          WHERE ven_name = ?""",
+                                      (payload['ven_name'],))
         if result == 1:
             # Generate an ID for this registration
+            ven_id = generate_id()
             registration_id = generate_id()
 
             # Store the registration in a database (pseudo-code)
             await database.query("""UPDATE vens
-                                       SET registration_id = ?
-                                     WHERE ven_id = ?""",
-                                 (registration_id, ven_id))
+                                       SET ven_id = ?
+                                       registration_id = ?
+                                     WHERE ven_name = ?""",
+                                 (ven_id, registration_id, ven_name))
 
             # Return the registration ID.
             # This will be put into the correct form by the OpenADRServer.
-            return registration_id
+            return ven_id, registration_id
 
 .. _server_events:
 
@@ -62,22 +64,7 @@ The server (VTN) is expected to know when it needs to inform the clients (VENs) 
 
 The VTN must determine when VENs are relevant and which Events to send to them. The next time the VEN polls for new messages (using a :ref:`oadrPoll` or :ref:`oadrRequestEvent` message), it will send the Event in a :ref:`oadrDistributeEvent` message to the client. The client will then evaluate whether or not it indends to comply with the request, and respond with an :ref:`oadrCreatedEvent` message containing an optStatus of ``'optIn'`` or ``'optOut'``.
 
-.. admonition:: Implementation Checklist
-
-    In your application, the creation of Events is completely up to you. OpenLEADR will only call your ``on_poll`` handler with a ``ven_id``. This handler must be able to either retrieve the next event for this VEN out of some storage or queue, or make up the Event in real time.
-
-    - ``on_created_event(payload)`` handler is called whenever the VEN sends an :ref:`oadrCreatedEvent` message, probably informing you of what they intend to do with the event you gave them.
-    - ``on_request_event(ven_id)``: this should return the next event (if any) that you have for the VEN. If you return ``None``, a blank :ref:`oadrResponse` will be returned to the VEN.
-    - ``on_request_report(ven_id)``: this should return then next report (if any) that you have for the VEN. If you return None, a blank :ref:`oadrResponse` will be returned to the VEN.
-    - ``on_poll(ven_id)``: this should return the next message in line, which is usually either a new :ref:`oadrUpdatedReport` or a :ref:`oadrDistributeEvent` message.
-
-
-The Event consists of three main sections:
-
-1. A time period for when this event is supposed to be active
-2. A list of Targets to which the Event applies. This can be the VEN as a whole, or specific groups, assets, geographic areas, et cetera that this VEN represents.
-3. A list of Signals, which form the content of the Event. This can be price signals, load reduction signals, et cetera. Each signal has a name, a type, multiple Intervals that contain the relative start times, and some payload value for the client to interpret.
-
+(Documentation for this section is in progress)
 
 
 .. _server_reports:
@@ -259,14 +246,15 @@ A prospective VEN is requesting information about your VTN, like the versions an
 on_create_party_registration
 ----------------------------
 
-The VEN tries to register with you. You will probably have manually configured the VEN beforehand, so you should look them up by their ven_name. You should have a ven_id that you generated ready.
-If they are allowed to register, return the ven_id (str), otherwise return False.
+The VEN tries to register with you. You will receive a registration_info dict that contains, among other things, a field `ven_name` which is how the VEN identifies itself. If the VEN is accepted, you return a ``ven_id, registration_id`` tuple. If not, return ``False``:
 
 .. code-block:: python3
 
-    async def on_create_party_registration(ven_name):
+    async def on_create_party_registration(registration_info):
+        ven_name = registration_info['ven_name']
+        ...
         if ven_is_known:
-            return ven_id
+            return ven_id, registration_id
         else
             return None
 
