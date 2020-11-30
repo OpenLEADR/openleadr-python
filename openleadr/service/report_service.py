@@ -76,12 +76,13 @@ class ReportService(VTNService):
         """
         report_requests = []
         args = inspect.signature(self.on_register_report).parameters
-        if all(['measurement' in args, 'resource_id' in args,
+        if all(['ven_id' in args, 'resource_id' in args, 'measurement' in args,
                 'min_sampling_interval' in args, 'max_sampling_interval' in args,
                 'unit' in args, 'scale' in args]):
             for report in payload['reports']:
                 if report['report_name'] == 'METADATA_TELEMETRY_STATUS':
-                    result = [self.on_register_report(resource_id=rd['report_subject']['resource_id'],
+                    result = [self.on_register_report(ven_id=payload['ven_id'],
+                                                      resource_id=rd['report_subject']['resource_id'],
                                                       measurement='Status',
                                                       unit=None,
                                                       scale=None,
@@ -89,7 +90,8 @@ class ReportService(VTNService):
                                                       max_sampling_interval=rd['sampling_rate']['max_period'])
                               for rd in report['report_descriptions']]
                 elif report['report_name'] == 'METADATA_TELEMETRY_USAGE':
-                    result = [self.on_register_report(resource_id=rd['report_subject']['resource_id'],
+                    result = [self.on_register_report(ven_id=payload['ven_id'],
+                                                      resource_id=rd['report_subject']['resource_id'],
                                                       measurement=rd['measurement']['item_description'],
                                                       unit=rd['measurement']['item_units'],
                                                       scale=rd['measurement']['si_scale_code'],

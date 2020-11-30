@@ -38,12 +38,12 @@ async def on_update_report(report, futures=None):
                 break
     pass
 
-async def on_register_report(resource_id, measurement, unit, scale,
+async def on_register_report(ven_id, resource_id, measurement, unit, scale,
                              min_sampling_interval, max_sampling_interval, bundling=1, futures=None, receive_futures=None):
     """
     Deal with this report.
     """
-    print(f"Called on register report {resource_id}, {measurement}, {unit}, {scale}, {min_sampling_interval}, {max_sampling_interval}")
+    print(f"Called on register report {ven_id}, {resource_id}, {measurement}, {unit}, {scale}, {min_sampling_interval}, {max_sampling_interval}")
     if futures:
         futures.pop(0).set_result(True)
     if receive_futures:

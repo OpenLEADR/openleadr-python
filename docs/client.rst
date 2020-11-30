@@ -25,15 +25,35 @@ Example implementation:
 
 .. code-block:: python3
 
-    from openadr import OpenADRClient
-
-    async def on_event(payload):
+    async def on_event(event):
         # Check if we can opt in to this event
-        start_time = payload['events'][0]['active_period']['dtstart']
-        duration = payload['events'][0]['active_period']['duration']
-
-        await can_we_do_this(from_time=payload[''])
+        first_signal = event['event_signals'][0]
+        intervals = first_signal['intervals']
+        target = event['target']
+        ...
         return 'optIn'
+
+An example event dict might look like this:
+
+.. code-block:: python3
+
+    {
+        'event_id': '123786-129831',
+        'active_period': {'dtstart': datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+                          'duration': datetime.timedelta(minutes=30)}
+        'event_signals': [{'signal_name': 'simple',
+                           'signal_type': 'level',
+                           'intervals': [{'dtstart': datetime.datetime(2020, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+                                          'duration': datetime.timedelta(minutes=10),
+                                          'signal_payload': 1},
+                                          {'dtstart': datetime.datetime(2020, 1, 1, 12, 10, 0, tzinfo=timezone.utc),
+                                          'duration': datetime.timedelta(minutes=10),
+                                          'signal_payload': 0},
+                                          {'dtstart': datetime.datetime(2020, 1, 1, 12, 20, 0, tzinfo=timezone.utc),
+                                          'duration': datetime.timedelta(minutes=10),
+                                          'signal_payload': 1}],
+       'targets': [{'resource_id': 'Device001'}]
+    }
 
 
 .. _client_reports:
@@ -41,31 +61,13 @@ Example implementation:
 Dealing with Reports
 ====================
 
-The VTN Server will most like want to receive some reports like metering values or availability status from you.
-Providing reports
------------------
+The VTN Server will most likely want to receive some reports like metering values or availability status from you.
 
-If you tell OpenLEADR what reports you are able to provide, and give it a handler that will retrieve those reports from your own systems, OpenLEADR will make sure that the server receives the reports it asks for and at the requested interval.
+You can easily add reporting capabilities to your OpenADRClient object using the ``client.add_report`` method. In this method, you supply a callback function that will retrieve the current value for that measurement, as well as the resource_id, the measurement (like 'voltage', 'power', 'temperature', et cetera), optionally a unit and scale, and a sampling rate at which you can support this metervalue.
 
-For example: you can provide 15-minute meter readings for an energy meter at your site. You have a coroutine set up like this:
+OpenLEADR will then offer this report to the VTN, and if they request this report from you, your callback function will automatically be called when needed.
 
-.. code-block:: python3
-
-    async def get_metervalue():
-        current_value = await meter.read()
-        return current_value
-
-And you configure this report in OpenLEADR using an :ref:`oadrReportDescription` dict:
-
-.. code-block:: python3
-
-    async def main():
-        client = OpenADRClient(ven_name='MyVEN', vtn_url='https://localhost:8080/')
-        report_description = {''}
-        client.add_report({'report'})
-
-The only thing you need to provide is the current value for the item you are reporting. OpenLEADR will format the complete :ref:`oadrReport` message for you.
-
+Please see the :ref:`reporting` section for detailed information.
 
 
 .. _client_signing_messages:
