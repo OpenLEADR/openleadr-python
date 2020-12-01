@@ -70,7 +70,7 @@ class VTNService:
                 raise err
 
             if 'response' not in response_payload:
-                response_payload['response'] = {'response_status': 200,
+                response_payload['response'] = {'response_code': 200,
                                                 'response_description': 'OK',
                                                 'request_id': message_payload.get('request_id')}
             response_payload['vtn_id'] = self.vtn_id
@@ -79,7 +79,7 @@ class VTNService:
         except errors.ProtocolError as err:
             # In case of an OpenADR error, return a valid OpenADR message
             response_type, response_payload = self.error_response(message_type,
-                                                                  err.response_status,
+                                                                  err.response_code,
                                                                   err.response_description)
             msg = self._create_message(response_type, **response_payload)
             response = web.Response(text=msg,
@@ -88,14 +88,14 @@ class VTNService:
         except errors.HTTPError as err:
             # If we throw a http-related error, deal with it here
             response = web.Response(text=err.response_description,
-                                    status=err.response_status)
+                                    status=err.response_code)
         except XMLSyntaxError as err:
             logger.warning(f"XML schema validation of incoming message failed: {err}.")
             response = web.Response(text=f'XML failed validation: {err}',
                                     status=HTTPStatus.BAD_REQUEST)
         except errors.FingerprintMismatch as err:
             logger.warning(err)
-            response = web.Response(text='Fingerprint mismatch',
+            response = web.Response(text=str(err),
                                     status=HTTPStatus.FORBIDDEN)
         except InvalidSignature:
             logger.warning("Incoming message had invalid signature, ignoring.")

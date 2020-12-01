@@ -55,7 +55,7 @@ Client example::
     async def main():
         client = OpenADRClient(ven_name="Device001",
                                vtn_url="http://localhost:8080/OpenADR2/Simple/2.0b")
-        client.on_event = handle_event
+        client.add_handler('on_event', handle_event)
         await client.run()
 
     async def handle_event(event):
@@ -74,7 +74,6 @@ Client example::
 
 This will connect to an OpenADR server (indicated by the vtn_url parameter), handle registration, start polling for events and reports, and will call your coroutines whenever an event or report is created for you.
 
-We have more examples available over at the :ref:`examples` page.
 
 
 Table of Contents
@@ -85,13 +84,10 @@ Table of Contents
    :maxdepth: 2
 
    features
-   openadr
    client
    server
-   examples
    reporting
    logging
-   representations
    message_signing
    roadmap
    API Reference <api/modules>

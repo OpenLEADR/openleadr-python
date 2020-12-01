@@ -20,6 +20,40 @@ Version Main features                      Target timeframe
 Changelog
 ---------
 
+openleadr 0.5.9
+~~~~~~~~~~~~~~~
+
+Released: 1 december 2020
+
+New features:
+
+- Added the ven fingerprint to the registration_info dict for the ``on_create_party_registration`` handler. This allows the VTN to verify the fingerprint upon registration, even when the VEN does not have a venID yet.
+
+Changes:
+- Converted the OpenADRServer.add_raw_event method to a normal (synchronous) method.
+
+Bug fixes:
+- The EiResponse.response_code would not always show up correctly, this is now fixed.
+
+openleadr 0.5.8
+~~~~~~~~~~~~~~~
+
+Released: 30 november 2020
+
+New features:
+
+- Added the ``ven_id`` to the list of parameters for the ``on_register_report`` handler, so that this handler can know which VEN is registering reports
+- Updated documentation to reflect the current API of OpenLEADR
+
+openleadr 0.5.7
+~~~~~~~~~~~~~~~
+
+Released: 27 november 2020
+
+Bugs fixed:
+
+- Fixed a typo in the EventService.on_created_event placeholder function
+
 openleadr 0.5.5
 ~~~~~~~~~~~~~~~
 
