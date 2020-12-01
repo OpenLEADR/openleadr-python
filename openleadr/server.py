@@ -186,11 +186,16 @@ class OpenADRServer:
         self.message_queues[ven_id].put_nowait(event)
         self.services['event_service'].pending_events[event_id] = callback
 
-    async def add_raw_event(self, ven_id, event):
+    def add_raw_event(self, ven_id, event):
         """
         Add a new event to the queue for a specific VEN.
+        :param str ven_id: The ven_id to which this event should be distributed.
+        :param dict event: The event (as a dict or as a objects.Event instance)
+                           that contains the event details.
         """
-        self.message_queues[ven_id].put(event)
+        if ven_id not in self.message_queues:
+            self.message_queues[ven_id] = asyncio.Queue()
+        self.message_queues[ven_id].put_nowait(event)
 
     async def request_report(self):
         """

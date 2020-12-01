@@ -69,6 +69,7 @@ class OpenADRClient:
             vtn_url = vtn_url[:-1]
         self.vtn_url = vtn_url
         self.ven_id = None
+        self.registration_id = None
         self.poll_frequency = None
         self.vtn_fingerprint = vtn_fingerprint
         self.debug = debug
@@ -382,6 +383,7 @@ class OpenADRClient:
                          f"{status_code} {status_description}")
             return
         self.ven_id = response_payload['ven_id']
+        self.registration_id = response_payload['registration_id']
         self.poll_frequency = response_payload.get('requested_oadr_poll_freq',
                                                    timedelta(seconds=10))
         logger.info(f"VEN is now registered with ID {self.ven_id}")

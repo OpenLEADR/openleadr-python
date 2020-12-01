@@ -62,7 +62,7 @@ Events
 
 The server (VTN) is expected to know when it needs to inform the clients (VENs) of certain events that they must respond to. This could be a predicted shortage or overage of available power in a certain electricity grid area, for example.
 
-The easiest way to supply events to a VEN is by using OpenLEADR's built-in message queing system. You simply add an event for a ven using the ``server.add_event`` method. You supply the ven_id for which the event is required, as well as the ``signal_name``, ``signal_type``, ``intervals`` and ``targets``. This will build an event object with a single signal for a VEN. If you need more flexibility, you can alternatively construct the event dictionary yourself and supply it directly to the ``add_event`` method.
+The easiest way to supply events to a VEN is by using OpenLEADR's built-in message queing system. You simply add an event for a ven using the ``server.add_event`` method. You supply the ven_id for which the event is required, as well as the ``signal_name``, ``signal_type``, ``intervals`` and ``targets``. This will build an event object with a single signal for a VEN. If you need more flexibility, you can alternatively construct the event dictionary yourself and supply it directly to the ``add_raw_event`` method.
 
 The VEN can decide whether to opt in or opt out of the event. To be notified of their opt status, you supply a callback handler which will be called when the VEN has responded to the event request.
 

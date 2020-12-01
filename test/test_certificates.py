@@ -24,8 +24,8 @@ async def lookup_fingerprint(ven_id):
     return ven_fingerprint
 
 async def on_create_party_registration(payload, future):
-    future.set_result(payload)
-    return '1234', '5678'
+    future.set_result(('ven1234', 'reg5678'))
+    return 'ven1234', 'reg5678'
 
 @pytest.mark.asyncio
 async def test_ssl_certificates():
@@ -35,6 +35,8 @@ async def test_ssl_certificates():
                            http_cert=VTN_CERT,
                            http_key=VTN_KEY,
                            http_ca_file=CA_CERT,
+                           cert=VTN_CERT,
+                           key=VTN_KEY,
                            fingerprint_lookup=lookup_fingerprint)
     server.add_handler('on_create_party_registration', partial(on_create_party_registration,
                                                                future=registration_future))
@@ -51,6 +53,7 @@ async def test_ssl_certificates():
 
     # Wait for the registration to be triggered
     await registration_future
+    assert client.registration_id == 'reg5678'
 
     await client.stop()
     await server.stop()
