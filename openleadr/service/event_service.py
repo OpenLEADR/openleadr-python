@@ -67,17 +67,20 @@ class EventService(VTNService):
         if self.polling_method == 'internal':
             for event_response in payload['event_responses']:
                 if event_response['event_id'] in self.pending_events:
-                    callback = self.pending_events.pop(event_response['event_id'])
-                    result = callback(event_response['opt_type'])
+                    ven_id = payload['ven_id']
+                    event_id = event_response['event_id']
+                    opt_type = event_response['opt_type']
+                    callback = self.pending_events.pop(event_id)
+                    result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
                     if iscoroutine(result):
                         result = await result
         else:
-            result = self.on_created_event(payload)
+            result = self.on_created_event(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
             if iscoroutine(result):
                 result = await(result)
         return 'oadrResponse', {}
 
-    def on_created_event(self, payload):
+    def on_created_event(self, ven_id, event_id, opt_type):
         """
         Placeholder for the on_created_event handler.
         """

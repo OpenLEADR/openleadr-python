@@ -177,11 +177,11 @@ class ReportService(VTNService):
         to allow for requesting the offered reports.
         """
         logger.warning("You should implement and register your own on_register_report handler "
-                       "if you want to receive reports from a VEN. This handler will receive an "
-                       "oadrReport descriptor, and should return a list of"
-                       "(r_id, callback, sampling_interval) "
-                       "tuples for the report segments you wish to receive. "
-                       "Not requesting any reports at this moment.")
+                       "if you want to receive reports from a VEN. This handler will receive the "
+                       "following arguments: ven_id, resource_id, measurement, unit, scale, "
+                       "min_sampling_interval, max_sampling_interval and should return either "
+                       "None or (callback, sampling_interval) or "
+                       "(callback, sampling_interval, reporting_interval).")
         return None
 
     @handler('oadrUpdateReport')
