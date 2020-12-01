@@ -4,6 +4,8 @@ import os
 from functools import partial
 from openleadr import OpenADRServer, OpenADRClient, enable_default_logging
 from openleadr.utils import certificate_fingerprint
+from openleadr import errors
+from async_timeout import timeout
 
 enable_default_logging()
 
@@ -24,8 +26,11 @@ async def lookup_fingerprint(ven_id):
     return ven_fingerprint
 
 async def on_create_party_registration(payload, future):
-    future.set_result(('ven1234', 'reg5678'))
-    return 'ven1234', 'reg5678'
+    if payload['fingerprint'] != ven_fingerprint:
+        raise errors.FingerprintMismatch("The fingerprint of your TLS connection does not match the expected fingerprint. Your VEN is not allowed to register.")
+    else:
+        future.set_result(True)
+        return 'ven1234', 'reg5678'
 
 @pytest.mark.asyncio
 async def test_ssl_certificates():
@@ -52,8 +57,42 @@ async def test_ssl_certificates():
     await client.run()
 
     # Wait for the registration to be triggered
-    await registration_future
+    result = await asyncio.wait_for(registration_future, 1.0)
     assert client.registration_id == 'reg5678'
+
+    await client.stop()
+    await server.stop()
+    await asyncio.sleep(0)
+
+@pytest.mark.asyncio
+async def test_ssl_certificates_wrong_cert():
+    loop = asyncio.get_event_loop()
+    registration_future = loop.create_future()
+    server = OpenADRServer(vtn_id='myvtn',
+                           http_cert=VTN_CERT,
+                           http_key=VTN_KEY,
+                           http_ca_file=CA_CERT,
+                           cert=VTN_CERT,
+                           key=VTN_KEY,
+                           fingerprint_lookup=lookup_fingerprint)
+    server.add_handler('on_create_party_registration', partial(on_create_party_registration,
+                                                               future=registration_future))
+    await server.run_async()
+    await asyncio.sleep(1)
+
+    # Run the client
+    client = OpenADRClient(ven_name='myven',
+                           vtn_url='https://localhost:8080/OpenADR2/Simple/2.0b',
+                           cert=VTN_CERT,
+                           key=VTN_KEY,
+                           ca_file=CA_CERT,
+                           vtn_fingerprint=vtn_fingerprint)
+    await client.run()
+
+    # Wait for the registration to be triggered
+    with pytest.raises(asyncio.TimeoutError):
+        await asyncio.wait_for(registration_future, timeout=0.5)
+    assert client.registration_id is None
 
     await client.stop()
     await server.stop()

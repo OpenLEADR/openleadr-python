@@ -208,6 +208,8 @@ The VEN tries to register with you. You will receive a registration_info dict th
         else
             return None
 
+During this step, the VEN probably does not have a ``venID`` yet. If they connected using a secure TLS connection, the ``registration_info`` dict will contain the fingerprint of the public key that was used for this connection (``registration_info['fingerprint']``). Your ``on_create_party_registration`` handler should check this fingerprint value against a value that you received offline, to be sure that the ven with this venName is the correct VEN.
+
 .. _server_on_cancel_party_registration:
 
 on_cancel_party_registration

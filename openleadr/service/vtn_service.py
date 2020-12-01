@@ -25,7 +25,7 @@ from signxml.exceptions import InvalidSignature
 from .. import errors
 from ..enums import STATUS_CODES
 from ..messaging import parse_message, validate_xml_schema, authenticate_message
-from ..utils import generate_id
+from ..utils import generate_id, get_cert_fingerprint_from_request
 
 from dataclasses import is_dataclass, asdict
 
@@ -59,6 +59,9 @@ class VTNService:
 
             # Pass the message off to the handler and get the response type and payload
             try:
+                # Add the request fingerprint to the message so that the handler can check for it.
+                if request.secure and message_type == 'oadrCreatePartyRegistration':
+                    message_payload['fingerprint'] = get_cert_fingerprint_from_request(request)
                 response_type, response_payload = await self.handle_message(message_type,
                                                                             message_payload)
             except Exception as err:
