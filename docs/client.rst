@@ -52,8 +52,33 @@ An example event dict might look like this:
                                           {'dtstart': datetime.datetime(2020, 1, 1, 12, 20, 0, tzinfo=timezone.utc),
                                           'duration': datetime.timedelta(minutes=10),
                                           'signal_payload': 1}],
-       'targets': [{'resource_id': 'Device001'}]
+       'targets': [{'resource_id': 'Device001'}],
+       'targets_by_type': {'resource_id': ['Device001']}
     }
+
+Please note that you can access the targets in two ways, which may be useful if there are more than one target:
+
+1. As a list of Target dicts
+2. As a dictionary of targets, grouped by target type.
+
+For example:
+
+.. code-block:: python3
+
+    {
+        'event_id': 'event123',
+        # ...
+        # As a list of Target dicts
+        'targets': [{'resource_id': 'resource01'},
+                    {'resource_id': 'resource02'},
+                    {'group_id': 'group01'},
+                    {'group_id': 'group02'}],
+        # Grouped by target type
+        'targets_by_type': {'resource_id': ['resource01', 'resource02'],
+                            'group_id': ['group01', 'group02']}
+    }
+
+It is up to you which you want to use.
 
 
 .. _client_reports:

@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass, field, asdict, is_dataclass
+from typing import List, Dict
 from datetime import datetime, timezone, timedelta
+from openleadr.utils import group_targets_by_type, ungroup_targets_by_type
 
 
 @dataclass
@@ -82,6 +83,11 @@ class Target:
     ven_id: str = None
     party_id: str = None
 
+    def __repr__(self):
+        targets = {key: value for key, value in asdict(self).items() if value is not None}
+        targets_str = ", ".join(f"{key}={value}" for key, value in targets.items())
+        return f"Target('{targets_str}')"
+
 
 @dataclass
 class EventDescriptor:
@@ -137,7 +143,8 @@ class EventSignal:
 class Event:
     event_descriptor: EventDescriptor
     event_signals: List[EventSignal]
-    targets: List[Target]
+    targets: List[Target] = None
+    targets_by_type: Dict = None
     active_period: ActivePeriod = None
 
     def __post_init__(self):
@@ -150,6 +157,20 @@ class Event:
                             for s in self.event_signals for i in s.intervals]) - dtstart
             self.active_period = ActivePeriod(dtstart=dtstart,
                                               duration=duration)
+        if self.targets is None and self.targets_by_type is None:
+            raise ValueError("You must supply either 'targets' or 'targets_by_type'.")
+        elif self.targets_by_type is None:
+            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            self.targets_by_type = group_targets_by_type(list_of_targets)
+        elif self.targets is None:
+            self.targets = [Target(**target) for target in ungroup_targets_by_type(self.targets_by_type)]
+        elif self.targets is not None and self.targets_by_type is not None:
+            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            if group_targets_by_type(list_of_targets) != self.targets_by_type:
+                raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
+                                 "but the two were not consistent with each other. "
+                                 f"You supplied 'targets' = {self.targets} and "
+                                 f"'targets_by_type' = {self.targets_by_type}")
 
 
 @dataclass

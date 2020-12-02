@@ -17,6 +17,7 @@
 from datetime import datetime, timedelta, timezone
 from dataclasses import asdict, is_dataclass
 from openleadr import enums
+from openleadr.utils import group_targets_by_type, ungroup_targets_by_type
 import logging
 logger = logging.getLogger('openleadr')
 
@@ -107,3 +108,14 @@ def _preflight_oadrDistributeEvent(message_payload):
         if 'created_date_time' not in event['event_descriptor'] \
                 or not event['event_descriptor']['created_date_time']:
             event['event_descriptor']['created_date_time'] = datetime.now(timezone.utc)
+
+    # Check that the target designations are correct and consistent
+    for event in message_payload['events']:
+        if 'targets' in event and 'targets_by_type' in event:
+            if group_targets_by_type(event['targets']) != event['targets_by_type']:
+                raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
+                                 "but the two were not consistent with each other. "
+                                 f"You supplied 'targets' = {event['targets']} and "
+                                 f"'targets_by_type' = {event['targets_by_type']}")
+        elif 'targets_by_type' in event and 'targets' not in event:
+            event['targets'] = ungroup_targets_by_type(event['targets_by_type'])

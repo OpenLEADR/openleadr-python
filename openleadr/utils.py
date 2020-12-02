@@ -123,7 +123,7 @@ def normalize_dict(ordered_dict):
             key = key[5:]
 
         # Group all targets as a list of dicts under the key "target"
-        if key in ("target",):
+        if key == 'target':
             targets = d.pop(key)
             new_targets = []
             if targets:
@@ -134,6 +134,10 @@ def normalize_dict(ordered_dict):
                         new_targets.append({ikey: targets[ikey]})
             d[key + "s"] = new_targets
             key = key + "s"
+
+            # Also add a targets_by_type element to this dict
+            # to access the targets in a more convenient way.
+            d['targets_by_type'] = group_targets_by_type(new_targets)
 
         # Group all reports as a list of dicts under the key "pending_reports"
         if key == "pending_reports":
@@ -514,3 +518,26 @@ def get_certificate_common_name(request):
     if cert:
         subject = dict(x[0] for x in cert['subject'])
         return subject.get('commonName')
+
+
+def group_targets_by_type(list_of_targets):
+    targets_by_type = {}
+    for target in list_of_targets:
+        for key, value in target.items():
+            if value is None:
+                continue
+            if key not in targets_by_type:
+                targets_by_type[key] = []
+            targets_by_type[key].append(value)
+    return targets_by_type
+
+
+def ungroup_targets_by_type(targets_by_type):
+    ungrouped_targets = []
+    for target_type, targets in targets_by_type.items():
+        if isinstance(targets, list):
+            for target in targets:
+                ungrouped_targets.append({target_type: target})
+        elif isinstance(targets, str):
+            ungrouped_targets.append({target_type: targets})
+    return ungrouped_targets

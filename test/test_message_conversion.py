@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openleadr.utils import generate_id
+from openleadr.utils import generate_id, group_targets_by_type
 from openleadr.messaging import create_message, parse_message
 from openleadr import enums
 from pprint import pprint
@@ -56,7 +56,7 @@ def create_dummy_event(ven_id):
                     "signal_type": "x-loadControlCapacity",
                     "signal_id": generate_id(),
                     "measurement": {"item_name": "voltage",
-                                    "item_description": "voltage",
+                                    "item_description": "Voltage",
                                     "item_units": "V",
                                     "si_scale_code": "none"},
                     "current_value": 0.0}]
@@ -65,6 +65,7 @@ def create_dummy_event(ven_id):
              'event_descriptor': event_descriptor,
              'event_signals': event_signals,
              'targets': event_targets,
+             'targets_by_type': group_targets_by_type(event_targets),
              'response_required': 'always'}
     return event
 
@@ -107,6 +108,7 @@ testcases = [
                               event_id=generate_id(),
                               modification_number=1,
                               targets=[{'ven_id': '123ABC'}],
+                              targets_by_type=group_targets_by_type([{'ven_id': '123ABC'}]),
                               ven_id='VEN123')),
 ('oadrCreatePartyRegistration', dict(request_id=generate_id(), ven_id='123ABC', profile_name='2.0b', transport_name='simpleHttp', transport_address='http://localhost', report_only=False, xml_signature=False, ven_name='test', http_pull_model=True)),
 ('oadrCreateReport', dict(request_id=generate_id(),
@@ -186,7 +188,8 @@ testcases = [
                                                                                            'measurement': {'item_name': 'powerReal',
                                                                                                            'item_description': 'RealPower',
                                                                                                            'item_units': 'W',
-                                                                                                           'si_scale_code': 'n'},
+                                                                                                           'si_scale_code': 'n',
+                                                                                                           'power_attributes': {'hertz': 50, 'voltage': 230, 'ac': True}},
                                                                                             'reading_type': 'Direct Read',
                                                                                             'market_context': 'http://MarketContext1',
                                                                                             'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}],
@@ -212,7 +215,8 @@ testcases = [
                                                                                            'measurement': {'item_name': 'powerReal',
                                                                                                            'item_description': 'RealPower',
                                                                                                            'item_units': 'W',
-                                                                                                           'si_scale_code': 'n'},
+                                                                                                           'si_scale_code': 'n',
+                                                                                                           'power_attributes': {'hertz': 50, 'voltage': 230, 'ac': True}},
                                                                                             'reading_type': 'Direct Read',
                                                                                             'market_context': 'http://MarketContext1',
                                                                                             'sampling_rate': {'min_period': timedelta(seconds=60), 'max_period': timedelta(seconds=60), 'on_change': False}}],
