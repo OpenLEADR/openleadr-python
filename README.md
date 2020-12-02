@@ -1,3 +1,6 @@
+![Test Suite](https://github.com/OpenLEADR/openleadr-python/workflows/Test%20Suite/badge.svg)
+ [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4317/badge)](https://bestpractices.coreinfrastructure.org/projects/4317)
+
 ![OpenLEADR](logo.png)
 
 OpenLEADR is a Python 3 module that provides a convenient interface to OpenADR
@@ -6,8 +9,6 @@ systems, and it contains an OpenADR Server (VTN) with convenient integration
 possibilities.
 
 It currently implements the OpenADR 2.0b specification.
-
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4317/badge)](https://bestpractices.coreinfrastructure.org/projects/4317)
 
 ## Documentation
 
