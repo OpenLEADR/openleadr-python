@@ -91,6 +91,7 @@ Table of Contents
    message_signing
    roadmap
    API Reference <api/modules>
+   representations
 
 Representations of OpenADR payloads
 ===================================

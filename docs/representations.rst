@@ -44,29 +44,27 @@ oadrCanceledOpt
 
 OpenADR payload:
 
-
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCanceledOpt ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCanceledOpt xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">f48e3b7e78</requestID>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">8d4a231d-ded4-48ee-b236-df2a7c436a15</requestID>
           </ei:eiResponse>
-          <ei:optID>pc1e8ace47</ei:optID>
-        </oadrCanceledOpt>
-      </oadrSignedObject>
-    </oadrPayload>
+          <ei:optID>72c8a37d-508c-438c-a721-12269c6ca70d</ei:optID>
+        </oadr:oadrCanceledOpt>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'opt_id': 'pc1e8ace47',
-     'response': {'request_id': 'f48e3b7e78',
+    {'opt_id': '72c8a37d-508c-438c-a721-12269c6ca70d',
+     'response': {'request_id': '8d4a231d-ded4-48ee-b236-df2a7c436a15',
                   'response_code': 200,
                   'response_description': 'OK'}}
 
@@ -80,27 +78,26 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCanceledPartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCanceledPartyRegistration xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">aba0a805de</requestID>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">ef7ed945-c7af-45ae-a930-4868713cb150</requestID>
           </ei:eiResponse>
-          <ei:registrationID>zf68abb5c2</ei:registrationID>
+          <ei:registrationID>b01be3d8-5337-4e6c-80b1-805f13bb51b2</ei:registrationID>
           <ei:venID>123ABC</ei:venID>
-        </oadrCanceledPartyRegistration>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCanceledPartyRegistration>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'registration_id': 'zf68abb5c2',
-     'response': {'request_id': 'aba0a805de',
+    {'registration_id': 'b01be3d8-5337-4e6c-80b1-805f13bb51b2',
+     'response': {'request_id': 'ef7ed945-c7af-45ae-a930-4868713cb150',
                   'response_code': 200,
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
@@ -115,62 +112,66 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCanceledReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCanceledReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">e4dfe735ea</requestID>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">845d63ae-c2a1-41e4-bd01-c4e8fc7743e2</requestID>
           </ei:eiResponse>
-          <oadrPendingReports>
-            <ei:reportRequestID>v5d42c35e6</ei:reportRequestID>
-            <ei:reportRequestID>e8bf753e31</ei:reportRequestID>
-          </oadrPendingReports>
-        </oadrCanceledReport>
-      </oadrSignedObject>
-    </oadrPayload>
+          <oadr:oadrPendingReports>
+            <ei:reportRequestID>f63796ea-504f-4318-842b-86472873777f</ei:reportRequestID>
+            <ei:reportRequestID>39ba35e5-6b3d-4b9e-8f29-d94a25e7079c</ei:reportRequestID>
+          </oadr:oadrPendingReports>
+        </oadr:oadrCanceledReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'pending_reports': [{'request_id': 'v5d42c35e6'},
-                         {'request_id': 'e8bf753e31'}],
-     'response': {'request_id': 'e4dfe735ea',
+    {'pending_reports': [{'request_id': 'f63796ea-504f-4318-842b-86472873777f'},
+                         {'request_id': '39ba35e5-6b3d-4b9e-8f29-d94a25e7079c'}],
+     'response': {'request_id': '845d63ae-c2a1-41e4-bd01-c4e8fc7743e2',
                   'response_code': 200,
                   'response_description': 'OK'}}
+
+
+.. _oadrCanceledReport:
+
+oadrCanceledReport
+==================
 
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCanceledReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCanceledReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">c36bce5dcb</requestID>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">15a398db-c313-4a30-a8fd-080b682e48ad</requestID>
           </ei:eiResponse>
-          <oadrPendingReports>
-            <ei:reportRequestID>b04cbfb723</ei:reportRequestID>
-            <ei:reportRequestID>ra6231a650</ei:reportRequestID>
-          </oadrPendingReports>
+          <oadr:oadrPendingReports>
+            <ei:reportRequestID>43722761-4cc3-4684-ae79-8ad2c14e3c3c</ei:reportRequestID>
+            <ei:reportRequestID>bf4c3dfb-1175-4a9a-976a-ae81b52b4082</ei:reportRequestID>
+          </oadr:oadrPendingReports>
           <ei:venID>123ABC</ei:venID>
-        </oadrCanceledReport>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCanceledReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'pending_reports': [{'request_id': 'b04cbfb723'},
-                         {'request_id': 'ra6231a650'}],
-     'response': {'request_id': 'c36bce5dcb',
+    {'pending_reports': [{'request_id': '43722761-4cc3-4684-ae79-8ad2c14e3c3c'},
+                         {'request_id': 'bf4c3dfb-1175-4a9a-976a-ae81b52b4082'}],
+     'response': {'request_id': '15a398db-c313-4a30-a8fd-080b682e48ad',
                   'response_code': 200,
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
@@ -185,22 +186,23 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCancelOpt ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">u07a26b1cc</requestID>
-          <ei:optID>b1ef7afecc</ei:optID>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCancelOpt xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">95448074-273c-4d13-a202-d6a7672d6cb9</requestID>
+          <ei:optID>f3fd6b1d-dffd-4f30-962b-fb19b1dd5b70</ei:optID>
           <ei:venID>123ABC</ei:venID>
-        </oadrCancelOpt>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCancelOpt>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'opt_id': 'b1ef7afecc', 'request_id': 'u07a26b1cc', 'ven_id': '123ABC'}
+    {'opt_id': 'f3fd6b1d-dffd-4f30-962b-fb19b1dd5b70',
+     'request_id': '95448074-273c-4d13-a202-d6a7672d6cb9',
+     'ven_id': '123ABC'}
 
 
 .. _oadrCancelPartyRegistration:
@@ -212,23 +214,22 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCancelPartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">z05e4ff0aa</requestID>
-          <ei:registrationID>pfe04d8439</ei:registrationID>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCancelPartyRegistration xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">4fb73f76-16ab-4c3c-8a04-bbb77bc637b7</requestID>
+          <ei:registrationID>31c1113c-9512-4f42-a858-9a97b98f5597</ei:registrationID>
           <ei:venID>123ABC</ei:venID>
-        </oadrCancelPartyRegistration>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCancelPartyRegistration>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'registration_id': 'pfe04d8439',
-     'request_id': 'z05e4ff0aa',
+    {'registration_id': '31c1113c-9512-4f42-a858-9a97b98f5597',
+     'request_id': '4fb73f76-16ab-4c3c-8a04-bbb77bc637b7',
      'ven_id': '123ABC'}
 
 
@@ -241,25 +242,24 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCancelReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">kcb7b5cf7a</requestID>
-          <ei:reportRequestID>u1ebe92deb</ei:reportRequestID>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCancelReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">0571ae19-b935-47c3-b457-4a0aec9ada0f</requestID>
+          <ei:reportRequestID>273cb2df-c4b0-4efe-bda3-2cf76f6a3538</ei:reportRequestID>
           <reportToFollow xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">true</reportToFollow>
           <ei:venID>123ABC</ei:venID>
-        </oadrCancelReport>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCancelReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'report_request_id': 'u1ebe92deb',
+    {'report_request_id': '273cb2df-c4b0-4efe-bda3-2cf76f6a3538',
      'report_to_follow': True,
-     'request_id': 'kcb7b5cf7a',
+     'request_id': '0571ae19-b935-47c3-b457-4a0aec9ada0f',
      'ven_id': '123ABC'}
 
 
@@ -272,23 +272,22 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCreatedEvent ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCreatedEvent xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <eiCreatedEvent xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
             <ei:eiResponse>
               <ei:responseCode>200</ei:responseCode>
               <ei:responseDescription>OK</ei:responseDescription>
-              <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">yaa3ee03b1</requestID>
+              <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">a4740d85-7682-423c-b8c6-211117f087b6</requestID>
             </ei:eiResponse>
             <ei:eventResponses>
               <ei:eventResponse>
                 <ei:responseCode>200</ei:responseCode>
                 <ei:responseDescription>OK</ei:responseDescription>
-                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">ycab9acb9f</requestID>
+                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">b9636992-8ce2-4f4b-aac3-ec6f1e42afd7</requestID>
                 <ei:qualifiedEventID>
-                  <ei:eventID>od864b4ea6</ei:eventID>
+                  <ei:eventID>011d969c-9481-4c03-af00-e9ec3c018ceb</ei:eventID>
                   <ei:modificationNumber>1</ei:modificationNumber>
                 </ei:qualifiedEventID>
                 <ei:optType>optIn</ei:optType>
@@ -296,9 +295,9 @@ OpenADR payload:
               <ei:eventResponse>
                 <ei:responseCode>200</ei:responseCode>
                 <ei:responseDescription>OK</ei:responseDescription>
-                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">bf2aad9af8</requestID>
+                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">d77d6ed7-3bbb-4e7b-ae44-c816f9974a89</requestID>
                 <ei:qualifiedEventID>
-                  <ei:eventID>hc6cf67dab</ei:eventID>
+                  <ei:eventID>4d66b7a2-e7ca-4eca-99d4-c67dda00f1f4</ei:eventID>
                   <ei:modificationNumber>1</ei:modificationNumber>
                 </ei:qualifiedEventID>
                 <ei:optType>optIn</ei:optType>
@@ -306,9 +305,9 @@ OpenADR payload:
               <ei:eventResponse>
                 <ei:responseCode>200</ei:responseCode>
                 <ei:responseDescription>OK</ei:responseDescription>
-                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">jefb88dcbd</requestID>
+                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">b363c569-c459-4e84-8725-5388eabbf160</requestID>
                 <ei:qualifiedEventID>
-                  <ei:eventID>qdff0da955</ei:eventID>
+                  <ei:eventID>b73bb2b5-3c5c-424c-93ec-23b36881f803</ei:eventID>
                   <ei:modificationNumber>1</ei:modificationNumber>
                 </ei:qualifiedEventID>
                 <ei:optType>optIn</ei:optType>
@@ -316,97 +315,33 @@ OpenADR payload:
             </ei:eventResponses>
             <ei:venID>123ABC</ei:venID>
           </eiCreatedEvent>
-        </oadrCreatedEvent>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCreatedEvent>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'event_responses': [{'event_id': 'od864b4ea6',
+    {'event_responses': [{'event_id': '011d969c-9481-4c03-af00-e9ec3c018ceb',
                           'modification_number': 1,
                           'opt_type': 'optIn',
-                          'request_id': 'ycab9acb9f',
+                          'request_id': 'b9636992-8ce2-4f4b-aac3-ec6f1e42afd7',
                           'response_code': 200,
                           'response_description': 'OK'},
-                         {'event_id': 'hc6cf67dab',
+                         {'event_id': '4d66b7a2-e7ca-4eca-99d4-c67dda00f1f4',
                           'modification_number': 1,
                           'opt_type': 'optIn',
-                          'request_id': 'bf2aad9af8',
+                          'request_id': 'd77d6ed7-3bbb-4e7b-ae44-c816f9974a89',
                           'response_code': 200,
                           'response_description': 'OK'},
-                         {'event_id': 'qdff0da955',
+                         {'event_id': 'b73bb2b5-3c5c-424c-93ec-23b36881f803',
                           'modification_number': 1,
                           'opt_type': 'optIn',
-                          'request_id': 'jefb88dcbd',
+                          'request_id': 'b363c569-c459-4e84-8725-5388eabbf160',
                           'response_code': 200,
                           'response_description': 'OK'}],
-     'response': {'request_id': 'yaa3ee03b1',
-                  'response_code': 200,
-                  'response_description': 'OK'},
-     'ven_id': '123ABC'}
-
-
-OpenADR payload:
-
-.. code-block:: xml
-
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCreatedEvent ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <eiCreatedEvent xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
-            <ei:eiResponse>
-              <ei:responseCode>200</ei:responseCode>
-              <ei:responseDescription>OK</ei:responseDescription>
-              <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">yde9c0369d</requestID>
-            </ei:eiResponse>
-            <ei:eventResponses>
-              <ei:eventResponse>
-                <ei:responseCode>200</ei:responseCode>
-                <ei:responseDescription>OK</ei:responseDescription>
-                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">zc9523b16d</requestID>
-                <ei:qualifiedEventID>
-                  <ei:eventID>fefaa2b0f2</ei:eventID>
-                  <ei:modificationNumber>1</ei:modificationNumber>
-                </ei:qualifiedEventID>
-                <ei:optType>optIn</ei:optType>
-              </ei:eventResponse>
-              <ei:eventResponse>
-                <ei:responseCode>200</ei:responseCode>
-                <ei:responseDescription>OK</ei:responseDescription>
-                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">tbeecb7c97</requestID>
-                <ei:qualifiedEventID>
-                  <ei:eventID>t63a63fea4</ei:eventID>
-                  <ei:modificationNumber>1</ei:modificationNumber>
-                </ei:qualifiedEventID>
-                <ei:optType>optOut</ei:optType>
-              </ei:eventResponse>
-            </ei:eventResponses>
-            <ei:venID>123ABC</ei:venID>
-          </eiCreatedEvent>
-        </oadrCreatedEvent>
-      </oadrSignedObject>
-    </oadrPayload>
-
-OpenLEADR representation:
-
-.. code-block:: python3
-
-    {'event_responses': [{'event_id': 'fefaa2b0f2',
-                          'modification_number': 1,
-                          'opt_type': 'optIn',
-                          'request_id': 'zc9523b16d',
-                          'response_code': 200,
-                          'response_description': 'OK'},
-                         {'event_id': 't63a63fea4',
-                          'modification_number': 1,
-                          'opt_type': 'optOut',
-                          'request_id': 'tbeecb7c97',
-                          'response_code': 200,
-                          'response_description': 'OK'}],
-     'response': {'request_id': 'yde9c0369d',
+     'response': {'request_id': 'a4740d85-7682-423c-b8c6-211117f087b6',
                   'response_code': 200,
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
@@ -421,67 +356,101 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCreatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCreatedReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">ie8ff94fbc</requestID>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">1bb8cdc4-5d02-4bf1-b78b-6d09db5c55f7</requestID>
           </ei:eiResponse>
-          <oadrPendingReports>
-            <ei:reportRequestID>p8c56f9ed9</ei:reportRequestID>
-            <ei:reportRequestID>hab1cced95</ei:reportRequestID>
-          </oadrPendingReports>
+          <oadr:oadrPendingReports>
+            <ei:reportRequestID>8a04e06b-7836-4513-ae11-f1d08c248f4b</ei:reportRequestID>
+            <ei:reportRequestID>9193998f-adf2-426d-8475-52e0553a997c</ei:reportRequestID>
+          </oadr:oadrPendingReports>
           <ei:venID>123ABC</ei:venID>
-        </oadrCreatedReport>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCreatedReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'pending_reports': [{'request_id': 'p8c56f9ed9'},
-                         {'request_id': 'hab1cced95'}],
-     'response': {'request_id': 'ie8ff94fbc',
+    {'pending_reports': [{'request_id': '8a04e06b-7836-4513-ae11-f1d08c248f4b'},
+                         {'request_id': '9193998f-adf2-426d-8475-52e0553a997c'}],
+     'response': {'request_id': '1bb8cdc4-5d02-4bf1-b78b-6d09db5c55f7',
                   'response_code': 200,
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
 
 
+.. _oadrCreatedEvent:
+
+oadrCreatedEvent
+================
 
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCreatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <ei:eiResponse>
-            <ei:responseCode>200</ei:responseCode>
-            <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">gde557fcae</requestID>
-          </ei:eiResponse>
-          <oadrPendingReports>
-            <ei:reportRequestID>e1e16137f3</ei:reportRequestID>
-            <ei:reportRequestID>d0f2bcbe89</ei:reportRequestID>
-          </oadrPendingReports>
-        </oadrCreatedReport>
-      </oadrSignedObject>
-    </oadrPayload>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCreatedEvent xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <eiCreatedEvent xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
+            <ei:eiResponse>
+              <ei:responseCode>200</ei:responseCode>
+              <ei:responseDescription>OK</ei:responseDescription>
+              <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">cd07668c-f675-4859-ae2d-b32f218609a3</requestID>
+            </ei:eiResponse>
+            <ei:eventResponses>
+              <ei:eventResponse>
+                <ei:responseCode>200</ei:responseCode>
+                <ei:responseDescription>OK</ei:responseDescription>
+                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">cff4b658-b2dc-478b-a67c-9724c129ae1e</requestID>
+                <ei:qualifiedEventID>
+                  <ei:eventID>9388d5e4-005e-46c3-b4d0-a3527f406a0e</ei:eventID>
+                  <ei:modificationNumber>1</ei:modificationNumber>
+                </ei:qualifiedEventID>
+                <ei:optType>optIn</ei:optType>
+              </ei:eventResponse>
+              <ei:eventResponse>
+                <ei:responseCode>200</ei:responseCode>
+                <ei:responseDescription>OK</ei:responseDescription>
+                <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">6b155b7c-b562-4774-9e80-ef94466376bb</requestID>
+                <ei:qualifiedEventID>
+                  <ei:eventID>63aec037-6e13-4463-8000-119d2190bfdd</ei:eventID>
+                  <ei:modificationNumber>1</ei:modificationNumber>
+                </ei:qualifiedEventID>
+                <ei:optType>optOut</ei:optType>
+              </ei:eventResponse>
+            </ei:eventResponses>
+            <ei:venID>123ABC</ei:venID>
+          </eiCreatedEvent>
+        </oadr:oadrCreatedEvent>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'pending_reports': [{'request_id': 'e1e16137f3'},
-                         {'request_id': 'd0f2bcbe89'}],
-     'response': {'request_id': 'gde557fcae',
+    {'event_responses': [{'event_id': '9388d5e4-005e-46c3-b4d0-a3527f406a0e',
+                          'modification_number': 1,
+                          'opt_type': 'optIn',
+                          'request_id': 'cff4b658-b2dc-478b-a67c-9724c129ae1e',
+                          'response_code': 200,
+                          'response_description': 'OK'},
+                         {'event_id': '63aec037-6e13-4463-8000-119d2190bfdd',
+                          'modification_number': 1,
+                          'opt_type': 'optOut',
+                          'request_id': '6b155b7c-b562-4774-9e80-ef94466376bb',
+                          'response_code': 200,
+                          'response_description': 'OK'}],
+     'response': {'request_id': 'cd07668c-f675-4859-ae2d-b32f218609a3',
                   'response_code': 200,
-                  'response_description': 'OK'}}
+                  'response_description': 'OK'},
+     'ven_id': '123ABC'}
 
 
 .. _oadrCreatedPartyRegistration:
@@ -489,40 +458,34 @@ OpenLEADR representation:
 oadrCreatedPartyRegistration
 ============================
 
-This message is used by the VTN in two scenarios:
-
-1. The VEN has just sent an :ref:`oadrQueryRegistration` request, and the VTN makes its available profiles and transport mechanisms known to the VEN
-2. The VEN has just sent an :ref:`oadrCreatePartyRegistration` request, and the VTN responds by sending the registrationId to the VEN.
-
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCreatedPartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCreatedPartyRegistration xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">k6565d9280</requestID>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">14ab2770-c92a-4d11-b00f-129768d0964d</requestID>
           </ei:eiResponse>
-          <ei:registrationID>o852fdbac9</ei:registrationID>
+          <ei:registrationID>0271323d-fd75-490f-ab05-4fcb846e00b8</ei:registrationID>
           <ei:venID>123ABC</ei:venID>
           <ei:vtnID>VTN123</ei:vtnID>
-          <oadrProfiles>
-            <oadrProfile>
-              <oadrProfileName>2.0b</oadrProfileName>
-              <oadrTransports>
-                <oadrTransport>
-                  <oadrTransportName>simpleHttp</oadrTransportName>
-                </oadrTransport>
-              </oadrTransports>
-            </oadrProfile>
-          </oadrProfiles>
-        </oadrCreatedPartyRegistration>
-      </oadrSignedObject>
-    </oadrPayload>
+          <oadr:oadrProfiles>
+            <oadr:oadrProfile>
+              <oadr:oadrProfileName>2.0b</oadr:oadrProfileName>
+              <oadr:oadrTransports>
+                <oadr:oadrTransport>
+                  <oadr:oadrTransportName>simpleHttp</oadr:oadrTransportName>
+                </oadr:oadrTransport>
+              </oadr:oadrTransports>
+            </oadr:oadrProfile>
+          </oadr:oadrProfiles>
+        </oadr:oadrCreatedPartyRegistration>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
@@ -530,12 +493,48 @@ OpenLEADR representation:
 
     {'profiles': [{'profile_name': '2.0b',
                    'transports': [{'transport_name': 'simpleHttp'}]}],
-     'registration_id': 'o852fdbac9',
-     'response': {'request_id': 'k6565d9280',
+     'registration_id': '0271323d-fd75-490f-ab05-4fcb846e00b8',
+     'response': {'request_id': '14ab2770-c92a-4d11-b00f-129768d0964d',
                   'response_code': 200,
                   'response_description': 'OK'},
      'ven_id': '123ABC',
      'vtn_id': 'VTN123'}
+
+
+.. _oadrCreatedReport:
+
+oadrCreatedReport
+=================
+
+OpenADR payload:
+
+.. code-block:: xml
+
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCreatedReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <ei:eiResponse>
+            <ei:responseCode>200</ei:responseCode>
+            <ei:responseDescription>OK</ei:responseDescription>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">5b14fda6-e7b6-492e-8a5b-8576e48b7c19</requestID>
+          </ei:eiResponse>
+          <oadr:oadrPendingReports>
+            <ei:reportRequestID>05ac1205-bac7-4c41-8f61-7ff95e80deff</ei:reportRequestID>
+            <ei:reportRequestID>9aa68adb-7b46-4e3d-850d-344e82484e06</ei:reportRequestID>
+          </oadr:oadrPendingReports>
+        </oadr:oadrCreatedReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
+
+OpenLEADR representation:
+
+.. code-block:: python3
+
+    {'pending_reports': [{'request_id': '05ac1205-bac7-4c41-8f61-7ff95e80deff'},
+                         {'request_id': '9aa68adb-7b46-4e3d-850d-344e82484e06'}],
+     'response': {'request_id': '5b14fda6-e7b6-492e-8a5b-8576e48b7c19',
+                  'response_code': 200,
+                  'response_description': 'OK'}}
 
 
 .. _oadrCreateOpt:
@@ -547,39 +546,39 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrCreateOpt ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
-          <ei:optID>l170fb7ea4</ei:optID>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCreateOpt xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06" ei:schemaVersion="2.0b">
+          <ei:optID>745e589d-19d5-43fb-86fa-e499504339a6</ei:optID>
           <ei:optType>optIn</ei:optType>
           <ei:optReason>participating</ei:optReason>
           <ei:venID>VEN123</ei:venID>
-          <ei:createdDateTime>2020-07-09T15:54:03.151236Z </ei:createdDateTime>
-          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">k6dc07ece8</requestID>
+          <ei:createdDateTime>2020-12-03T14:22:07.606847Z </ei:createdDateTime>
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">a5590690-cb65-47a6-9eb7-4951c3d6d865</requestID>
           <ei:qualifiedEventID>
-            <ei:eventID>sdfe18dd5c</ei:eventID>
+            <ei:eventID>36eb3e4e-3959-4f32-a2ed-725e54c11cb7</ei:eventID>
             <ei:modificationNumber>1</ei:modificationNumber>
           </ei:qualifiedEventID>
           <ei:eiTarget>
             <ei:venID>123ABC</ei:venID>
           </ei:eiTarget>
-        </oadrCreateOpt>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCreateOpt>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'created_date_time': datetime.datetime(2020, 7, 9, 15, 54, 3, 151236, tzinfo=datetime.timezone.utc),
-     'event_id': 'sdfe18dd5c',
+    {'created_date_time': datetime.datetime(2020, 12, 3, 14, 22, 7, 606847, tzinfo=datetime.timezone.utc),
+     'event_id': '36eb3e4e-3959-4f32-a2ed-725e54c11cb7',
      'modification_number': 1,
-     'opt_id': 'l170fb7ea4',
+     'opt_id': '745e589d-19d5-43fb-86fa-e499504339a6',
      'opt_reason': 'participating',
      'opt_type': 'optIn',
-     'request_id': 'k6dc07ece8',
+     'request_id': 'a5590690-cb65-47a6-9eb7-4951c3d6d865',
      'targets': [{'ven_id': '123ABC'}],
+     'targets_by_type': {'ven_id': ['123ABC']},
      'ven_id': 'VEN123'}
 
 
@@ -592,22 +591,21 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07">
-      <oadrSignedObject>
-        <oadrCreatePartyRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">g31f3a2aae</requestID>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCreatePartyRegistration xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">2774add6-fc64-4167-9dd1-602ce68639f2</requestID>
           <ei:venID>123ABC</ei:venID>
-          <oadrProfileName>2.0b</oadrProfileName>
-          <oadrTransportName>simpleHttp</oadrTransportName>
-          <oadrTransportAddress>http://localhost</oadrTransportAddress>
-          <oadrReportOnly>false</oadrReportOnly>
-          <oadrXmlSignature>false</oadrXmlSignature>
-          <oadrVenName>test</oadrVenName>
-          <oadrHttpPullModel>true</oadrHttpPullModel>
-        </oadrCreatePartyRegistration>
-      </oadrSignedObject>
-    </oadrPayload>
+          <oadr:oadrProfileName>2.0b</oadr:oadrProfileName>
+          <oadr:oadrTransportName>simpleHttp</oadr:oadrTransportName>
+          <oadr:oadrTransportAddress>http://localhost</oadr:oadrTransportAddress>
+          <oadr:oadrReportOnly>false</oadr:oadrReportOnly>
+          <oadr:oadrXmlSignature>false</oadr:oadrXmlSignature>
+          <oadr:oadrVenName>test</oadr:oadrVenName>
+          <oadr:oadrHttpPullModel>true</oadr:oadrHttpPullModel>
+        </oadr:oadrCreatePartyRegistration>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
@@ -616,7 +614,7 @@ OpenLEADR representation:
     {'http_pull_model': True,
      'profile_name': '2.0b',
      'report_only': False,
-     'request_id': 'g31f3a2aae',
+     'request_id': '2774add6-fc64-4167-9dd1-602ce68639f2',
      'transport_address': 'http://localhost',
      'transport_name': 'simpleHttp',
      'ven_id': '123ABC',
@@ -633,12 +631,11 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07">
-      <oadrSignedObject>
-        <oadrCreateReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">sdbbdefaad</requestID>
-          <oadrReportRequest>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrCreateReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">365e7ddd-7193-4a6a-8a48-7632f32e772a</requestID>
+          <oadr:oadrReportRequest>
             <ei:reportRequestID>d2b7bade5f</ei:reportRequestID>
             <ei:reportSpecifier xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
               <ei:reportSpecifierID>9c8bdc00e7</ei:reportSpecifierID>
@@ -656,11 +653,6 @@ OpenADR payload:
                   <xcal:duration>
                     <xcal:duration>PT2H</xcal:duration>
                   </xcal:duration>
-                  <xcal:tolerance>
-                    <xcal:tolerate>
-                      <xcal:startafter>PT5M</xcal:startafter>
-                    </xcal:tolerate>
-                  </xcal:tolerance>
                 </xcal:properties>
               </ei:reportInterval>
               <ei:specifierPayload>
@@ -668,11 +660,11 @@ OpenADR payload:
                 <ei:readingType>Direct Read</ei:readingType>
               </ei:specifierPayload>
             </ei:reportSpecifier>
-          </oadrReportRequest>
+          </oadr:oadrReportRequest>
           <ei:venID>123ABC</ei:venID>
-        </oadrCreateReport>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrCreateReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
@@ -682,13 +674,12 @@ OpenLEADR representation:
                           'report_specifier': {'granularity': datetime.timedelta(seconds=900),
                                                'report_back_duration': datetime.timedelta(seconds=900),
                                                'report_interval': {'dtstart': datetime.datetime(2019, 11, 19, 11, 0, 18, 672768, tzinfo=datetime.timezone.utc),
-                                                                   'duration': datetime.timedelta(seconds=7200),
-                                                                   'tolerance': {'tolerate': {'startafter': datetime.timedelta(seconds=300)}}},
+                                                                   'duration': datetime.timedelta(seconds=7200)},
                                                'report_specifier_id': '9c8bdc00e7',
-                                               'specifier_payload': {'r_id': 'd6e2e07485',
-                                                                     'reading_type': 'Direct '
-                                                                                     'Read'}}}],
-     'request_id': 'sdbbdefaad',
+                                               'specifier_payloads': [{'r_id': 'd6e2e07485',
+                                                                       'reading_type': 'Direct '
+                                                                                       'Read'}]}}],
+     'request_id': '365e7ddd-7193-4a6a-8a48-7632f32e772a',
      'ven_id': '123ABC'}
 
 
@@ -697,36 +688,31 @@ OpenLEADR representation:
 oadrDistributeEvent
 ===================
 
-This message is sent by the VTN when it delivers an Event to a VEN. This is the main communication of the Event, and it contains myriad options to precisely define the event.
-
-The VEN responds with either an :ref:`oadrCreatedEvent` message, indicating its 'opt' status ("Opt In" or "Opt Out").
-
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrDistributeEvent ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrDistributeEvent xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
             <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">123</requestID>
           </ei:eiResponse>
-          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">i5fea744ae</requestID>
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">2f888a2c-dcc2-4424-8084-57c26a49fa06</requestID>
           <ei:vtnID>VTN123</ei:vtnID>
-          <oadrEvent>
+          <oadr:oadrEvent>
             <ei:eiEvent>
               <ei:eventDescriptor>
-                <ei:eventID>ifdda7aff6</ei:eventID>
+                <ei:eventID>541c76cb-36db-4ece-bf06-1ec80d06aa5d</ei:eventID>
                 <ei:modificationNumber>1</ei:modificationNumber>
-                <ei:modificationDateTime>2020-07-09T15:54:03.166717Z</ei:modificationDateTime>
+                <ei:modificationDateTime>2020-12-03T14:22:07.606894Z</ei:modificationDateTime>
                 <ei:priority>1</ei:priority>
                 <ei:eiMarketContext>
                   <marketContext xmlns="http://docs.oasis-open.org/ns/emix/2011/06">http://MarketContext1</marketContext>
                 </ei:eiMarketContext>
-                <ei:createdDateTime>2020-07-09T15:54:03.166717Z</ei:createdDateTime>
+                <ei:createdDateTime>2020-12-03T14:22:07.606894Z</ei:createdDateTime>
                 <ei:eventStatus>near</ei:eventStatus>
                 <ei:testEvent>false</ei:testEvent>
                 <ei:vtnComment>This is an event</ei:vtnComment>
@@ -734,141 +720,146 @@ OpenADR payload:
               <ei:eiActivePeriod>
                 <properties xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                   <dtstart>
-                    <date-time>2020-07-09T15:55:03.166717Z</date-time>
+                    <date-time>2020-12-03T14:23:07.606894Z</date-time>
                   </dtstart>
                   <duration>
-                    <duration>PT10M</duration>
+                    <duration>PT9M</duration>
                   </duration>
                 </properties>
-                <components xsi:nil="true" xmlns="urn:ietf:params:xml:ns:icalendar-2.0" />
+                <components xmlns="urn:ietf:params:xml:ns:icalendar-2.0"/>
               </ei:eiActivePeriod>
               <ei:eiEventSignals>
                 <ei:eiEventSignal>
-                  <intervals xmlns="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+                  <strm:intervals xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream" xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
                     <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
+                      <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
+                        <text>0</text>
+                      </uid>
+                      <ei:signalPayload>
+                        <ei:payloadFloat>
+                          <ei:value>8.0</ei:value>
+                        </ei:payloadFloat>
+                      </ei:signalPayload>
+                    </ei:interval>
+                    <ei:interval>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
                       <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                         <text>1</text>
                       </uid>
                       <ei:signalPayload>
                         <ei:payloadFloat>
-                          <ei:value>8</ei:value>
+                          <ei:value>10.0</ei:value>
                         </ei:payloadFloat>
                       </ei:signalPayload>
                     </ei:interval>
                     <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
                       <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                         <text>2</text>
                       </uid>
                       <ei:signalPayload>
                         <ei:payloadFloat>
-                          <ei:value>10</ei:value>
+                          <ei:value>12.0</ei:value>
                         </ei:payloadFloat>
                       </ei:signalPayload>
                     </ei:interval>
                     <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
                       <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                         <text>3</text>
                       </uid>
                       <ei:signalPayload>
                         <ei:payloadFloat>
-                          <ei:value>12</ei:value>
+                          <ei:value>14.0</ei:value>
                         </ei:payloadFloat>
                       </ei:signalPayload>
                     </ei:interval>
                     <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
                       <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                         <text>4</text>
                       </uid>
                       <ei:signalPayload>
                         <ei:payloadFloat>
-                          <ei:value>14</ei:value>
+                          <ei:value>16.0</ei:value>
                         </ei:payloadFloat>
                       </ei:signalPayload>
                     </ei:interval>
                     <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
                       <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                         <text>5</text>
                       </uid>
                       <ei:signalPayload>
                         <ei:payloadFloat>
-                          <ei:value>16</ei:value>
+                          <ei:value>18.0</ei:value>
                         </ei:payloadFloat>
                       </ei:signalPayload>
                     </ei:interval>
                     <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
                       <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                         <text>6</text>
                       </uid>
                       <ei:signalPayload>
                         <ei:payloadFloat>
-                          <ei:value>18</ei:value>
+                          <ei:value>20.0</ei:value>
                         </ei:payloadFloat>
                       </ei:signalPayload>
                     </ei:interval>
                     <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
                       <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                         <text>7</text>
                       </uid>
                       <ei:signalPayload>
                         <ei:payloadFloat>
-                          <ei:value>20</ei:value>
+                          <ei:value>10.0</ei:value>
                         </ei:payloadFloat>
                       </ei:signalPayload>
                     </ei:interval>
                     <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
+                      <xcal:duration>
+                        <xcal:duration>PT1M</xcal:duration>
+                      </xcal:duration>
                       <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
                         <text>8</text>
                       </uid>
                       <ei:signalPayload>
                         <ei:payloadFloat>
-                          <ei:value>10</ei:value>
+                          <ei:value>20.0</ei:value>
                         </ei:payloadFloat>
                       </ei:signalPayload>
                     </ei:interval>
-                    <ei:interval>
-                      <duration xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <duration>PT1M</duration>
-                      </duration>
-                      <uid xmlns="urn:ietf:params:xml:ns:icalendar-2.0">
-                        <text>9</text>
-                      </uid>
-                      <ei:signalPayload>
-                        <ei:payloadFloat>
-                          <ei:value>20</ei:value>
-                        </ei:payloadFloat>
-                      </ei:signalPayload>
-                    </ei:interval>
-                  </intervals>
+                  </strm:intervals>
                   <ei:signalName>LOAD_CONTROL</ei:signalName>
                   <ei:signalType>x-loadControlCapacity</ei:signalType>
-                  <ei:signalID>zccf1b86ee</ei:signalID>
+                  <ei:signalID>ca5a2b4b-69b4-40ee-93ca-dbfa23da545d</ei:signalID>
+                  <power:voltage xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power">
+                    <power:itemDescription>Voltage</power:itemDescription>
+                    <power:itemUnits>V</power:itemUnits>
+                    <scale:siScaleCode>none</scale:siScaleCode>
+                  </power:voltage>
                   <ei:currentValue>
                     <ei:payloadFloat>
-                      <ei:value>9.99</ei:value>
+                      <ei:value>0.0</ei:value>
                     </ei:payloadFloat>
                   </ei:currentValue>
                 </ei:eiEventSignal>
@@ -878,61 +869,66 @@ OpenADR payload:
                 <ei:venID>VEN002</ei:venID>
               </ei:eiTarget>
             </ei:eiEvent>
-            <oadrResponseRequired>always</oadrResponseRequired>
-          </oadrEvent>
-        </oadrDistributeEvent>
-      </oadrSignedObject>
-    </oadrPayload>
+            <oadr:oadrResponseRequired>always</oadr:oadrResponseRequired>
+          </oadr:oadrEvent>
+        </oadr:oadrDistributeEvent>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'events': [{'active_period': {'dtstart': datetime.datetime(2020, 7, 9, 15, 55, 3, 166717, tzinfo=datetime.timezone.utc),
-                                   'duration': datetime.timedelta(seconds=600)},
-                 'event_descriptor': {'created_date_time': datetime.datetime(2020, 7, 9, 15, 54, 3, 166717, tzinfo=datetime.timezone.utc),
-                                      'event_id': 'ifdda7aff6',
+    {'events': [{'active_period': {'dtstart': datetime.datetime(2020, 12, 3, 14, 23, 7, 606894, tzinfo=datetime.timezone.utc),
+                                   'duration': datetime.timedelta(seconds=540)},
+                 'event_descriptor': {'created_date_time': datetime.datetime(2020, 12, 3, 14, 22, 7, 606894, tzinfo=datetime.timezone.utc),
+                                      'event_id': '541c76cb-36db-4ece-bf06-1ec80d06aa5d',
                                       'event_status': 'near',
                                       'market_context': 'http://MarketContext1',
-                                      'modification_date_time': datetime.datetime(2020, 7, 9, 15, 54, 3, 166717, tzinfo=datetime.timezone.utc),
+                                      'modification_date_time': datetime.datetime(2020, 12, 3, 14, 22, 7, 606894, tzinfo=datetime.timezone.utc),
                                       'modification_number': 1,
                                       'priority': 1,
-                                      'test_event': 'false',
+                                      'test_event': False,
                                       'vtn_comment': 'This is an event'},
-                 'event_signals': [{'current_value': 9.99,
+                 'event_signals': [{'current_value': 0.0,
                                     'intervals': [{'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 8,
+                                                   'signal_payload': 8.0,
+                                                   'uid': 0},
+                                                  {'duration': datetime.timedelta(seconds=60),
+                                                   'signal_payload': 10.0,
                                                    'uid': 1},
                                                   {'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 10,
+                                                   'signal_payload': 12.0,
                                                    'uid': 2},
                                                   {'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 12,
+                                                   'signal_payload': 14.0,
                                                    'uid': 3},
                                                   {'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 14,
+                                                   'signal_payload': 16.0,
                                                    'uid': 4},
                                                   {'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 16,
+                                                   'signal_payload': 18.0,
                                                    'uid': 5},
                                                   {'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 18,
+                                                   'signal_payload': 20.0,
                                                    'uid': 6},
                                                   {'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 20,
+                                                   'signal_payload': 10.0,
                                                    'uid': 7},
                                                   {'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 10,
-                                                   'uid': 8},
-                                                  {'duration': datetime.timedelta(seconds=60),
-                                                   'signal_payload': 20,
-                                                   'uid': 9}],
-                                    'signal_id': 'zccf1b86ee',
+                                                   'signal_payload': 20.0,
+                                                   'uid': 8}],
+                                    'measurement': {'description': 'Voltage',
+                                                    'name': 'voltage',
+                                                    'scale': 'none',
+                                                    'unit': 'V'},
+                                    'signal_id': 'ca5a2b4b-69b4-40ee-93ca-dbfa23da545d',
                                     'signal_name': 'LOAD_CONTROL',
                                     'signal_type': 'x-loadControlCapacity'}],
                  'response_required': 'always',
-                 'targets': [{'ven_id': 'VEN001'}, {'ven_id': 'VEN002'}]}],
-     'request_id': 'i5fea744ae',
+                 'targets': [{'ven_id': 'VEN001'}, {'ven_id': 'VEN002'}],
+                 'targets_by_type': {'ven_id': ['VEN001', 'VEN002']}}],
+     'request_id': '2f888a2c-dcc2-4424-8084-57c26a49fa06',
      'response': {'request_id': 123,
                   'response_code': 200,
                   'response_description': 'OK'},
@@ -944,22 +940,17 @@ OpenLEADR representation:
 oadrPoll
 ========
 
-This message is sent by the VEN to the VTN to poll for new messages. The VTN responds by sending an empty :ref:`oadrResponse`, a :ref:`oadrDistributeEvent` in case there is an Event for the VEN, a :ref:`oadrRequestReregistration` message in case the VTN want the VEN to register again.
-
-In case the VEN wants to hear only about new Events, it can send a :ref:`oadrRequestEvent` message to the VTN.
-
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07">
-      <oadrSignedObject>
-        <oadrPoll ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrPoll xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:venID>123ABC</ei:venID>
-        </oadrPoll>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrPoll>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
@@ -967,31 +958,30 @@ OpenLEADR representation:
 
     {'ven_id': '123ABC'}
 
+
 .. _oadrQueryRegistration:
 
 oadrQueryRegistration
 =====================
 
-This message is used by the VEN to request information on the VTN's capabilities before registering. The VTN will respond with a :ref:`oadrCreatedPartyRegistration` message.
-
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrQueryRegistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">i8cf15d21f</requestID>
-        </oadrQueryRegistration>
-      </oadrSignedObject>
-    </oadrPayload>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrQueryRegistration xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">455dd699-ab81-4df6-8f74-79100db81082</requestID>
+        </oadr:oadrQueryRegistration>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'request_id': 'i8cf15d21f'}
+    {'request_id': '455dd699-ab81-4df6-8f74-79100db81082'}
+
 
 .. _oadrRegisteredReport:
 
@@ -1002,19 +992,18 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07">
-      <oadrSignedObject>
-        <oadrRegisteredReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrRegisteredReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">uadb7d5fe5</requestID>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">19906000-b93a-4c09-a828-2cfed5b46232</requestID>
           </ei:eiResponse>
-          <oadrReportRequest>
-            <ei:reportRequestID>f5308f6138</ei:reportRequestID>
+          <oadr:oadrReportRequest>
+            <ei:reportRequestID>7b72a678-950a-48fd-9885-359af6a30033</ei:reportRequestID>
             <ei:reportSpecifier xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
-              <ei:reportSpecifierID>se40c348d9</ei:reportSpecifierID>
+              <ei:reportSpecifierID>f5b4071e-1825-4ddf-8100-3d487e3744ff</ei:reportSpecifierID>
               <xcal:granularity>
                 <xcal:duration>PT15M</xcal:duration>
               </xcal:granularity>
@@ -1024,37 +1013,23 @@ OpenADR payload:
               <ei:reportInterval>
                 <xcal:properties>
                   <xcal:dtstart>
-                    <xcal:date-time>2020-07-09T15:54:03.184498Z</xcal:date-time>
+                    <xcal:date-time>2020-12-03T14:22:07.606944Z</xcal:date-time>
                   </xcal:dtstart>
                   <xcal:duration>
                     <xcal:duration>PT2H</xcal:duration>
                   </xcal:duration>
-                  <xcal:tolerance>
-                    <xcal:tolerate>
-                      <xcal:startafter>PT5M</xcal:startafter>
-                    </xcal:tolerate>
-                  </xcal:tolerance>
-                  <ei:x-eiNotification>
-                    <xcal:duration>PT30M</xcal:duration>
-                  </ei:x-eiNotification>
-                  <ei:x-eiRampUp>
-                    <xcal:duration>PT15M</xcal:duration>
-                  </ei:x-eiRampUp>
-                  <ei:x-eiRecovery>
-                    <xcal:duration>PT5M</xcal:duration>
-                  </ei:x-eiRecovery>
                 </xcal:properties>
               </ei:reportInterval>
               <ei:specifierPayload>
-                <ei:rID>u461c6e37e</ei:rID>
+                <ei:rID>7616cdd8-c54b-4060-985f-05b033d2a97e</ei:rID>
                 <ei:readingType>Direct Read</ei:readingType>
               </ei:specifierPayload>
             </ei:reportSpecifier>
-          </oadrReportRequest>
-          <oadrReportRequest>
-            <ei:reportRequestID>tc88cf616d</ei:reportRequestID>
+          </oadr:oadrReportRequest>
+          <oadr:oadrReportRequest>
+            <ei:reportRequestID>d157baf8-db5f-44b7-9f2c-5e18b4b4799b</ei:reportRequestID>
             <ei:reportSpecifier xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
-              <ei:reportSpecifierID>le65d1bd2e</ei:reportSpecifierID>
+              <ei:reportSpecifierID>811d8648-2f81-48ee-85f0-6c45613a2736</ei:reportSpecifierID>
               <xcal:granularity>
                 <xcal:duration>PT15M</xcal:duration>
               </xcal:granularity>
@@ -1064,69 +1039,47 @@ OpenADR payload:
               <ei:reportInterval>
                 <xcal:properties>
                   <xcal:dtstart>
-                    <xcal:date-time>2020-07-09T15:54:03.184526Z</xcal:date-time>
+                    <xcal:date-time>2020-12-03T14:22:07.606964Z</xcal:date-time>
                   </xcal:dtstart>
                   <xcal:duration>
                     <xcal:duration>PT2H</xcal:duration>
                   </xcal:duration>
-                  <xcal:tolerance>
-                    <xcal:tolerate>
-                      <xcal:startafter>PT5M</xcal:startafter>
-                    </xcal:tolerate>
-                  </xcal:tolerance>
-                  <ei:x-eiNotification>
-                    <xcal:duration>PT30M</xcal:duration>
-                  </ei:x-eiNotification>
-                  <ei:x-eiRampUp>
-                    <xcal:duration>PT15M</xcal:duration>
-                  </ei:x-eiRampUp>
-                  <ei:x-eiRecovery>
-                    <xcal:duration>PT5M</xcal:duration>
-                  </ei:x-eiRecovery>
                 </xcal:properties>
               </ei:reportInterval>
               <ei:specifierPayload>
-                <ei:rID>caaff64e5a</ei:rID>
+                <ei:rID>81cbec7c-01a8-4d80-a99a-0957cce79839</ei:rID>
                 <ei:readingType>Direct Read</ei:readingType>
               </ei:specifierPayload>
             </ei:reportSpecifier>
-          </oadrReportRequest>
+          </oadr:oadrReportRequest>
           <ei:venID>VEN123</ei:venID>
-        </oadrRegisteredReport>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrRegisteredReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'report_requests': [{'report_request_id': 'f5308f6138',
+    {'report_requests': [{'report_request_id': '7b72a678-950a-48fd-9885-359af6a30033',
                           'report_specifier': {'granularity': datetime.timedelta(seconds=900),
                                                'report_back_duration': datetime.timedelta(seconds=900),
-                                               'report_interval': {'dtstart': datetime.datetime(2020, 7, 9, 15, 54, 3, 184498, tzinfo=datetime.timezone.utc),
-                                                                   'duration': datetime.timedelta(seconds=7200),
-                                                                   'notification': datetime.timedelta(seconds=1800),
-                                                                   'ramp_up': datetime.timedelta(seconds=900),
-                                                                   'recovery': datetime.timedelta(seconds=300),
-                                                                   'tolerance': {'tolerate': {'startafter': datetime.timedelta(seconds=300)}}},
-                                               'report_specifier_id': 'se40c348d9',
-                                               'specifier_payload': {'r_id': 'u461c6e37e',
-                                                                     'reading_type': 'Direct '
-                                                                                     'Read'}}},
-                         {'report_request_id': 'tc88cf616d',
+                                               'report_interval': {'dtstart': datetime.datetime(2020, 12, 3, 14, 22, 7, 606944, tzinfo=datetime.timezone.utc),
+                                                                   'duration': datetime.timedelta(seconds=7200)},
+                                               'report_specifier_id': 'f5b4071e-1825-4ddf-8100-3d487e3744ff',
+                                               'specifier_payloads': [{'r_id': '7616cdd8-c54b-4060-985f-05b033d2a97e',
+                                                                       'reading_type': 'Direct '
+                                                                                       'Read'}]}},
+                         {'report_request_id': 'd157baf8-db5f-44b7-9f2c-5e18b4b4799b',
                           'report_specifier': {'granularity': datetime.timedelta(seconds=900),
                                                'report_back_duration': datetime.timedelta(seconds=900),
-                                               'report_interval': {'dtstart': datetime.datetime(2020, 7, 9, 15, 54, 3, 184526, tzinfo=datetime.timezone.utc),
-                                                                   'duration': datetime.timedelta(seconds=7200),
-                                                                   'notification': datetime.timedelta(seconds=1800),
-                                                                   'ramp_up': datetime.timedelta(seconds=900),
-                                                                   'recovery': datetime.timedelta(seconds=300),
-                                                                   'tolerance': {'tolerate': {'startafter': datetime.timedelta(seconds=300)}}},
-                                               'report_specifier_id': 'le65d1bd2e',
-                                               'specifier_payload': {'r_id': 'caaff64e5a',
-                                                                     'reading_type': 'Direct '
-                                                                                     'Read'}}}],
-     'response': {'request_id': 'uadb7d5fe5',
+                                               'report_interval': {'dtstart': datetime.datetime(2020, 12, 3, 14, 22, 7, 606964, tzinfo=datetime.timezone.utc),
+                                                                   'duration': datetime.timedelta(seconds=7200)},
+                                               'report_specifier_id': '811d8648-2f81-48ee-85f0-6c45613a2736',
+                                               'specifier_payloads': [{'r_id': '81cbec7c-01a8-4d80-a99a-0957cce79839',
+                                                                       'reading_type': 'Direct '
+                                                                                       'Read'}]}}],
+     'response': {'request_id': '19906000-b93a-4c09-a828-2cfed5b46232',
                   'response_code': 200,
                   'response_description': 'OK'},
      'ven_id': 'VEN123'}
@@ -1141,23 +1094,22 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07">
-      <oadrSignedObject>
-        <oadrRequestEvent ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrRequestEvent xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <eiRequestEvent xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
-            <requestID>oa1c52db3f</requestID>
+            <requestID>58b56698-20e3-43f1-bae2-aa95e2cea367</requestID>
             <ei:venID>123ABC</ei:venID>
           </eiRequestEvent>
-        </oadrRequestEvent>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrRequestEvent>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'request_id': 'oa1c52db3f', 'ven_id': '123ABC'}
+    {'request_id': '58b56698-20e3-43f1-bae2-aa95e2cea367', 'ven_id': '123ABC'}
 
 
 .. _oadrRequestReregistration:
@@ -1165,20 +1117,17 @@ OpenLEADR representation:
 oadrRequestReregistration
 =========================
 
-This message is sent by the VTN whenever it want the VEN to go through the registration procedure again. Usually sent in reply to a :ref:`oadrPoll` message.
-
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrRequestReregistration ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrRequestReregistration xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:venID>123ABC</ei:venID>
-        </oadrRequestReregistration>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrRequestReregistration>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
@@ -1187,57 +1136,361 @@ OpenLEADR representation:
     {'ven_id': '123ABC'}
 
 
-.. _oadrResponse:
+.. _oadrRegisterReport:
 
-oadrResponse
-============
-
-This is a generic message that the VTN sends to the VEN if there is no other message for the VEN. Usually sent in response to an :ref:`oadrPoll` or :ref:`oadrRequestEvent` message.
+oadrRegisterReport
+==================
 
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrResponse ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <ei:eiResponse>
-            <ei:responseCode>200</ei:responseCode>
-            <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">i4a4d03ae5</requestID>
-          </ei:eiResponse>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrRegisterReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">d37a5398-50f0-45bd-9b19-6b5b6bb61c02</requestID>
+          <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+            <ei:eiReportID>62ae2f36-49b8-49c9-8ffc-4af19a536b17</ei:eiReportID>
+            <oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+              <ei:rID>08dd7433-2798-4a9f-a030-0a0b5021fdc8</ei:rID>
+              <ei:reportSubject>
+                <ei:resourceID>123ABC</ei:resourceID>
+              </ei:reportSubject>
+              <ei:reportDataSource>
+                <ei:resourceID>123ABC</ei:resourceID>
+              </ei:reportDataSource>
+              <ei:reportType>reading</ei:reportType>
+              <ei:readingType>Direct Read</ei:readingType>
+              <emix:marketContext>http://localhost</emix:marketContext>
+              <oadr:oadrSamplingRate>
+                <oadr:oadrMinPeriod>PT1M</oadr:oadrMinPeriod>
+                <oadr:oadrMaxPeriod>PT1M</oadr:oadrMaxPeriod>
+                <oadr:oadrOnChange>true</oadr:oadrOnChange>
+              </oadr:oadrSamplingRate>
+            </oadr:oadrReportDescription>
+            <ei:reportRequestID>f585d124-96ee-46f4-b882-c106dbc0d90e</ei:reportRequestID>
+            <ei:reportSpecifierID>96e61860-b171-4ce4-8715-5a47894f59d3</ei:reportSpecifierID>
+            <ei:reportName>METADATA_HISTORY_USAGE</ei:reportName>
+            <ei:createdDateTime>2020-12-03T14:22:07.607003Z</ei:createdDateTime>
+          </oadr:oadrReport>
           <ei:venID>123ABC</ei:venID>
-        </oadrResponse>
-      </oadrSignedObject>
-    </oadrPayload>
+          <ei:reportRequestID>54451870-32f1-4ad1-b9c4-27120f8b354c</ei:reportRequestID>
+        </oadr:oadrRegisterReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'response': {'request_id': 'i4a4d03ae5',
-                  'response_code': 200,
-                  'response_description': 'OK'},
+    {'report_request_id': '54451870-32f1-4ad1-b9c4-27120f8b354c',
+     'reports': [{'created_date_time': datetime.datetime(2020, 12, 3, 14, 22, 7, 607003, tzinfo=datetime.timezone.utc),
+                  'report_descriptions': [{'market_context': 'http://localhost',
+                                           'r_id': '08dd7433-2798-4a9f-a030-0a0b5021fdc8',
+                                           'reading_type': 'Direct Read',
+                                           'report_data_source': {'resource_id': '123ABC'},
+                                           'report_subject': {'resource_id': '123ABC'},
+                                           'report_type': 'reading',
+                                           'sampling_rate': {'max_period': datetime.timedelta(seconds=60),
+                                                             'min_period': datetime.timedelta(seconds=60),
+                                                             'on_change': True}}],
+                  'report_id': '62ae2f36-49b8-49c9-8ffc-4af19a536b17',
+                  'report_name': 'METADATA_HISTORY_USAGE',
+                  'report_request_id': 'f585d124-96ee-46f4-b882-c106dbc0d90e',
+                  'report_specifier_id': '96e61860-b171-4ce4-8715-5a47894f59d3'}],
+     'request_id': 'd37a5398-50f0-45bd-9b19-6b5b6bb61c02',
      'ven_id': '123ABC'}
+
+
+.. _oadrRegisterReport:
+
+oadrRegisterReport
+==================
 
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrResponse ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrRegisterReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">8a4f859883</requestID>
+          <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+            <xcal:duration>
+              <xcal:duration>PT2H</xcal:duration>
+            </xcal:duration>
+            <ei:eiReportID>622e2178-afa1-46e5-89ec-f00387fea5b0</ei:eiReportID>
+            <oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+              <ei:rID>1aed6a1f-f8c9-4fc1-9de1-1a0c5e1cd67a</ei:rID>
+              <ei:reportDataSource>
+                <ei:resourceID>resource1</ei:resourceID>
+              </ei:reportDataSource>
+              <ei:reportType>x-resourceStatus</ei:reportType>
+              <ei:readingType>x-notApplicable</ei:readingType>
+              <emix:marketContext>http://MarketContext1</emix:marketContext>
+              <oadr:oadrSamplingRate>
+                <oadr:oadrMinPeriod>PT1M</oadr:oadrMinPeriod>
+                <oadr:oadrMaxPeriod>PT1M</oadr:oadrMaxPeriod>
+                <oadr:oadrOnChange>false</oadr:oadrOnChange>
+              </oadr:oadrSamplingRate>
+            </oadr:oadrReportDescription>
+            <ei:reportRequestID>fd27d669-9917-4096-ba1e-c3f5ae8a6886</ei:reportRequestID>
+            <ei:reportSpecifierID>789ed6cd4e_telemetry_status</ei:reportSpecifierID>
+            <ei:reportName>METADATA_TELEMETRY_STATUS</ei:reportName>
+            <ei:createdDateTime>2019-11-20T15:04:52.638621Z</ei:createdDateTime>
+          </oadr:oadrReport>
+          <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+            <xcal:duration>
+              <xcal:duration>PT2H</xcal:duration>
+            </xcal:duration>
+            <ei:eiReportID>584d3b60-a8c6-4967-9f32-599a615a57c6</ei:eiReportID>
+            <oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+              <ei:rID>resource1_energy</ei:rID>
+              <ei:reportDataSource>
+                <ei:resourceID>resource1</ei:resourceID>
+              </ei:reportDataSource>
+              <ei:reportType>usage</ei:reportType>
+              <power:energyReal xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power">
+                <power:itemDescription>RealEnergy</power:itemDescription>
+                <power:itemUnits>Wh</power:itemUnits>
+                <scale:siScaleCode>n</scale:siScaleCode>
+              </power:energyReal>
+              <ei:readingType>Direct Read</ei:readingType>
+              <emix:marketContext>http://MarketContext1</emix:marketContext>
+              <oadr:oadrSamplingRate>
+                <oadr:oadrMinPeriod>PT1M</oadr:oadrMinPeriod>
+                <oadr:oadrMaxPeriod>PT1M</oadr:oadrMaxPeriod>
+                <oadr:oadrOnChange>false</oadr:oadrOnChange>
+              </oadr:oadrSamplingRate>
+            </oadr:oadrReportDescription>
+            <oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+              <ei:rID>resource1_power</ei:rID>
+              <ei:reportDataSource>
+                <ei:resourceID>resource1</ei:resourceID>
+              </ei:reportDataSource>
+              <ei:reportType>usage</ei:reportType>
+              <power:powerReal xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power">
+                <power:itemDescription>RealPower</power:itemDescription>
+                <power:itemUnits>W</power:itemUnits>
+                <scale:siScaleCode>n</scale:siScaleCode>
+                <power:powerAttributes>
+                  <power:hertz>50</power:hertz>
+                  <power:voltage>230</power:voltage>
+                  <power:ac>true</power:ac>
+                </power:powerAttributes>
+              </power:powerReal>
+              <ei:readingType>Direct Read</ei:readingType>
+              <emix:marketContext>http://MarketContext1</emix:marketContext>
+              <oadr:oadrSamplingRate>
+                <oadr:oadrMinPeriod>PT1M</oadr:oadrMinPeriod>
+                <oadr:oadrMaxPeriod>PT1M</oadr:oadrMaxPeriod>
+                <oadr:oadrOnChange>false</oadr:oadrOnChange>
+              </oadr:oadrSamplingRate>
+            </oadr:oadrReportDescription>
+            <ei:reportRequestID>538cf64f-901f-4bdf-ac7c-f5f72d4b4682</ei:reportRequestID>
+            <ei:reportSpecifierID>789ed6cd4e_telemetry_usage</ei:reportSpecifierID>
+            <ei:reportName>METADATA_TELEMETRY_USAGE</ei:reportName>
+            <ei:createdDateTime>2019-11-20T15:04:52.638621Z</ei:createdDateTime>
+          </oadr:oadrReport>
+          <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+            <xcal:duration>
+              <xcal:duration>PT2H</xcal:duration>
+            </xcal:duration>
+            <ei:eiReportID>41907ef1-2f5b-45aa-b5fb-171098145438</ei:eiReportID>
+            <oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+              <ei:rID>resource1_energy</ei:rID>
+              <ei:reportDataSource>
+                <ei:resourceID>resource1</ei:resourceID>
+              </ei:reportDataSource>
+              <ei:reportType>usage</ei:reportType>
+              <power:energyReal xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power">
+                <power:itemDescription>RealEnergy</power:itemDescription>
+                <power:itemUnits>Wh</power:itemUnits>
+                <scale:siScaleCode>n</scale:siScaleCode>
+              </power:energyReal>
+              <ei:readingType>Direct Read</ei:readingType>
+              <emix:marketContext>http://MarketContext1</emix:marketContext>
+              <oadr:oadrSamplingRate>
+                <oadr:oadrMinPeriod>PT1M</oadr:oadrMinPeriod>
+                <oadr:oadrMaxPeriod>PT1M</oadr:oadrMaxPeriod>
+                <oadr:oadrOnChange>false</oadr:oadrOnChange>
+              </oadr:oadrSamplingRate>
+            </oadr:oadrReportDescription>
+            <oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+              <ei:rID>resource1_power</ei:rID>
+              <ei:reportDataSource>
+                <ei:resourceID>resource1</ei:resourceID>
+              </ei:reportDataSource>
+              <ei:reportType>usage</ei:reportType>
+              <power:powerReal xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power">
+                <power:itemDescription>RealPower</power:itemDescription>
+                <power:itemUnits>W</power:itemUnits>
+                <scale:siScaleCode>n</scale:siScaleCode>
+                <power:powerAttributes>
+                  <power:hertz>50</power:hertz>
+                  <power:voltage>230</power:voltage>
+                  <power:ac>true</power:ac>
+                </power:powerAttributes>
+              </power:powerReal>
+              <ei:readingType>Direct Read</ei:readingType>
+              <emix:marketContext>http://MarketContext1</emix:marketContext>
+              <oadr:oadrSamplingRate>
+                <oadr:oadrMinPeriod>PT1M</oadr:oadrMinPeriod>
+                <oadr:oadrMaxPeriod>PT1M</oadr:oadrMaxPeriod>
+                <oadr:oadrOnChange>false</oadr:oadrOnChange>
+              </oadr:oadrSamplingRate>
+            </oadr:oadrReportDescription>
+            <ei:reportRequestID>2244c5fd-44e2-4354-8aa0-97618cb1aa3a</ei:reportRequestID>
+            <ei:reportSpecifierID>789ed6cd4e_history_usage</ei:reportSpecifierID>
+            <ei:reportName>METADATA_HISTORY_USAGE</ei:reportName>
+            <ei:createdDateTime>2019-11-20T15:04:52.638621Z</ei:createdDateTime>
+          </oadr:oadrReport>
+          <ei:venID>s3cc244ee6</ei:venID>
+        </oadr:oadrRegisterReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
+
+OpenLEADR representation:
+
+.. code-block:: python3
+
+    {'reports': [{'created_date_time': datetime.datetime(2019, 11, 20, 15, 4, 52, 638621, tzinfo=datetime.timezone.utc),
+                  'duration': datetime.timedelta(seconds=7200),
+                  'report_descriptions': [{'market_context': 'http://MarketContext1',
+                                           'r_id': '1aed6a1f-f8c9-4fc1-9de1-1a0c5e1cd67a',
+                                           'reading_type': 'x-notApplicable',
+                                           'report_data_source': {'resource_id': 'resource1'},
+                                           'report_type': 'x-resourceStatus',
+                                           'sampling_rate': {'max_period': datetime.timedelta(seconds=60),
+                                                             'min_period': datetime.timedelta(seconds=60),
+                                                             'on_change': False}}],
+                  'report_id': '622e2178-afa1-46e5-89ec-f00387fea5b0',
+                  'report_name': 'METADATA_TELEMETRY_STATUS',
+                  'report_request_id': 'fd27d669-9917-4096-ba1e-c3f5ae8a6886',
+                  'report_specifier_id': '789ed6cd4e_telemetry_status'},
+                 {'created_date_time': datetime.datetime(2019, 11, 20, 15, 4, 52, 638621, tzinfo=datetime.timezone.utc),
+                  'duration': datetime.timedelta(seconds=7200),
+                  'report_descriptions': [{'market_context': 'http://MarketContext1',
+                                           'measurement': {'description': 'RealEnergy',
+                                                           'name': 'energyReal',
+                                                           'scale': 'n',
+                                                           'unit': 'Wh'},
+                                           'r_id': 'resource1_energy',
+                                           'reading_type': 'Direct Read',
+                                           'report_data_source': {'resource_id': 'resource1'},
+                                           'report_type': 'usage',
+                                           'sampling_rate': {'max_period': datetime.timedelta(seconds=60),
+                                                             'min_period': datetime.timedelta(seconds=60),
+                                                             'on_change': False}},
+                                          {'market_context': 'http://MarketContext1',
+                                           'measurement': {'description': 'RealPower',
+                                                           'name': 'powerReal',
+                                                           'power_attributes': {'ac': True,
+                                                                                'hertz': 50,
+                                                                                'voltage': 230},
+                                                           'scale': 'n',
+                                                           'unit': 'W'},
+                                           'r_id': 'resource1_power',
+                                           'reading_type': 'Direct Read',
+                                           'report_data_source': {'resource_id': 'resource1'},
+                                           'report_type': 'usage',
+                                           'sampling_rate': {'max_period': datetime.timedelta(seconds=60),
+                                                             'min_period': datetime.timedelta(seconds=60),
+                                                             'on_change': False}}],
+                  'report_id': '584d3b60-a8c6-4967-9f32-599a615a57c6',
+                  'report_name': 'METADATA_TELEMETRY_USAGE',
+                  'report_request_id': '538cf64f-901f-4bdf-ac7c-f5f72d4b4682',
+                  'report_specifier_id': '789ed6cd4e_telemetry_usage'},
+                 {'created_date_time': datetime.datetime(2019, 11, 20, 15, 4, 52, 638621, tzinfo=datetime.timezone.utc),
+                  'duration': datetime.timedelta(seconds=7200),
+                  'report_descriptions': [{'market_context': 'http://MarketContext1',
+                                           'measurement': {'description': 'RealEnergy',
+                                                           'name': 'energyReal',
+                                                           'scale': 'n',
+                                                           'unit': 'Wh'},
+                                           'r_id': 'resource1_energy',
+                                           'reading_type': 'Direct Read',
+                                           'report_data_source': {'resource_id': 'resource1'},
+                                           'report_type': 'usage',
+                                           'sampling_rate': {'max_period': datetime.timedelta(seconds=60),
+                                                             'min_period': datetime.timedelta(seconds=60),
+                                                             'on_change': False}},
+                                          {'market_context': 'http://MarketContext1',
+                                           'measurement': {'description': 'RealPower',
+                                                           'name': 'powerReal',
+                                                           'power_attributes': {'ac': True,
+                                                                                'hertz': 50,
+                                                                                'voltage': 230},
+                                                           'scale': 'n',
+                                                           'unit': 'W'},
+                                           'r_id': 'resource1_power',
+                                           'reading_type': 'Direct Read',
+                                           'report_data_source': {'resource_id': 'resource1'},
+                                           'report_type': 'usage',
+                                           'sampling_rate': {'max_period': datetime.timedelta(seconds=60),
+                                                             'min_period': datetime.timedelta(seconds=60),
+                                                             'on_change': False}}],
+                  'report_id': '41907ef1-2f5b-45aa-b5fb-171098145438',
+                  'report_name': 'METADATA_HISTORY_USAGE',
+                  'report_request_id': '2244c5fd-44e2-4354-8aa0-97618cb1aa3a',
+                  'report_specifier_id': '789ed6cd4e_history_usage'}],
+     'request_id': '8a4f859883',
+     'ven_id': 's3cc244ee6'}
+
+
+.. _oadrResponse:
+
+oadrResponse
+============
+
+OpenADR payload:
+
+.. code-block:: xml
+
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrResponse xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" />
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">c798c95c-08ee-4aab-bbb6-f37709ac0dbe</requestID>
           </ei:eiResponse>
           <ei:venID>123ABC</ei:venID>
-        </oadrResponse>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrResponse>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
+
+OpenLEADR representation:
+
+.. code-block:: python3
+
+    {'response': {'request_id': 'c798c95c-08ee-4aab-bbb6-f37709ac0dbe',
+                  'response_code': 200,
+                  'response_description': 'OK'},
+     'ven_id': '123ABC'}
+
+
+.. _oadrResponse:
+
+oadrResponse
+============
+
+OpenADR payload:
+
+.. code-block:: xml
+
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrResponse xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <ei:eiResponse>
+            <ei:responseCode>200</ei:responseCode>
+            <ei:responseDescription>OK</ei:responseDescription>
+            <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads"/>
+          </ei:eiResponse>
+          <ei:venID>123ABC</ei:venID>
+        </oadr:oadrResponse>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
@@ -1258,39 +1511,38 @@ OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrUpdatedReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
+        <oadr:oadrUpdatedReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" ei:schemaVersion="2.0b">
           <ei:eiResponse>
             <ei:responseCode>200</ei:responseCode>
             <ei:responseDescription>OK</ei:responseDescription>
-            <pyld:requestID>icaffaa44f</pyld:requestID>
+            <pyld:requestID>16f0ba0e-6962-48dc-8d7d-66a126d46760</pyld:requestID>
           </ei:eiResponse>
-          <oadrCancelReport>
-            <pyld:requestID>ra11e4fee3</pyld:requestID>
-            <ei:reportRequestID>kbf16facdd</ei:reportRequestID>
-            <ei:reportRequestID>kfbae403c3</ei:reportRequestID>
-            <ei:reportRequestID>k91557da99</ei:reportRequestID>
+          <oadr:oadrCancelReport>
+            <pyld:requestID>5328e42f-ae89-43fe-968a-3918997ed21c</pyld:requestID>
+            <ei:reportRequestID>b41c5e66-907e-4f21-a023-480d1ce0f08a</ei:reportRequestID>
+            <ei:reportRequestID>5862716f-87a4-4cd8-9bdd-3a036171c73c</ei:reportRequestID>
+            <ei:reportRequestID>a631252e-5c6e-4c79-9485-c45f2dc86b5a</ei:reportRequestID>
             <pyld:reportToFollow>false</pyld:reportToFollow>
             <ei:venID>123ABC</ei:venID>
-          </oadrCancelReport>
+          </oadr:oadrCancelReport>
           <ei:venID>123ABC</ei:venID>
-        </oadrUpdatedReport>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrUpdatedReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'cancel_report': {'report_request_id': ['kbf16facdd',
-                                             'kfbae403c3',
-                                             'k91557da99'],
+    {'cancel_report': {'report_request_id': ['b41c5e66-907e-4f21-a023-480d1ce0f08a',
+                                             '5862716f-87a4-4cd8-9bdd-3a036171c73c',
+                                             'a631252e-5c6e-4c79-9485-c45f2dc86b5a'],
                        'report_to_follow': False,
-                       'request_id': 'ra11e4fee3',
+                       'request_id': '5328e42f-ae89-43fe-968a-3918997ed21c',
                        'ven_id': '123ABC'},
-     'response': {'request_id': 'icaffaa44f',
+     'response': {'request_id': '16f0ba0e-6962-48dc-8d7d-66a126d46760',
                   'response_code': 200,
                   'response_description': 'OK'},
      'ven_id': '123ABC'}
@@ -1301,66 +1553,60 @@ OpenLEADR representation:
 oadrUpdateReport
 ================
 
-This message contains a report.
-
 OpenADR payload:
 
 .. code-block:: xml
 
-    <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
-      <oadrSignedObject>
-        <oadrUpdateReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
-          <pyld:requestID>bfbaaa469c</pyld:requestID>
-          <oadrReport>
-            <ei:eiReportID>z4edcf6f9d</ei:eiReportID>
-            <oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
-              <ei:rID>s1167debd8</ei:rID>
+    <oadr:oadrPayload xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07">
+      <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06" oadr:Id="oadrSignedObject">
+        <oadr:oadrUpdateReport xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" ei:schemaVersion="2.0b">
+          <pyld:requestID>4875efec-522c-4990-9455-0d829a9032d8</pyld:requestID>
+          <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
+            <ei:eiReportID>f2b55629-fa99-4e48-903b-c2f4e1f9b589</ei:eiReportID>
+            <oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+              <ei:rID>297b0a89-a674-4e6a-8543-2f50c91ffea9</ei:rID>
               <ei:reportSubject>
-                <ei:venID>123ABC</ei:venID>
-                <ei:venID>DEF456</ei:venID>
+                <ei:resourceID>123ABC</ei:resourceID>
               </ei:reportSubject>
               <ei:reportDataSource>
-                <ei:venID>123ABC</ei:venID>
+                <ei:resourceID>123ABC</ei:resourceID>
               </ei:reportDataSource>
-              <ei:reportType>x-resourceStatus</ei:reportType>
-              <ei:readingType>x-RMS</ei:readingType>
+              <ei:reportType>availableEnergyStorage</ei:reportType>
+              <ei:readingType>Allocated</ei:readingType>
               <emix:marketContext>http://localhost</emix:marketContext>
-              <oadrSamplingRate>
-                <oadrMinPeriod>PT1M</oadrMinPeriod>
-                <oadrMaxPeriod>PT2M</oadrMaxPeriod>
-                <oadrOnChange>false</oadrOnChange>
-              </oadrSamplingRate>
-            </oadrReportDescription>
-            <ei:reportRequestID>m04fa486ef</ei:reportRequestID>
-            <ei:reportSpecifierID>w5fdcab8d0</ei:reportSpecifierID>
-            <ei:reportName>TELEMETRY_USAGE</ei:reportName>
-            <ei:createdDateTime>2020-07-10T09:24:38.606626Z</ei:createdDateTime>
-          </oadrReport>
+              <oadr:oadrSamplingRate>
+                <oadr:oadrMinPeriod>PT1M</oadr:oadrMinPeriod>
+                <oadr:oadrMaxPeriod>PT2M</oadr:oadrMaxPeriod>
+                <oadr:oadrOnChange>false</oadr:oadrOnChange>
+              </oadr:oadrSamplingRate>
+            </oadr:oadrReportDescription>
+            <ei:reportRequestID>253918be-08cf-4888-9c0b-d49a96136e54</ei:reportRequestID>
+            <ei:reportSpecifierID>74ab5dae-95b9-4ba5-a68f-6e789ca41769</ei:reportSpecifierID>
+            <ei:reportName>HISTORY_GREENBUTTON</ei:reportName>
+            <ei:createdDateTime>2020-12-03T14:22:07.607232Z</ei:createdDateTime>
+          </oadr:oadrReport>
           <ei:venID>123ABC</ei:venID>
-        </oadrUpdateReport>
-      </oadrSignedObject>
-    </oadrPayload>
+        </oadr:oadrUpdateReport>
+      </oadr:oadrSignedObject>
+    </oadr:oadrPayload>
 
 OpenLEADR representation:
 
 .. code-block:: python3
 
-    {'reports': [{'created_date_time': datetime.datetime(2020, 7, 10, 9, 24, 38, 606626, tzinfo=datetime.timezone.utc),
+    {'reports': [{'created_date_time': datetime.datetime(2020, 12, 3, 14, 22, 7, 607232, tzinfo=datetime.timezone.utc),
                   'report_descriptions': [{'market_context': 'http://localhost',
-                                           'r_id': 's1167debd8',
-                                           'reading_type': 'x-RMS',
-                                           'report_data_sources': [{'ven_id': '123ABC'}],
-                                           'report_subjects': [{'ven_id': '123ABC'},
-                                                               {'ven_id': 'DEF456'}],
-                                           'report_type': 'x-resourceStatus',
+                                           'r_id': '297b0a89-a674-4e6a-8543-2f50c91ffea9',
+                                           'reading_type': 'Allocated',
+                                           'report_data_source': {'resource_id': '123ABC'},
+                                           'report_subject': {'resource_id': '123ABC'},
+                                           'report_type': 'availableEnergyStorage',
                                            'sampling_rate': {'max_period': datetime.timedelta(seconds=120),
                                                              'min_period': datetime.timedelta(seconds=60),
                                                              'on_change': False}}],
-                  'report_id': 'z4edcf6f9d',
-                  'report_name': 'TELEMETRY_USAGE',
-                  'report_request_id': 'm04fa486ef',
-                  'report_specifier_id': 'w5fdcab8d0'}],
-     'request_id': 'bfbaaa469c',
+                  'report_id': 'f2b55629-fa99-4e48-903b-c2f4e1f9b589',
+                  'report_name': 'HISTORY_GREENBUTTON',
+                  'report_request_id': '253918be-08cf-4888-9c0b-d49a96136e54',
+                  'report_specifier_id': '74ab5dae-95b9-4ba5-a68f-6e789ca41769'}],
+     'request_id': '4875efec-522c-4990-9455-0d829a9032d8',
      'ven_id': '123ABC'}
-
