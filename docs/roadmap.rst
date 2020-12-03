@@ -20,6 +20,36 @@ Version Main features                      Target timeframe
 Changelog
 ---------
 
+openleadr 0.5.11
+~~~~~~~~~~~~~~~~
+
+Released: 3 december 2020
+
+New features:
+
+- This update makes the list of Targets available as a dictionary of targets grouped by their type.
+- You can now add Targets to events in multiple ways (``target``, ``targets``, and ``targets_by_type``).
+
+Changes:
+
+- The member names of the 'measurement' objects or dicts have been changed to be consistent everywhere:
+    - item_name -> name
+    - item_description -> description
+    - item_units -> unit
+    - si_scale_code -> scale
+    This way, the parameters to client.add_report() are consistent with the Measurement object and the dicts that are passed around.
+    Additionally, there is extra validation to prevent sending invalid measurements, and hints to correct any mistakes.
+
+
+openleadr 0.5.10
+~~~~~~~~~~~~~~~~
+
+Released: 1 december 2020
+
+Bug fixes:
+
+- The on_created_event handler is now expected to receive the parameters (ven_id, event_id, opt_type). This was already in the docs, but not yet in the actual implementation. This has now been fixed.
+
 openleadr 0.5.9
 ~~~~~~~~~~~~~~~
 
