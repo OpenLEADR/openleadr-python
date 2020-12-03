@@ -86,6 +86,8 @@ def validate_xml_schema(content):
     """
     Validates the XML tree against the schema. Return the XML tree.
     """
+    if isinstance(content, str):
+        content = content.encode('utf-8')
     tree = etree.fromstring(content, XML_PARSER)
     return tree
 
