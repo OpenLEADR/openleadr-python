@@ -19,12 +19,13 @@ from aiohttp import web
 from openleadr.service import EventService, PollService, RegistrationService, ReportService, \
                               OptService, VTNService
 from openleadr.messaging import create_message
-from openleadr.utils import certificate_fingerprint, generate_id
 from openleadr import objects
+from openleadr import utils
 from functools import partial
 from datetime import datetime, timedelta, timezone
 import logging
 import ssl
+import re
 logger = logging.getLogger('openleadr')
 
 
@@ -108,7 +109,7 @@ class OpenADRServer:
                 print("")
                 print("*" * 80)
                 print("Your VTN Certificate Fingerprint is "
-                      f"{certificate_fingerprint(cert)}".center(80))
+                      f"{utils.certificate_fingerprint(cert)}".center(80))
                 print("Please deliver this fingerprint to the VENs that connect to you.".center(80))
                 print("You do not need to keep this a secret.".center(80))
                 print("*" * 80)
@@ -149,7 +150,8 @@ class OpenADRServer:
     async def stop(self):
         await self.app_runner.cleanup()
 
-    def add_event(self, ven_id, signal_name, signal_type, intervals, target, callback):
+    def add_event(self, ven_id, signal_name, signal_type, intervals, callback, targets=None,
+                  targets_by_type=None, target=None, market_context="oadr://unknown.context"):
         """
         Convenience method to add an event with a single signal.
         :param str ven_id: The ven_id to whom this event must be delivered.
@@ -157,6 +159,12 @@ class OpenADRServer:
         :param str signal_type: The OpenADR type of the signal; one of openleadr.objects.SIGNAL_TYPE
         :param str intervals: A list of intervals with a dtstart, duration and payload member.
         :param str callback: A callback function for when your event has been accepted (optIn) or refused (optOut).
+        :param list targets: A list of Targets that this Event applies to.
+        :param target: A single target for this event.
+        :param dict targets_by_type: A dict of targets, grouped by type.
+        :param str market_context: A URI for the DR program that this event belongs to.
+
+        If you don't provide a target using any of the three arguments, the target will be set to the given ven_id.
         """
         if self.services['event_service'].polling_method == 'external':
             logger.error("You cannot use the add_event method after you assign your own on_poll "
@@ -165,22 +173,33 @@ class OpenADRServer:
                          "message queuing system, you should not assign an on_poll handler. "
                          "Your Event will NOT be added.")
             return
-        event_id = generate_id()
-        if not isinstance(target, list):
-            target = [target]
+        if not re.match(r"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", market_context):
+            raise ValueError("The Market Context must be a valid URI.")
+        event_id = utils.generate_id()
+
+        # Figure out the target for this Event
+        if target is None and targets is None and targets_by_type is None:
+            targets = [{'ven_id': ven_id}]
+        elif target is not None:
+            targets = [target]
+        elif targets_by_type is not None:
+            targets = utils.ungroup_targets_by_type(targets_by_type)
+        if not isinstance(targets, list):
+            targets = [targets]
+
         event_descriptor = objects.EventDescriptor(event_id=event_id,
                                                    modification_number=0,
-                                                   market_context="None",
+                                                   market_context=market_context,
                                                    event_status="near",
                                                    created_date_time=datetime.now(timezone.utc))
         event_signal = objects.EventSignal(intervals=intervals,
                                            signal_name=signal_name,
                                            signal_type=signal_type,
-                                           signal_id=generate_id(),
-                                           targets=target)
+                                           signal_id=utils.generate_id(),
+                                           targets=targets)
         event = objects.Event(event_descriptor=event_descriptor,
                               event_signals=[event_signal],
-                              targets=target)
+                              targets=targets)
         if ven_id not in self.message_queues:
             self.message_queues[ven_id] = asyncio.Queue()
         self.message_queues[ven_id].put_nowait(event)

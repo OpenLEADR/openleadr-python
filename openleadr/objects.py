@@ -137,6 +137,23 @@ class EventSignal:
     signal_id: str
     current_value: float = None
     targets: List[Target] = None
+    targets_by_type: Dict = None
+
+    def __post_init__(self):
+        if self.targets is None and self.targets_by_type is None:
+            return
+        elif self.targets_by_type is None:
+            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            self.targets_by_type = group_targets_by_type(list_of_targets)
+        elif self.targets is None:
+            self.targets = [Target(**target) for target in ungroup_targets_by_type(self.targets_by_type)]
+        elif self.targets is not None and self.targets_by_type is not None:
+            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            if group_targets_by_type(list_of_targets) != self.targets_by_type:
+                raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
+                                 "but the two were not consistent with each other. "
+                                 f"You supplied 'targets' = {self.targets} and "
+                                 f"'targets_by_type' = {self.targets_by_type}")
 
 
 @dataclass
