@@ -7,6 +7,8 @@ import logging
 from random import random
 import time
 
+from openleadr.messaging import create_message
+
 loop = asyncio.get_event_loop()
 loop.set_debug(True)
 
@@ -458,7 +460,7 @@ def test_add_report_invalid_unit(caplog):
                       resource_id='mydevice',
                       sampling_rate=timedelta(seconds=10),
                       unit='A')
-    assert caplog.record_tuples == [("openleadr", logging.WARNING, f"The supplied unit A for measurement voltage will be ignored, V will be used instead.Allowed units for this measurement are: V")]
+    assert caplog.record_tuples == [("openleadr", logging.WARNING, f"The supplied unit A for measurement voltage will be ignored, V will be used instead. Allowed units for this measurement are: V")]
 
 def test_add_report_invalid_scale():
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
@@ -471,6 +473,26 @@ def test_add_report_invalid_scale():
                           unit='W',
                           scale='xxx')
 
+def test_add_report_invalid_description(caplog):
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    client.add_report(callback=print,
+                      report_specifier_id='myreport',
+                      measurement={'name': 'voltage', 'description': 'SomethingWrong', 'unit': 'V'},
+                      resource_id='mydevice',
+                      sampling_rate=timedelta(seconds=10))
+    msg = create_message('oadrRegisterReport', reports=client.reports)
+
+
+def test_add_report_invalid_description(caplog):
+    client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    with pytest.raises(ValueError):
+        client.add_report(callback=print,
+                          report_specifier_id='myreport',
+                          measurement={'name': 'voltage', 'description': 'SomethingWrong', 'unit': 'V'},
+                          resource_id='mydevice',
+                          sampling_rate=timedelta(seconds=10))
+
+
 def test_add_report_non_standard_measurement():
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
     client.add_report(callback=print,
@@ -480,8 +502,8 @@ def test_add_report_non_standard_measurement():
                       sampling_rate=timedelta(seconds=10),
                       unit='A')
     assert len(client.reports) == 1
-    assert client.reports[0].report_descriptions[0].measurement.item_name == 'customUnit'
-    assert client.reports[0].report_descriptions[0].measurement.item_description == 'rainbows'
+    assert client.reports[0].report_descriptions[0].measurement.name == 'customUnit'
+    assert client.reports[0].report_descriptions[0].measurement.description == 'rainbows'
 
 
 

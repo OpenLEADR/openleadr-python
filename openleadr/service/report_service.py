@@ -92,9 +92,9 @@ class ReportService(VTNService):
                 elif report['report_name'] == 'METADATA_TELEMETRY_USAGE':
                     result = [self.on_register_report(ven_id=payload['ven_id'],
                                                       resource_id=rd['report_subject']['resource_id'],
-                                                      measurement=rd['measurement']['item_description'],
-                                                      unit=rd['measurement']['item_units'],
-                                                      scale=rd['measurement']['si_scale_code'],
+                                                      measurement=rd['measurement']['description'],
+                                                      unit=rd['measurement']['unit'],
+                                                      scale=rd['measurement']['scale'],
                                                       min_sampling_interval=rd['sampling_rate']['min_period'],
                                                       max_sampling_interval=rd['sampling_rate']['max_period'])
                               for rd in report['report_descriptions']]

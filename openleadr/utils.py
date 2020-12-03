@@ -22,6 +22,9 @@ import re
 import ssl
 import hashlib
 import uuid
+import logging
+
+logger = logging.getLogger('openleadr')
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 DATETIME_FORMAT_NO_MICROSECONDS = "%Y-%m-%dT%H:%M:%SZ"
@@ -180,40 +183,43 @@ def normalize_dict(ordered_dict):
             for description in descriptions:
                 # We want to make the identification of the measurement universal
                 if 'voltage' in description:
-                    item_name, item = 'voltage', description.pop('voltage')
+                    name, item = 'voltage', description.pop('voltage')
                 elif 'power_real' in description:
-                    item_name, item = 'powerReal', description.pop('power_real')
+                    name, item = 'powerReal', description.pop('power_real')
                 elif 'power_apparent' in description:
-                    item_name, item = 'powerApparent', description.pop('power_apparent')
+                    name, item = 'powerApparent', description.pop('power_apparent')
                 elif 'power_reactive' in description:
-                    item_name, item = 'powerReactive', description.pop('power_reactive')
+                    name, item = 'powerReactive', description.pop('power_reactive')
                 elif 'energy_real' in description:
-                    item_name, item = 'energyReal', description.pop('energy_real')
+                    name, item = 'energyReal', description.pop('energy_real')
                 elif 'energy_apparent' in description:
-                    item_name, item = 'energyApparent', description.pop('energy_apparent')
+                    name, item = 'energyApparent', description.pop('energy_apparent')
                 elif 'energy_reactive' in description:
-                    item_name, item = 'energyReactive', description.pop('energy_reactive')
+                    name, item = 'energyReactive', description.pop('energy_reactive')
                 elif 'frequency' in description:
-                    item_name, item = 'frequency', description.pop('frequency')
+                    name, item = 'frequency', description.pop('frequency')
                 elif 'pulse_count' in description:
-                    item_name, item = 'pulseCount', description.pop('pulse_count')
+                    name, item = 'pulseCount', description.pop('pulse_count')
                 elif 'temperature' in description:
-                    item_name, item = 'temperature', description.pop('temperature')
+                    name, item = 'temperature', description.pop('temperature')
                 elif 'therm' in description:
-                    item_name, item = 'therm', description.pop('therm')
+                    name, item = 'therm', description.pop('therm')
                 elif 'currency' in description:
-                    item_name, item = 'currency', description.pop('currency')
+                    name, item = 'currency', description.pop('currency')
                 elif 'currency_per_kw' in description:
-                    item_name, item = 'currencyPerKW', description.pop('currency_per_kw')
+                    name, item = 'currencyPerKW', description.pop('currency_per_kw')
                 elif 'currency_per_kwh' in description:
-                    item_name, item = 'currencyPerKWh', description.pop('currency_per_kwh')
+                    name, item = 'currencyPerKWh', description.pop('currency_per_kwh')
                 elif 'currency_per_therm' in description:
-                    item_name, item = 'currencyPerTherm', description.pop('currency_per_therm')
+                    name, item = 'currencyPerTherm', description.pop('currency_per_therm')
                 elif 'custom_unit' in description:
-                    item_name, item = 'customUnit', description.pop('custom_unit')
+                    name, item = 'customUnit', description.pop('custom_unit')
                 else:
                     break
-                description['measurement'] = {'item_name': item_name,
+                item['description'] = item.pop('item_description', None)
+                item['unit'] = item.pop('item_units', None)
+                item['scale'] = item.pop('si_scale_code', None)
+                description['measurement'] = {'name': name,
                                               **item}
             d[key + 's'] = descriptions
 
@@ -541,3 +547,55 @@ def ungroup_targets_by_type(targets_by_type):
         elif isinstance(targets, str):
             ungrouped_targets.append({target_type: targets})
     return ungrouped_targets
+
+
+def validate_report_measurement_dict(measurement):
+    from openleadr.enums import _ACCEPTABLE_UNITS, _MEASUREMENT_DESCRIPTIONS
+
+    if 'name' not in measurement \
+            or 'description' not in measurement \
+            or 'unit' not in measurement:
+        raise ValueError("The measurement dict must contain the following keys: "
+                         "'name', 'description', 'unit'. Please correct this.")
+
+    name = measurement['name']
+    description = measurement['description']
+    unit = measurement['unit']
+
+    # Validate the item name and description match
+    if name in _MEASUREMENT_DESCRIPTIONS:
+        required_description = _MEASUREMENT_DESCRIPTIONS[name]
+        if description != required_description:
+            if description.lower() == required_description.lower():
+                logger.warning(f"The description for the measurement with name {name} "
+                               f"was not in the correct case; you provided {description} but "
+                               f"it should be {required_description}. "
+                               "This was automatically corrected.")
+                measurement['description'] = required_description
+            else:
+                raise ValueError(f"The measurement's description {description} "
+                                 f"did not match the expected description for this type "
+                                 f" ({required_description}). Please correct this, or use "
+                                 "'customUnit' as the name.")
+        if unit not in _ACCEPTABLE_UNITS[name]:
+            raise ValueError(f"The unit {unit} is not acceptable for measurement {name}. Allowed "
+                             f"units are {_ACCEPTABLE_UNITS[name]}.")
+    else:
+        if name != 'customUnit':
+            logger.warning(f"You provided a measurement with an unknown name {name}. "
+                           "This was corrected to 'customUnit'. Please correct this in your "
+                           "report definition.")
+            measurement['report_description']['name'] = 'customUnit'
+
+    if 'power' in name:
+        if 'power_attributes' in measurement:
+            power_attributes = measurement['power_attributes']
+            if 'voltage' not in power_attributes \
+                    or 'ac' not in power_attributes \
+                    or 'hertz' not in power_attributes:
+                raise ValueError("The power_attributes of the measurement must contain the "
+                                 "following keys: 'voltage' (int), 'ac' (bool), 'hertz' (int).")
+        else:
+            raise ValueError("A 'power' related measurement must contain a "
+                             "'power_attributes' section that contains the following "
+                             "keys: 'voltage' (int), 'ac' (boolean), 'hertz' (int)")

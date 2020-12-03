@@ -196,20 +196,20 @@ class PowerAttributes:
 
 @dataclass
 class Measurement:
-    item_name: str
-    item_description: str
-    item_units: str
+    name: str
+    description: str
+    unit: str
     acceptable_units: List[str] = field(repr=False, default_factory=list)
-    si_scale_code: str = None
+    scale: str = None
     power_attributes: PowerAttributes = None
 
     def __post_init__(self):
-        if self.item_name not in ('voltage', 'energyReal', 'energyReactive',
-                                  'energyApparent', 'powerReal', 'powerApparent',
-                                  'powerReactive', 'frequency',  'pulseCount', 'temperature',
-                                  'therm', 'currency', 'currencyPerKW', 'currencyPerKWh',
-                                  'currencyPerTherm'):
-            self.item_name = 'customUnit'
+        if self.name not in ('voltage', 'energyReal', 'energyReactive',
+                             'energyApparent', 'powerReal', 'powerApparent',
+                             'powerReactive', 'frequency',  'pulseCount', 'temperature',
+                             'therm', 'currency', 'currencyPerKW', 'currencyPerKWh',
+                             'currencyPerTherm'):
+            self.name = 'customUnit'
 
 
 @dataclass

@@ -16,8 +16,7 @@
 
 from datetime import datetime, timedelta, timezone
 from dataclasses import asdict, is_dataclass
-from openleadr import enums
-from openleadr.utils import group_targets_by_type, ungroup_targets_by_type
+from openleadr import enums, utils
 import logging
 logger = logging.getLogger('openleadr')
 
@@ -45,9 +44,15 @@ def preflight_message(message_type, message_payload):
 
 def _preflight_oadrRegisterReport(message_payload):
     for report in message_payload['reports']:
+        # Check that the report name is preceded by METADATA_ when registering reports
         if report['report_name'] in enums.REPORT_NAME.values \
                 and not report['report_name'].startswith("METADATA"):
             report['report_name'] = 'METADATA_' + report['report_name']
+
+        # Check that the measurement name and description match according to the schema
+        for report_description in report['report_descriptions']:
+            if 'measurement' in report_description and report_description['measurement'] is not None:
+                utils.validate_report_measurement_dict(report_description['measurement'])
 
 
 def _preflight_oadrDistributeEvent(message_payload):
@@ -112,10 +117,10 @@ def _preflight_oadrDistributeEvent(message_payload):
     # Check that the target designations are correct and consistent
     for event in message_payload['events']:
         if 'targets' in event and 'targets_by_type' in event:
-            if group_targets_by_type(event['targets']) != event['targets_by_type']:
+            if utils.group_targets_by_type(event['targets']) != event['targets_by_type']:
                 raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
                                  "but the two were not consistent with each other. "
                                  f"You supplied 'targets' = {event['targets']} and "
                                  f"'targets_by_type' = {event['targets_by_type']}")
         elif 'targets_by_type' in event and 'targets' not in event:
-            event['targets'] = ungroup_targets_by_type(event['targets_by_type'])
+            event['targets'] = utils.ungroup_targets_by_type(event['targets_by_type'])

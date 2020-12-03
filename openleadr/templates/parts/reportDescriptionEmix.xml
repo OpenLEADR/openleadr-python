@@ -1,8 +1,8 @@
   {% if report_description.measurement is defined and report_description.measurement is not none %}
-  <{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:{{ report_description.measurement.item_name }} xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power" >
-    <{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:itemDescription>{{ report_description.measurement.item_description }}</{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:itemDescription>
-    <{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:itemUnits>{{ report_description.measurement.item_units }}</{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:itemUnits>
-    <scale:siScaleCode>{{ report_description.measurement.si_scale_code }}</scale:siScaleCode>
+  <{% if report_description.measurement.name == 'customUnit' %}oadr{% else %}power{% endif %}:{{ report_description.measurement.name }} xmlns:scale="http://docs.oasis-open.org/ns/emix/2011/06/siscale" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power" >
+    <{% if report_description.measurement.name == 'customUnit' %}oadr{% else %}power{% endif %}:itemDescription>{{ report_description.measurement.description }}</{% if report_description.measurement.name == 'customUnit' %}oadr{% else %}power{% endif %}:itemDescription>
+    <{% if report_description.measurement.name == 'customUnit' %}oadr{% else %}power{% endif %}:itemUnits>{{ report_description.measurement.unit }}</{% if report_description.measurement.name == 'customUnit' %}oadr{% else %}power{% endif %}:itemUnits>
+    <scale:siScaleCode>{{ report_description.measurement.scale }}</scale:siScaleCode>
     {% if report_description.measurement.power_attributes %}
     <power:powerAttributes>
       <power:hertz>{{ report_description.measurement.power_attributes.hertz }}</power:hertz>
@@ -10,5 +10,5 @@
       <power:ac>{{ report_description.measurement.power_attributes.ac|booleanformat }}</power:ac>
     </power:powerAttributes>
     {% endif %}
-  </{% if report_description.measurement.item_name == 'customUnit' %}oadr{% else %}power{% endif %}:{{ report_description.measurement.item_name }}>
+  </{% if report_description.measurement.name == 'customUnit' %}oadr{% else %}power{% endif %}:{{ report_description.measurement.name }}>
   {% endif %}

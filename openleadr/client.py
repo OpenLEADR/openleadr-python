@@ -34,7 +34,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from openleadr import enums, objects, errors
 from openleadr.messaging import create_message, parse_message, \
                                 validate_xml_schema, validate_xml_signature
-from openleadr.utils import generate_id, certificate_fingerprint, find_by, cron_config
+from openleadr import utils
 
 logger = logging.getLogger('openleadr')
 
@@ -97,7 +97,7 @@ class OpenADRClient:
                 print("")
                 print("*" * 80)
                 print("Your VEN Certificate Fingerprint is ".center(80))
-                print(f"{certificate_fingerprint(cert).center(80)}".center(80))
+                print(f"{utils.certificate_fingerprint(cert).center(80)}".center(80))
                 print("Please deliver this fingerprint to the VTN.".center(80))
                 print("You do not need to keep this a secret.".center(80))
                 print("*" * 80)
@@ -258,38 +258,46 @@ class OpenADRClient:
             item_base = None
         elif isinstance(measurement, objects.Measurement):
             item_base = measurement
+        elif isinstance(measurement, dict):
+            utils.validate_report_measurement_dict(measurement)
+            power_attributes = object.PowerAttributes(**measurement.get('power_attributes')) or None
+            item_base = objects.Measurement(name=measurement['name'],
+                                            description=measurement['description'],
+                                            unit=measurement['unit'],
+                                            scale=measurement.get('scale'),
+                                            power_attributes=power_attributes)
         elif measurement.upper() in enums.MEASUREMENTS.members:
             item_base = enums.MEASUREMENTS[measurement.upper()]
         else:
-            item_base = objects.Measurement(item_name='customUnit',
-                                            item_description=measurement,
-                                            item_units=unit,
-                                            si_scale_code=scale)
+            item_base = objects.Measurement(name='customUnit',
+                                            description=measurement,
+                                            unit=unit,
+                                            scale=scale)
 
         if report_name != 'TELEMETRY_STATUS' and scale is not None:
-            if scale in enums.SI_SCALE_CODE.values:
-                item_base.si_scale_code = scale
+            if item_base.scale is not None:
+                if scale in enums.SI_SCALE_CODE.values:
+                    item_base.scale = scale
             else:
                 raise ValueError("The 'scale' argument must be one of '{'. ',join(enums.SI_SCALE_CODE.values)}")
 
         # Check if unit is compatible
-        if unit is not None and unit != item_base.item_units \
-                and unit not in item_base.acceptable_units:
+        if unit is not None and unit != item_base.unit and unit not in item_base.acceptable_units:
             logger.warning(f"The supplied unit {unit} for measurement {measurement} "
-                           f"will be ignored, {item_base.item_units} will be used instead."
+                           f"will be ignored, {item_base.unit} will be used instead. "
                            f"Allowed units for this measurement are: "
                            f"{', '.join(item_base.acceptable_units)}")
 
         # Get or create the relevant Report
         if report_specifier_id:
-            report = find_by(self.reports,
-                             'report_name', report_name,
-                             'report_specifier_id', report_specifier_id)
+            report = utils.find_by(self.reports,
+                                   'report_name', report_name,
+                                   'report_specifier_id', report_specifier_id)
         else:
-            report = find_by(self.reports, 'report_name', report_name)
+            report = utils.find_by(self.reports, 'report_name', report_name)
 
         if not report:
-            report_specifier_id = report_specifier_id or generate_id()
+            report_specifier_id = report_specifier_id or utils.generate_id()
             report = objects.Report(created_date_time=datetime.now(),
                                     report_name=report_name,
                                     report_specifier_id=report_specifier_id,
@@ -298,7 +306,7 @@ class OpenADRClient:
 
         # Add the new report description to the report
         target = objects.Target(resource_id=resource_id)
-        r_id = generate_id()
+        r_id = utils.generate_id()
         report_description = objects.ReportDescription(r_id=r_id,
                                                        reading_type=reading_type,
                                                        report_data_source=target,
@@ -335,7 +343,7 @@ class OpenADRClient:
         """
         Request information about the VTN.
         """
-        request_id = generate_id()
+        request_id = utils.generate_id()
         service = 'EiRegisterParty'
         message = self._create_message('oadrQueryRegistration', request_id=request_id)
         response_type, response_payload = await self._perform_request(service, message)
@@ -359,7 +367,7 @@ class OpenADRClient:
         :param str ven_id: The ID for this VEN. If you leave this blank,
                            a VEN_ID will be assigned by the VTN.
         """
-        request_id = generate_id()
+        request_id = utils.generate_id()
         service = 'EiRegisterParty'
         payload = {'ven_name': self.ven_name,
                    'http_pull_model': http_pull_model,
@@ -403,7 +411,7 @@ class OpenADRClient:
         """
         Request the next Event from the VTN, if it has any.
         """
-        payload = {'request_id': generate_id(),
+        payload = {'request_id': utils.generate_id(),
                    'ven_id': self.ven_id,
                    'reply_limit': reply_limit}
         message = self._create_message('oadrRequestEvent', **payload)
@@ -440,7 +448,7 @@ class OpenADRClient:
         Tell the VTN about our reports. The VTN miht respond with an
         oadrCreateReport message that tells us which reports are to be sent.
         """
-        request_id = generate_id()
+        request_id = utils.generate_id()
         payload = {'request_id': request_id,
                    'ven_id': self.ven_id,
                    'reports': reports}
@@ -473,7 +481,7 @@ class OpenADRClient:
         granularity = report_request['report_specifier']['granularity']
 
         # Check if this report actually exists
-        report = find_by(self.reports, 'report_specifier_id', report_specifier_id)
+        report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
         if not report:
             logger.error(f"A non-existant report with report_specifier_id "
                          f"{report_specifier_id} was requested.")
@@ -484,7 +492,7 @@ class OpenADRClient:
         for specifier_payload in report_request['report_specifier']['specifier_payloads']:
             r_id = specifier_payload['r_id']
             # Check if the requested r_id actually exists
-            rd = find_by(report.report_descriptions, 'r_id', r_id)
+            rd = utils.find_by(report.report_descriptions, 'r_id', r_id)
             if not rd:
                 logger.error(f"A non-existant report with r_id {r_id} "
                              f"inside report with report_specifier_id {report_specifier_id} "
@@ -494,17 +502,17 @@ class OpenADRClient:
             # Check if the requested measurement exists and if the correct unit is requested
             if 'measurement' in specifier_payload:
                 measurement = specifier_payload['measurement']
-                if measurement['item_description'] != rd.measurement.item_description:
+                if measurement['description'] != rd.measurement.description:
                     logger.error(f"A non-matching measurement description for report with "
                                  f"report_request_id {report_request_id} and r_id {r_id} was given "
-                                 f"by the VTN. Offered: {rd.measurement.item_description}, "
-                                 f"requested: {measurement['item_description']}")
+                                 f"by the VTN. Offered: {rd.measurement.description}, "
+                                 f"requested: {measurement['description']}")
                     continue
-                if measurement['item_units'] != rd.measurement.item_units:
+                if measurement['unit'] != rd.measurement.unit:
                     logger.error(f"A non-matching measurement unit for report with "
                                  f"report_request_id {report_request_id} and r_id {r_id} was given "
-                                 f"by the VTN. Offered: {rd.measurement.item_units}, "
-                                 f"requested: {measurement['item_units']}")
+                                 f"by the VTN. Offered: {rd.measurement.unit}, "
+                                 f"requested: {measurement['unit']}")
                     continue
 
             if granularity is not None:
@@ -526,7 +534,7 @@ class OpenADRClient:
         reporting_interval = report_back_duration or granularity
         job = self.scheduler.add_job(func=callback,
                                      trigger='cron',
-                                     **cron_config(reporting_interval))
+                                     **utils.cron_config(reporting_interval))
 
         self.report_requests.append({'report_request_id': report_request_id,
                                      'report_specifier_id': report_specifier_id,
@@ -540,11 +548,11 @@ class OpenADRClient:
         Call the previously registered report callback and send the result as a message to the VTN.
         """
         logger.debug(f"Running update_report for {report_request_id}")
-        report_request = find_by(self.report_requests, 'report_request_id', report_request_id)
+        report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
         granularity = report_request['granularity']
         report_back_duration = report_request['report_back_duration']
         report_specifier_id = report_request['report_specifier_id']
-        report = find_by(self.reports, 'report_specifier_id', report_specifier_id)
+        report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
         data_collection_mode = report.data_collection_mode
 
         if report_request_id in self.incomplete_reports:
