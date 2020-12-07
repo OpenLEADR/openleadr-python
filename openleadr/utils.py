@@ -503,12 +503,12 @@ def cron_config(interval):
         hour = "*"
     elif interval < timedelta(hours=1):
         second = "0"
-        minute = f"*/{int(interval.total_seconds/60)}"
+        minute = f"*/{int(interval.total_seconds()/60)}"
         hour = "*"
     elif interval < timedelta(days=1):
         second = "0"
         minute = "0"
-        hour = f"*/{int(interval.total_seconds/3600)}"
+        hour = f"*/{int(interval.total_seconds()/3600)}"
     return {"second": second, "minute": minute, "hour": hour}
 
 
