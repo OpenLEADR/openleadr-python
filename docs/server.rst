@@ -109,6 +109,24 @@ Alternatively, you can use the handy constructors in ``openleadr.objects`` to fo
                      target=[Target(resource_id='Device001')],
                      callback=partial(event_callback, ven_id='ven123', event_id='event123'))
 
+A word on event targets
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The Target of your Event is an indication for the VEN which resources or devices should be affected. You can supply the target of the event in serveral ways:
+
+- Assigning the ``target`` parameter with a single ``objects.Target`` object.
+- Assigning the ``targets`` parameter with a list of ``objects.Target`` objects.
+- Assigning the ``targets_by_type`` parameters with a dict, that lists targets grouped by their type, like this:
+
+.. code-block:: python3
+
+    server.add_event(...
+                     targets_by_type={'resource_id': ['resource01', 'resource02'],
+                                      'group_id': ['group01', 'group02']}
+                     )
+
+If you dont assign any Target, the target will be set to the ``ven_id`` that you specified.
+
 
 .. _server_reports:
 
