@@ -4,19 +4,60 @@ Client
 
 An OpenADR Client (Virtual End Node or VEN) usually represents an entity that owns controllable devices. This can be electric vehicles, generators, wind turbines, refrigerated warehouses, et cetera. The client connects to a server, usualy representing a utility company, to discuss possible cooperation on energy usage throughout the day.
 
-In your application, you mostly only have to deal with two things: Events and Reports.
+
+.. _client_example:
+
+Example VEN
+===========
+
+A straightforward example of an OpenADR VEN, which has one report and an event handler, would look like this:
+
+.. code-block:: python3
+
+    import asyncio
+    from datetime import timedelta
+    from openleadr import OpenADRClient
+
+    async def collect_report_value():
+        # This callback is called when you need to collect a value for your Report
+        return 1.23
+
+    async def handle_event(event):
+        # This callback receives an Event dict.
+        # You should include code here that sends control signals to your resources.
+        return 'optIn'
+
+    # Create the client object
+    client = OpenADRClient(ven_name='myven', vtn_url='http://some-vtn.com/OpenADR2/Simple/2.0b')
+
+    # Add the report capability to the client
+    client.add_report(callback=collect_report_value,
+                      resource_id='device001',
+                      measurement='voltage',
+                      sampling_rate=timedelta(seconds=10))
+
+    # Add event handling capability to the client
+    client.add_handler('on_event', handle_event)
+
+    # Run the client in the Python AsyncIO Event Loop
+    loop = asyncio.get_event_loop()
+    loop.create_task(client.run())
+    loop.run_forever()
+
+In the sections below, we'll go into more detail.
+
 
 .. _client_events:
 
 Dealing with Events
 ===================
 
-Events are informational or instructional messages from the server (VTN) which inform you of price changes, request load reduction, et cetera. Whenever there is an Event for your VEN, your ``on_event`` handler will be called with the event as its ``payload`` parameter.
+Events are informational or instructional messages from the server (VTN) which inform you of price changes, request load reduction, et cetera. Whenever there is an Event for your VEN, your ``on_event`` handler will be called with the event is dict-form as its first parameter.
 
 The Event consists of three main sections:
 
 1. A time period for when this event is supposed to be active (``active_period``)
-2. A list of Targets to which the Event applies (``target``). This can be the VEN as a whole, or specific groups, assets, geographic areas, et cetera that this VEN represents.
+2. A list of Targets to which the Event applies (``targets``). This can be the VEN as a whole, or specific groups, assets, geographic areas, et cetera that this VEN represents.
 3. A list of Signals (``signals``), which form the content of the Event. This can be price signals, load reduction signals, et cetera. Each signal has a name, a type, multiple Intervals that contain the relative start times, and some payload value for the client to interpret.
 
 After you evaluate all these properties, you have only one decision to make: Opt In or Opt Out. Your handler must return either the string ``optIn`` or ``optOut``, and OpenLEADR will see to it that your response is correctly formatted for the server.
