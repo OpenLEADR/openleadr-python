@@ -17,6 +17,7 @@
 from datetime import datetime, timedelta, timezone
 from dataclasses import is_dataclass, asdict
 from collections import OrderedDict
+import asyncio
 import itertools
 import re
 import ssl
@@ -298,7 +299,7 @@ def parse_datetime(value):
         year, month, day, hour, minute, second, micro = (int(value) for value in matches.groups())
         return datetime(year, month, day, hour, minute, second, micro, tzinfo=timezone.utc)
     else:
-        print(f"{value} did not match format")
+        logger.warning(f"parse_datetime: {value} did not match format")
         return value
 
 
@@ -599,3 +600,80 @@ def validate_report_measurement_dict(measurement):
             raise ValueError("A 'power' related measurement must contain a "
                              "'power_attributes' section that contains the following "
                              "keys: 'voltage' (int), 'ac' (boolean), 'hertz' (int)")
+
+
+def get_active_period_from_intervals(intervals, as_dict=True):
+    if is_dataclass(intervals[0]):
+        intervals = [asdict(i) for i in intervals]
+    period_start = min([i['dtstart'] for i in intervals])
+    period_duration = max([i['dtstart'] + i['duration'] - period_start for i in intervals])
+    if as_dict:
+        return {'dtstart': period_start,
+                'duration': period_duration}
+    else:
+        from openleadr.objects import ActivePeriod
+        return ActivePeriod(dtstart=period_start, duration=period_duration)
+
+
+def determine_event_status(active_period):
+    if is_dataclass(active_period):
+        active_period = asdict(active_period)
+    now = datetime.now(timezone.utc)
+    if active_period['dtstart'].tzinfo is None:
+        active_period['dtstart'] = active_period['dtstart'].astimezone(timezone.utc)
+    active_period_start = active_period['dtstart']
+    active_period_end = active_period['dtstart'] + active_period['duration']
+    if now >= active_period_end:
+        return 'completed'
+    if now >= active_period_start:
+        return 'active'
+    if active_period.get('ramp_up_duration') is not None:
+        ramp_up_start = active_period_start - active_period['ramp_up_duration']
+        if now >= ramp_up_start:
+            return 'near'
+    return 'far'
+
+
+async def delayed_call(func, delay):
+    if isinstance(delay, timedelta):
+        delay = delay.total_seconds()
+    await asyncio.sleep(delay)
+    if asyncio.iscoroutinefunction(func):
+        await func()
+    elif asyncio.iscoroutine(func):
+        await func
+    else:
+        func()
+
+
+def hasmember(obj, member):
+    """
+    Check if a dict or dataclass has the given member
+    """
+    if is_dataclass(obj):
+        if hasattr(obj, member):
+            return True
+    else:
+        if member in obj:
+            return True
+    return False
+
+
+def getmember(obj, member):
+    """
+    Get a member from a dict or dataclass
+    """
+    if is_dataclass(obj):
+        return getattr(obj, member)
+    else:
+        return obj[member]
+
+
+def setmember(obj, member, value):
+    """
+    Set a member of a dict of dataclass
+    """
+    if is_dataclass(obj):
+        setattr(obj, member, value)
+    else:
+        obj[member] = value

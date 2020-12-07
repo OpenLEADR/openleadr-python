@@ -109,9 +109,7 @@ def validate_xml_signature(xml_tree, cert_fingerprint=None):
 
 async def authenticate_message(request, message_tree, message_payload, fingerprint_lookup):
     if request.secure and 'ven_id' in message_payload:
-        print("Getting cert fingerprint from request")
         connection_fingerprint = utils.get_cert_fingerprint_from_request(request)
-        print("Checking cert fingerprint")
         if connection_fingerprint is None:
             msg = ("Your request must use a client side SSL certificate, of which the "
                    "fingerprint must match the fingerprint that you have given to this VTN")
@@ -133,13 +131,11 @@ async def authenticate_message(request, message_tree, message_payload, fingerpri
                    "following fingerprint to make this request:")
             raise errors.NotRegisteredOrAuthorizedError(msg)
 
-        print("Checking connection fingerprint")
         if connection_fingerprint != expected_fingerprint:
             msg = (f"The fingerprint of your HTTPS certificate {connection_fingerprint} "
                    f"does not match the expected fingerprint {expected_fingerprint}")
             raise errors.NotRegisteredOrAuthorizedError(msg)
 
-        print("Checking message fingerprint")
         message_cert = utils.extract_pem_cert(message_tree)
         message_fingerprint = utils.certificate_fingerprint(message_cert)
         if message_fingerprint != expected_fingerprint:
@@ -149,7 +145,6 @@ async def authenticate_message(request, message_tree, message_payload, fingerpri
                    "certificate to sign your messages.")
             raise errors.NotRegisteredOrAuthorizedError(msg)
 
-        print("Validating XML signature")
         try:
             validate_xml_signature(message_tree)
         except ValueError:

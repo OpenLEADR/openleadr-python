@@ -13,19 +13,19 @@
             </tolerate>
         </tolerance>
         {% endif %}
-        {% if event.active_period.notification %}
+        {% if event.active_period.notification_period %}
         <ei:x-eiNotification>
-            <duration>{{ event.active_period.notification|timedeltaformat }}</duration>
+            <duration>{{ event.active_period.notification_period|timedeltaformat }}</duration>
         </ei:x-eiNotification>
         {% endif %}
-        {% if event.active_period.ramp_up %}
+        {% if event.active_period.ramp_up_period %}
         <ei:x-eiRampUp>
-            <duration>{{ event.active_period.ramp_up|timedeltaformat }}</duration>
+            <duration>{{ event.active_period.ramp_up_period|timedeltaformat }}</duration>
         </ei:x-eiRampUp>
         {% endif %}
-        {% if event.active_period.recovery %}
+        {% if event.active_period.recovery_period %}
         <ei:x-eiRecovery>
-            <duration>{{ event.active_period.recovery|timedeltaformat }}</duration>
+            <duration>{{ event.active_period.recovery_period|timedeltaformat }}</duration>
         </ei:x-eiRecovery>
         {% endif %}
     </properties>

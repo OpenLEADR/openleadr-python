@@ -151,7 +151,8 @@ class OpenADRServer:
         await self.app_runner.cleanup()
 
     def add_event(self, ven_id, signal_name, signal_type, intervals, callback, targets=None,
-                  targets_by_type=None, target=None, market_context="oadr://unknown.context"):
+                  targets_by_type=None, target=None, market_context="oadr://unknown.context",
+                  notification_period=None, ramp_up_period=None, recovery_period=None):
         """
         Convenience method to add an event with a single signal.
         :param str ven_id: The ven_id to whom this event must be delivered.
@@ -163,6 +164,9 @@ class OpenADRServer:
         :param target: A single target for this event.
         :param dict targets_by_type: A dict of targets, grouped by type.
         :param str market_context: A URI for the DR program that this event belongs to.
+        :param timedelta notification_period: The Notification period for the Event's Active Period.
+        :param timedelta ramp_up_period: The Ramp Up period for the Event's Active Period.
+        :param timedelta recovery_period: The Recovery period for the Event's Active Period.
 
         If you don't provide a target using any of the three arguments, the target will be set to the given ven_id.
         """
@@ -190,20 +194,36 @@ class OpenADRServer:
         event_descriptor = objects.EventDescriptor(event_id=event_id,
                                                    modification_number=0,
                                                    market_context=market_context,
-                                                   event_status="near",
+                                                   event_status="far",
                                                    created_date_time=datetime.now(timezone.utc))
         event_signal = objects.EventSignal(intervals=intervals,
                                            signal_name=signal_name,
                                            signal_type=signal_type,
                                            signal_id=utils.generate_id(),
                                            targets=targets)
-        event = objects.Event(event_descriptor=event_descriptor,
+        # Make sure the intervals carry timezone-aware timestamps
+        for interval in intervals:
+            if utils.getmember(interval, 'dtstart').tzinfo is None:
+                utils.setmember(interval, 'dtstart',
+                                utils.getmember(interval, 'dtstart').astimezone(timezone.utc))
+                logger.warning("You supplied a naive datetime object to your interval's dtstart. "
+                               "This will be interpreted as a timestamp in your local timezone "
+                               "and then converted to UTC before sending. Please supply timezone-"
+                               "aware timestamps like datetime.datetime.new(timezone.utc) or "
+                               "datetime.datetime(..., tzinfo=datetime.timezone.utc)")
+        active_period = utils.get_active_period_from_intervals(intervals, False)
+        active_period.ramp_up_period = ramp_up_period
+        active_period.notification_period = notification_period
+        active_period.recovery_period = recovery_period
+        event = objects.Event(active_period=active_period,
+                              event_descriptor=event_descriptor,
                               event_signals=[event_signal],
                               targets=targets)
         if ven_id not in self.message_queues:
             self.message_queues[ven_id] = asyncio.Queue()
         self.message_queues[ven_id].put_nowait(event)
-        self.services['event_service'].pending_events[event_id] = callback
+        self.services['event_service'].pending_events[event_id] = (event, callback)
+        return event_id
 
     def add_raw_event(self, ven_id, event):
         """

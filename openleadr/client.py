@@ -82,6 +82,7 @@ class OpenADRClient:
         self.scheduler = AsyncIOScheduler()
         self.client_session = None
         self.report_queue_task = None
+        self.responded_events = {}              # Holds the events that we already saw.
 
         self.cert_path = cert
         self.key_path = key
@@ -654,6 +655,16 @@ class OpenADRClient:
                        "choice. Will opt out of the event for now.")
         return 'optOut'
 
+    async def on_update_event(self, event):
+        """
+        Placeholder for the on_update_event handler.
+        """
+        logger.warning("You should implement your own on_update_event handler. This handler receives "
+                       "an Event dict and should return either 'optIn' or 'optOut' based on your "
+                       "choice. Will re-use the previous opt status for this event_id for now")
+        if event['event_descriptor']['event_id'] in self.events:
+            return self.responded_events['event_id']
+
     ###########################################################################
     #                                                                         #
     #                                  LOW LEVEL                              #
@@ -703,12 +714,24 @@ class OpenADRClient:
         logger.debug("The VEN received an event")
         events = message['events']
         try:
-            results = [self.on_event(event) for event in message['events']]
-            if asyncio.iscoroutine(results[0]):
-                results = await asyncio.gather(*results, return_exceptions=False)
+            results = []
+            for event in message['events']:
+                event_id = event['event_descriptor']['event_id']
+                event_status = event['event_descriptor']['event_status']
+                if event_id in self.responded_events:
+                    result = self.on_update_event(event)
+                else:
+                    result = self.on_event(event)
+                if asyncio.iscoroutine(result):
+                    result = await result
+                results.append(result)
+                if event_status == 'completed':
+                    self.responded_events.pop(event_id)
+                else:
+                    self.responded_events[event_id] = result
             for i, result in enumerate(results):
                 if result not in ('optIn', 'optOut'):
-                    logger.error("Your on_event handler must return 'optIn' or 'optOut'; "
+                    logger.error("Your on_event or on_update_event handler must return 'optIn' or 'optOut'; "
                                  f"you supplied {result}. Please fix your on_event handler.")
                     results[i] = 'optOut'
         except Exception as err:
@@ -716,7 +739,6 @@ class OpenADRClient:
                          f"The error was {err.__class__.__name__}: {str(err)}")
             results = ['optOut'] * len(events)
 
-        print("Done executing on_event for events")
         if len(events) == 1:
             logger.debug(f"Now responding with {results[0]}")
         else:
@@ -735,7 +757,8 @@ class OpenADRClient:
                     'request_id': message['request_id']}
         message = self._create_message('oadrCreatedEvent',
                                        response=response,
-                                       event_responses=event_responses)
+                                       event_responses=event_responses,
+                                       ven_id=self.ven_id)
         service = 'EiEvent'
         response_type, response_payload = await self._perform_request(service, message)
         logger.info(response_type, response_payload)

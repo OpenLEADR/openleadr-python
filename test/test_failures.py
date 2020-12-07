@@ -27,7 +27,7 @@ async def test_signature_error(start_server_with_signatures):
     client.on_event = _client_on_event
     await client.run()
     await asyncio.sleep(0)
-    await client.client_session.close()
+    await client.stop()
 
 
 ##########################################################################################
@@ -61,25 +61,21 @@ async def _client_on_report(report):
 
 @pytest.fixture
 async def start_server():
-    server = OpenADRServer(vtn_id=VTN_ID)
+    server = OpenADRServer(vtn_id=VTN_ID,
+                           http_host='localhost',
+                           http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
 
-    runner = web.AppRunner(server.app)
-    await runner.setup()
-    site = web.TCPSite(runner, 'localhost', SERVER_PORT)
-    await site.start()
+    await server.run_async()
     yield
-    await runner.cleanup()
+    await server.stop()
 
 @pytest.fixture
 async def start_server_with_signatures():
-    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr')
+    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr',
+                           http_host='localhost', http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
 
-    runner = web.AppRunner(server.app)
-    await runner.setup()
-    site = web.TCPSite(runner, 'localhost', SERVER_PORT)
-    await site.start()
+    await server.run_async()
     yield
-    await runner.cleanup()
-
+    await server.stop()

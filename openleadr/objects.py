@@ -17,7 +17,7 @@
 from dataclasses import dataclass, field, asdict, is_dataclass
 from typing import List, Dict
 from datetime import datetime, timezone, timedelta
-from openleadr.utils import group_targets_by_type, ungroup_targets_by_type
+from openleadr import utils
 
 
 @dataclass
@@ -144,12 +144,12 @@ class EventSignal:
             return
         elif self.targets_by_type is None:
             list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
-            self.targets_by_type = group_targets_by_type(list_of_targets)
+            self.targets_by_type = utils.group_targets_by_type(list_of_targets)
         elif self.targets is None:
-            self.targets = [Target(**target) for target in ungroup_targets_by_type(self.targets_by_type)]
+            self.targets = [Target(**target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
         elif self.targets is not None and self.targets_by_type is not None:
             list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
-            if group_targets_by_type(list_of_targets) != self.targets_by_type:
+            if utils.group_targets_by_type(list_of_targets) != self.targets_by_type:
                 raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
                                  "but the two were not consistent with each other. "
                                  f"You supplied 'targets' = {self.targets} and "
@@ -178,16 +178,18 @@ class Event:
             raise ValueError("You must supply either 'targets' or 'targets_by_type'.")
         elif self.targets_by_type is None:
             list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
-            self.targets_by_type = group_targets_by_type(list_of_targets)
+            self.targets_by_type = utils.group_targets_by_type(list_of_targets)
         elif self.targets is None:
-            self.targets = [Target(**target) for target in ungroup_targets_by_type(self.targets_by_type)]
+            self.targets = [Target(**target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
         elif self.targets is not None and self.targets_by_type is not None:
             list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
-            if group_targets_by_type(list_of_targets) != self.targets_by_type:
+            if utils.group_targets_by_type(list_of_targets) != self.targets_by_type:
                 raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
                                  "but the two were not consistent with each other. "
                                  f"You supplied 'targets' = {self.targets} and "
                                  f"'targets_by_type' = {self.targets_by_type}")
+        # Set the event status
+        self.event_descriptor.event_status = utils.determine_event_status(self.active_period)
 
 
 @dataclass
