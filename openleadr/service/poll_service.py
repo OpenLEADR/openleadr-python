@@ -16,7 +16,7 @@
 
 from openleadr.service import service, handler, VTNService
 from openleadr import objects
-from asyncio import iscoroutine
+import asyncio
 from dataclasses import asdict
 import logging
 logger = logging.getLogger('openleadr')
@@ -116,13 +116,16 @@ class PollService(VTNService):
         if self.polling_method == 'external':
             result = self.on_poll(ven_id=payload['ven_id'])
         elif payload['ven_id'] in self.message_queues:
-            result = await self.message_queues[payload['ven_id']].get()
+            try:
+                result = self.message_queues[payload['ven_id']].get_nowait()
+            except asyncio.QueueEmpty:
+                return 'oadrResponse', {}
         else:
             return 'oadrResponse', {}
-        if iscoroutine(result):
+        if asyncio.iscoroutine(result):
             result = await result
         if result is None:
-            return result
+            return 'oadrResponse', {}
         if isinstance(result, tuple):
             return result
         if isinstance(result, list):
