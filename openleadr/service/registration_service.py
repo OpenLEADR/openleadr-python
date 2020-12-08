@@ -109,7 +109,10 @@ class RegistrationService(VTNService):
                                                   'transports': transports}],
                                     'requested_oadr_poll_freq': self.poll_freq}
         else:
-            response_payload = {}
+            transports = [{'transport_name': payload['transport_name']}]
+            response_payload = {'profiles': [{'profile_name': payload['profile_name'],
+                                              'transports': transports}],
+                                'requested_oadr_poll_freq': self.poll_freq}
         return 'oadrCreatedPartyRegistration', response_payload
 
     def on_create_party_registration(self, payload):
