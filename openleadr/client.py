@@ -661,8 +661,8 @@ class OpenADRClient:
             async with self.client_session.post(url, data=message) as req:
                 content = await req.read()
                 if req.status != HTTPStatus.OK:
-                    logger.warning(f"Non-OK status when performing a request to {url} with data "
-                                   f"{message}: {req.status} {content.decode('utf-8')}")
+                    logger.warning(f"Non-OK status {req.status} when performing a request to {url} "
+                                   f"with data {message}: {req.status} {content.decode('utf-8')}")
                     return None, {}
                 logger.debug(content.decode('utf-8'))
         except aiohttp.client_exceptions.ClientConnectorError as err:
