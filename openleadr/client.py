@@ -25,7 +25,6 @@ import ssl
 from datetime import datetime, timedelta, timezone
 from functools import partial
 from http import HTTPStatus
-from random import randint
 
 import aiohttp
 from lxml.etree import XMLSyntaxError
@@ -131,32 +130,15 @@ class OpenADRClient:
         await self._poll()
 
         # Set up automatic polling
-        if self.poll_frequency.total_seconds() < 60:
-            seconds_offset = randint(0, self.poll_frequency.seconds)
-            cron_second = f"{seconds_offset}/{self.poll_frequency.seconds}"
-            cron_minute = "*"
-            cron_hour = "*"
-        elif self.poll_frequency.total_seconds() < 3600:
-            cron_second = randint(0, 59)
-            cron_minute = f'*/{int(self.poll_frequency.total_seconds() / 60)}'
-            cron_hour = "*"
-        elif self.poll_frequency.total_seconds() < 86400:
-            cron_second = randint(0, 59)
-            cron_minute = "0"
-            cron_hour = f'*/{int(self.poll_frequency.total_seconds() / 3600)}'
-        elif self.poll_frequency.total_seconds() > 86400:
+        if self.poll_frequency > timedelta(hours=24):
             logger.warning("Polling with intervals of more than 24 hours is not supported. "
                            "Will use 24 hours as the logging interval.")
-            cron_second = randint(0, 59)
-            cron_minute = "0"
-            cron_hour = "0"
-            return
+            self.poll_frequency = timedelta(hours=24)
+        cron_config = utils.cron_config(self.poll_frequency, randomize_seconds=True)
 
         self.scheduler.add_job(self._poll,
                                trigger='cron',
-                               second=cron_second,
-                               minute=cron_minute,
-                               hour=cron_hour)
+                               **cron_config)
         self.scheduler.start()
 
     async def stop(self):

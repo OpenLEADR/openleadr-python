@@ -18,6 +18,7 @@ from datetime import datetime, timedelta, timezone
 from dataclasses import is_dataclass, asdict
 from collections import OrderedDict
 from openleadr import enums
+from random import randint
 import asyncio
 import itertools
 import re
@@ -472,22 +473,30 @@ def group_by(list_, key, pop_key=False):
     return grouped
 
 
-def cron_config(interval):
+def cron_config(interval, randomize_seconds=False):
     """
     Returns a dict with cron settings for the given interval
     """
+    if randomize_seconds:
+        seconds_offset = min(60, randint(0, interval.total_seconds()))
+    else:
+        seconds_offset = "*"
     if interval < timedelta(minutes=1):
-        second = f"*/{interval.seconds}"
+        second = f"{seconds_offset}/{interval.seconds}"
         minute = "*"
         hour = "*"
     elif interval < timedelta(hours=1):
-        second = "0"
+        second = f"{seconds_offset}" if randomize_seconds else "0"
         minute = f"*/{int(interval.total_seconds()/60)}"
         hour = "*"
-    elif interval < timedelta(days=1):
-        second = "0"
+    elif interval < timedelta(hours=24):
+        second = f"{seconds_offset}" if randomize_seconds else "0"
         minute = "0"
         hour = f"*/{int(interval.total_seconds()/3600)}"
+    else:
+        second = f"{seconds_offset}" if randomize_seconds else "0"
+        minute = "0"
+        hour = "0"
     return {"second": second, "minute": minute, "hour": hour}
 
 

@@ -104,4 +104,8 @@ def test_cron_config():
     assert utils.cron_config(timedelta(minutes=5)) == {'second': '0', 'minute': '*/5', 'hour': '*'}
     assert utils.cron_config(timedelta(hours=1)) == {'second': '0', 'minute': '0', 'hour': '*/1'}
     assert utils.cron_config(timedelta(hours=2)) == {'second': '0', 'minute': '0', 'hour': '*/2'}
+    assert utils.cron_config(timedelta(hours=25)) == {'second': '0', 'minute': '0', 'hour': '0'}
+
+    cron_config = utils.cron_config(timedelta(seconds=5), randomize_seconds=True)
+    assert int(cron_config['second'][0]) <= 5
 
