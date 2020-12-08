@@ -61,11 +61,8 @@ async def _client_on_report(report):
 
 @pytest.fixture
 async def start_server():
-    server = OpenADRServer(vtn_id=VTN_ID,
-                           http_host='localhost',
-                           http_port=SERVER_PORT)
+    server = OpenADRServer(vtn_id=VTN_ID, http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
-
     await server.run_async()
     yield
     await server.stop()
@@ -73,7 +70,7 @@ async def start_server():
 @pytest.fixture
 async def start_server_with_signatures():
     server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr',
-                           http_host='localhost', http_port=SERVER_PORT)
+                           http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
 
     await server.run_async()
