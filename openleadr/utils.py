@@ -17,6 +17,7 @@
 from datetime import datetime, timedelta, timezone
 from dataclasses import is_dataclass, asdict
 from collections import OrderedDict
+from openleadr import enums
 import asyncio
 import itertools
 import re
@@ -82,6 +83,9 @@ def normalize_dict(ordered_dict):
             key = key[4:]
         elif key.startswith('ei'):
             key = key[2:]
+        # Don't normalize the measurement descriptions
+        if key in enums._MEASUREMENT_NAMESPACES:
+            return key
         key = re.sub(r'([a-z])([A-Z])', r'\1_\2', key)
         if '-' in key:
             key = key.replace('-', '_')
@@ -183,43 +187,18 @@ def normalize_dict(ordered_dict):
                 descriptions = [descriptions]
             for description in descriptions:
                 # We want to make the identification of the measurement universal
-                if 'voltage' in description:
-                    name, item = 'voltage', description.pop('voltage')
-                elif 'power_real' in description:
-                    name, item = 'powerReal', description.pop('power_real')
-                elif 'power_apparent' in description:
-                    name, item = 'powerApparent', description.pop('power_apparent')
-                elif 'power_reactive' in description:
-                    name, item = 'powerReactive', description.pop('power_reactive')
-                elif 'energy_real' in description:
-                    name, item = 'energyReal', description.pop('energy_real')
-                elif 'energy_apparent' in description:
-                    name, item = 'energyApparent', description.pop('energy_apparent')
-                elif 'energy_reactive' in description:
-                    name, item = 'energyReactive', description.pop('energy_reactive')
-                elif 'frequency' in description:
-                    name, item = 'frequency', description.pop('frequency')
-                elif 'pulse_count' in description:
-                    name, item = 'pulseCount', description.pop('pulse_count')
-                elif 'temperature' in description:
-                    name, item = 'temperature', description.pop('temperature')
-                elif 'therm' in description:
-                    name, item = 'therm', description.pop('therm')
-                elif 'currency' in description:
-                    name, item = 'currency', description.pop('currency')
-                elif 'currency_per_kw' in description:
-                    name, item = 'currencyPerKW', description.pop('currency_per_kw')
-                elif 'currency_per_kwh' in description:
-                    name, item = 'currencyPerKWh', description.pop('currency_per_kwh')
-                elif 'currency_per_therm' in description:
-                    name, item = 'currencyPerTherm', description.pop('currency_per_therm')
-                elif 'custom_unit' in description:
-                    name, item = 'customUnit', description.pop('custom_unit')
+                for measurement in enums._MEASUREMENT_NAMESPACES:
+                    if measurement in description:
+                        name, item = measurement, description.pop(measurement)
+                        break
                 else:
                     break
                 item['description'] = item.pop('item_description', None)
                 item['unit'] = item.pop('item_units', None)
-                item['scale'] = item.pop('si_scale_code', None)
+                if 'si_scale_code' in item:
+                    item['scale'] = item.pop('si_scale_code')
+                if 'pulse_factor' in item:
+                    item['pulse_factor'] = item.pop('pulse_factor')
                 description['measurement'] = {'name': name,
                                               **item}
             d[key + 's'] = descriptions

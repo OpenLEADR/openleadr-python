@@ -15,12 +15,13 @@
 # limitations under the License.
 
 from openleadr.utils import generate_id, group_targets_by_type
-from openleadr.messaging import create_message, parse_message
+from openleadr.messaging import create_message, parse_message, validate_xml_schema
 from openleadr import enums
 from pprint import pprint
 from termcolor import colored
 from datetime import datetime, timezone, timedelta
 import pytest
+from dataclasses import asdict
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -68,6 +69,32 @@ def create_dummy_event(ven_id):
              'targets_by_type': group_targets_by_type(event_targets),
              'response_required': 'always'}
     return event
+
+reports = [{'report_id': generate_id(),
+            'duration': timedelta(seconds=3600),
+            'report_descriptions': [{'r_id': generate_id(),
+                                     'report_subject': {'resource_id': 'resource001'},
+                                     'report_data_source': {'resource_id': 'resource001'},
+                                     'report_type': 'usage',
+                                     'measurement': asdict(measurement),
+                                     'reading_type': 'Direct Read',
+                                     'market_context': 'http://MarketContext1',
+                                     'sampling_rate': {'min_period': timedelta(seconds=10), 'max_period': timedelta(seconds=30), 'on_change': False}} for measurement in enums.MEASUREMENTS.values],
+            'report_specifier_id': generate_id(),
+            'report_name': 'METADATA_HISTORY_USAGE',
+            'report_request_id': None,
+            'created_date_time': datetime.now(timezone.utc)}]
+
+for report in reports:
+  for rd in report['report_descriptions']:
+    rd['measurement'].pop('acceptable_units')
+    rd['measurement'].pop('ns')
+    if rd['measurement']['power_attributes'] is None:
+      rd['measurement'].pop('power_attributes')
+    if rd['measurement']['scale'] is None:
+      rd['measurement'].pop('scale')
+    if rd['measurement']['pulse_factor'] is None:
+      rd['measurement'].pop('pulse_factor')
 
 testcases = [
 ('oadrCanceledOpt', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, opt_id=generate_id())),
@@ -122,6 +149,7 @@ testcases = [
                                                                        'specifier_payloads': [{'r_id': 'd6e2e07485',
                                                                                              'reading_type': 'Direct Read'}]}}])),
 ('oadrDistributeEvent', dict(request_id=generate_id(), response={'request_id': 123, 'response_code': 200, 'response_description': 'OK'}, events=[create_dummy_event(ven_id='123ABC')], vtn_id='VTN123')),
+('oadrDistributeEvent', dict(request_id=generate_id(), response={'request_id': 123, 'response_code': 200, 'response_description': 'OK'}, events=[create_dummy_event(ven_id='123ABC'), create_dummy_event(ven_id='123ABC')], vtn_id='VTN123')),
 ('oadrPoll', dict(ven_id='123ABC')),
 ('oadrQueryRegistration', dict(request_id=generate_id())),
 ('oadrRegisteredReport', dict(ven_id='VEN123', response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()},
@@ -177,6 +205,7 @@ testcases = [
                                                                                            'report_type': 'usage',
                                                                                            'measurement': {'name': 'energyReal',
                                                                                                            'description': 'RealEnergy',
+                                                                                                           'ns': 'power',
                                                                                                            'unit': 'Wh',
                                                                                                            'scale': 'n'},
                                                                                            'reading_type': 'Direct Read',
@@ -187,6 +216,7 @@ testcases = [
                                                                                            'report_type': 'usage',
                                                                                            'measurement': {'name': 'powerReal',
                                                                                                            'description': 'RealPower',
+                                                                                                           'ns': 'power',
                                                                                                            'unit': 'W',
                                                                                                            'scale': 'n',
                                                                                                            'power_attributes': {'hertz': 50, 'voltage': 230, 'ac': True}},
@@ -204,6 +234,7 @@ testcases = [
                                                                                            'report_type': 'usage',
                                                                                            'measurement': {'name': 'energyReal',
                                                                                                            'description': 'RealEnergy',
+                                                                                                           'ns': 'power',
                                                                                                            'unit': 'Wh',
                                                                                                            'scale': 'n'},
                                                                                            'reading_type': 'Direct Read',
@@ -214,6 +245,7 @@ testcases = [
                                                                                            'report_type': 'usage',
                                                                                            'measurement': {'name': 'powerReal',
                                                                                                            'description': 'RealPower',
+                                                                                                           'ns': 'power',
                                                                                                            'unit': 'W',
                                                                                                            'scale': 'n',
                                                                                                            'power_attributes': {'hertz': 50, 'voltage': 230, 'ac': True}},
@@ -224,6 +256,7 @@ testcases = [
                                                                   'report_specifier_id': '789ed6cd4e_history_usage',
                                                                   'report_name': 'METADATA_HISTORY_USAGE',
                                                                   'created_date_time': datetime(2019, 11, 20, 15, 4, 52, 638621, tzinfo=timezone.utc)}], 'ven_id': 's3cc244ee6'}),
+('oadrRegisterReport', {'ven_id': 'ven123', 'request_id': generate_id(), 'reports': reports}),
 ('oadrResponse', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, ven_id='123ABC')),
 ('oadrResponse', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': None}, ven_id='123ABC')),
 ('oadrUpdatedReport', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, ven_id='123ABC', cancel_report={'request_id': generate_id(), 'report_request_id': [generate_id(), generate_id(), generate_id()], 'report_to_follow': False, 'ven_id': '123ABC'})),
@@ -248,6 +281,15 @@ testcases = [
 @pytest.mark.parametrize('message_type,data', testcases)
 def test_message(message_type, data):
     message = create_message(message_type, **data)
-    print(message)
     parsed = parse_message(message)[1]
+    if message_type == 'oadrRegisterReport':
+        for report in data['reports']:
+            for rd in report['report_descriptions']:
+                if 'measurement' in rd:
+                    rd['measurement'].pop('ns')
+    if message_type == 'oadrDistributeEvent':
+        for event in data['events']:
+            for signal in event['event_signals']:
+                if 'measurement' in signal:
+                    signal['measurement'].pop('ns')
     assert parsed == data

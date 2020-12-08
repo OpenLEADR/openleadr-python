@@ -18,6 +18,7 @@ from dataclasses import dataclass, field, asdict, is_dataclass
 from typing import List, Dict
 from datetime import datetime, timezone, timedelta
 from openleadr import utils
+from openleadr import enums
 
 
 @dataclass
@@ -130,6 +131,37 @@ class Interval:
 
 
 @dataclass
+class SamplingRate:
+    min_period: timedelta = None
+    max_period: timedelta = None
+    on_change: bool = False
+
+
+@dataclass
+class PowerAttributes:
+    hertz: int = 50
+    voltage: int = 230
+    ac: bool = True
+
+
+@dataclass
+class Measurement:
+    name: str
+    description: str
+    unit: str
+    acceptable_units: List[str] = field(repr=False, default_factory=list)
+    scale: str = None
+    power_attributes: PowerAttributes = None
+    pulse_factor: int = None
+    ns: str = 'power'
+
+    def __post_init__(self):
+        if self.name not in enums._MEASUREMENT_NAMESPACES:
+            self.name = 'customUnit'
+        self.ns = enums._MEASUREMENT_NAMESPACES[self.name]
+
+
+@dataclass
 class EventSignal:
     intervals: List[Interval]
     signal_name: str
@@ -138,6 +170,7 @@ class EventSignal:
     current_value: float = None
     targets: List[Target] = None
     targets_by_type: Dict = None
+    measurement: Measurement = None
 
     def __post_init__(self):
         if self.targets is None and self.targets_by_type is None:
@@ -197,38 +230,6 @@ class Response:
     response_code: int
     response_description: str
     request_id: str
-
-
-@dataclass
-class SamplingRate:
-    min_period: timedelta = None
-    max_period: timedelta = None
-    on_change: bool = False
-
-
-@dataclass
-class PowerAttributes:
-    hertz: int = 50
-    voltage: int = 230
-    ac: bool = True
-
-
-@dataclass
-class Measurement:
-    name: str
-    description: str
-    unit: str
-    acceptable_units: List[str] = field(repr=False, default_factory=list)
-    scale: str = None
-    power_attributes: PowerAttributes = None
-
-    def __post_init__(self):
-        if self.name not in ('voltage', 'energyReal', 'energyReactive',
-                             'energyApparent', 'powerReal', 'powerApparent',
-                             'powerReactive', 'frequency',  'pulseCount', 'temperature',
-                             'therm', 'currency', 'currencyPerKW', 'currencyPerKWh',
-                             'currencyPerTherm'):
-            self.name = 'customUnit'
 
 
 @dataclass

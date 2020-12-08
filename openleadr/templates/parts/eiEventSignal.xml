@@ -26,9 +26,7 @@
     <ei:signalName>{{ event_signal.signal_name }}</ei:signalName>
     <ei:signalType>{{ event_signal.signal_type }}</ei:signalType>
     <ei:signalID>{{ event_signal.signal_id }}</ei:signalID>
-    {% if event_signal.measurement is defined and event_signal.measurement is not none %}
-        {% include 'parts/eventSignalEmix.xml' %}
-    {% endif %}
+    {% include 'parts/eventSignalEmix.xml' %}
     {% if event_signal.current_value is defined and event_signal.current_value is not none %}
     <ei:currentValue>
         <ei:payloadFloat>

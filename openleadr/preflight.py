@@ -54,6 +54,16 @@ def _preflight_oadrRegisterReport(message_payload):
             if 'measurement' in report_description and report_description['measurement'] is not None:
                 utils.validate_report_measurement_dict(report_description['measurement'])
 
+        # Add the correct namespace to the measurement
+        for report_description in report['report_descriptions']:
+            if 'measurement' in report_description and report_description['measurement'] is not None:
+                if report_description['measurement']['name'] in enums._MEASUREMENT_NAMESPACES:
+                    measurement_name = report_description['measurement']['name']
+                    measurement_ns = enums._MEASUREMENT_NAMESPACES[measurement_name]
+                    report_description['measurement']['ns'] = measurement_ns
+                else:
+                    raise ValueError("The Measurement Name is unknown")
+
 
 def _preflight_oadrDistributeEvent(message_payload):
     if 'parse_duration' not in globals():
@@ -97,6 +107,17 @@ def _preflight_oadrDistributeEvent(message_payload):
                                    "that is not yet active must be 0. "
                                    "This will be corrected.")
                     event_signal['current_value'] = 0
+
+    # Add the correct namespace to the measurement
+    for event in message_payload['events']:
+        for event_signal in event['event_signals']:
+            if 'measurement' in event_signal and event_signal['measurement'] is not None:
+                if event_signal['measurement']['name'] in enums._MEASUREMENT_NAMESPACES:
+                    measurement_name = event_signal['measurement']['name']
+                    measurement_ns = enums._MEASUREMENT_NAMESPACES[measurement_name]
+                    event_signal['measurement']['ns'] = measurement_ns
+                else:
+                    raise ValueError("The Measurement Name is unknown")
 
     # Check that there is a valid oadrResponseRequired value for each Event
     for event in message_payload['events']:
