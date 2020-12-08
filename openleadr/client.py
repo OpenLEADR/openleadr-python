@@ -690,6 +690,10 @@ class OpenADRClient:
         except Exception as err:
             logger.error(f"The incoming message could not be parsed or validated: {err}")
             return None, {}
+        if message_payload['response']['response_code'] != 200:
+            logger.warning("We got a non-OK OpenADR response from the server: "
+                           f"{message_payload['response']['response_code']}: "
+                           f"{message_payload['response']['response_description']}")
         return message_type, message_payload
 
     async def _on_event(self, message):
