@@ -30,8 +30,10 @@ def enable_default_logging(level=logging.INFO):
     import sys
     import logging
     logger = logging.getLogger('openleadr')
-    logger.setLevel(level)
-
-    logging_handler = logging.StreamHandler(stream=sys.stdout)
-    logging_handler.setLevel(logging.DEBUG)
-    logger.addHandler(logging_handler)
+    handler_names = [handler.name for handler in logger.handlers]
+    if 'openleadr_default_handler' not in handler_names:
+        logger.setLevel(level)
+        logging_handler = logging.StreamHandler(stream=sys.stdout)
+        logging_handler.set_name('openleadr_default_handler')
+        logging_handler.setLevel(logging.DEBUG)
+        logger.addHandler(logging_handler)
