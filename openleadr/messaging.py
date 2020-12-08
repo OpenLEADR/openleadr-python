@@ -176,6 +176,8 @@ def _verify_replay_protect(xml_tree):
     except Exception:
         raise ValueError("Missing or malformed ReplayProtect element in the message signature.")
     else:
+        if nonce is None:
+            raise ValueError("Missing 'nonce' element in ReplayProtect in incoming message.")
         if timestamp < datetime.now(timezone.utc) - REPLAY_PROTECT_MAX_TIME_DELTA:
             raise ValueError("The message was signed too long ago.")
         elif (timestamp, nonce) in NONCE_CACHE:
@@ -184,10 +186,10 @@ def _verify_replay_protect(xml_tree):
 
 
 def _update_nonce_cache(timestamp, nonce):
+    NONCE_CACHE.add((timestamp, nonce))
     for timestamp, nonce in list(NONCE_CACHE):
         if timestamp < datetime.now(timezone.utc) - REPLAY_PROTECT_MAX_TIME_DELTA:
             NONCE_CACHE.remove((timestamp, nonce))
-    NONCE_CACHE.add((timestamp, nonce))
 
 
 # Replay protect settings
