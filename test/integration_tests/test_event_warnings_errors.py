@@ -1,9 +1,11 @@
-from openleadr import OpenADRClient, OpenADRServer, enable_default_logging, utils
+from openleadr import OpenADRClient, OpenADRServer, enable_default_logging, utils, messaging
 import pytest
 from functools import partial
 import asyncio
 from datetime import datetime, timedelta, timezone
 import logging
+
+enable_default_logging()
 
 async def on_create_party_registration(ven_name):
     return 'venid', 'regid'
@@ -24,7 +26,6 @@ async def broken_on_event(event):
 @pytest.mark.asyncio
 async def test_client_no_event_handler(caplog):
     caplog.set_level(logging.WARNING)
-    enable_default_logging()
     logger = logging.getLogger('openleadr')
     logger.setLevel(logging.DEBUG)
     client = OpenADRClient(ven_name='myven',
@@ -61,7 +62,6 @@ async def test_client_no_event_handler(caplog):
 @pytest.mark.asyncio
 async def test_client_faulty_event_handler(caplog):
     caplog.set_level(logging.WARNING)
-    enable_default_logging()
     logger = logging.getLogger('openleadr')
     logger.setLevel(logging.DEBUG)
     client = OpenADRClient(ven_name='myven',
@@ -98,7 +98,6 @@ async def test_client_faulty_event_handler(caplog):
 @pytest.mark.asyncio
 async def test_client_exception_event_handler(caplog):
     caplog.set_level(logging.WARNING)
-    enable_default_logging()
     logger = logging.getLogger('openleadr')
     logger.setLevel(logging.DEBUG)
     client = OpenADRClient(ven_name='myven',
@@ -137,7 +136,6 @@ async def test_client_exception_event_handler(caplog):
 @pytest.mark.asyncio
 async def test_client_good_event_handler(caplog):
     caplog.set_level(logging.WARNING)
-    enable_default_logging()
     logger = logging.getLogger('openleadr')
     logger.setLevel(logging.DEBUG)
     client = OpenADRClient(ven_name='myven',
@@ -173,7 +171,6 @@ async def test_client_good_event_handler(caplog):
 @pytest.mark.asyncio
 async def test_server_warning_conflicting_poll_methods(caplog):
     caplog.set_level(logging.WARNING)
-    enable_default_logging()
     logger = logging.getLogger('openleadr')
     logger.setLevel(logging.DEBUG)
     server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))
@@ -196,7 +193,6 @@ async def test_server_warning_conflicting_poll_methods(caplog):
 @pytest.mark.asyncio
 async def test_server_warning_naive_datetimes_in_event(caplog):
     caplog.set_level(logging.WARNING)
-    enable_default_logging()
     logger = logging.getLogger('openleadr')
     logger.setLevel(logging.DEBUG)
     server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))
@@ -215,10 +211,93 @@ async def test_server_warning_naive_datetimes_in_event(caplog):
             "datetime.datetime(..., tzinfo=datetime.timezone.utc)") in [record.msg for record in caplog.records]
 
 
+def test_event_with_wrong_response_required(caplog):
+    now = datetime.now(timezone.utc)
+    event = {'active_period': {'dtstart': now, 'duration': timedelta(seconds=10)},
+             'event_descriptor': {'event_id': 'event123',
+                                  'modification_number': 1,
+                                  'priority': 0,
+                                  'event_status': 'far',
+                                  'created_date_time': now},
+             'event_signals': [{'signal_name': 'simple',
+                                'signal_type': 'level',
+                                'intervals': [{'dtstart': now,
+                                               'duration': timedelta(seconds=10),
+                                               'signal_payload': 1}]}],
+             'targets': [{'ven_id': 'ven123'}],
+             'response_required': 'blabla'}
+    msg = messaging.create_message('oadrDistributeEvent', events=[event])
+    assert ("The response_required property in an Event should be "
+            "'never' or 'always', not blabla. Changing to 'always'.") in caplog.messages
+    message_type, message_payload= messaging.parse_message(msg)
+    assert message_payload['events'][0]['response_required'] == 'always'
+
+
+def test_event_missing_created_date_time(caplog):
+    now = datetime.now(timezone.utc)
+    event = {'active_period': {'dtstart': now, 'duration': timedelta(seconds=10)},
+             'event_descriptor': {'event_id': 'event123',
+                                  'modification_number': 1,
+                                  'priority': 0,
+                                  'event_status': 'far'},
+             'event_signals': [{'signal_name': 'simple',
+                                'signal_type': 'level',
+                                'intervals': [{'dtstart': now,
+                                               'duration': timedelta(seconds=10),
+                                               'signal_payload': 1}]}],
+             'targets': [{'ven_id': 'ven123'}],
+             'response_required': 'always'}
+    msg = messaging.create_message('oadrDistributeEvent', events=[event])
+    assert ("Your event descriptor did not contain a created_date_time. "
+            "This will be automatically added.") in caplog.messages
+
+
+def test_event_incongruent_targets(caplog):
+    now = datetime.now(timezone.utc)
+    event = {'active_period': {'dtstart': now, 'duration': timedelta(seconds=10)},
+             'event_descriptor': {'event_id': 'event123',
+                                  'modification_number': 1,
+                                  'priority': 0,
+                                  'event_status': 'far',
+                                  'created_date_time': now},
+             'event_signals': [{'signal_name': 'simple',
+                                'signal_type': 'level',
+                                'intervals': [{'dtstart': now,
+                                               'duration': timedelta(seconds=10),
+                                               'signal_payload': 1}]}],
+             'targets': [{'ven_id': 'ven123'}],
+             'targets_by_type': {'ven_id': ['ven456']},
+             'response_required': 'always'}
+    with pytest.raises(ValueError) as err:
+        msg = messaging.create_message('oadrDistributeEvent', events=[event])
+    assert str(err.value) == ("You assigned both 'targets' and 'targets_by_type' in your event, "
+                "but the two were not consistent with each other. "
+                f"You supplied 'targets' = {event['targets']} and "
+                f"'targets_by_type' = {event['targets_by_type']}")
+
+
+def test_event_only_targets_by_type(caplog):
+    now = datetime.now(timezone.utc)
+    event = {'active_period': {'dtstart': now, 'duration': timedelta(seconds=10)},
+             'event_descriptor': {'event_id': 'event123',
+                                  'modification_number': 1,
+                                  'priority': 0,
+                                  'event_status': 'far',
+                                  'created_date_time': now},
+             'event_signals': [{'signal_name': 'simple',
+                                'signal_type': 'level',
+                                'intervals': [{'dtstart': now,
+                                               'duration': timedelta(seconds=10),
+                                               'signal_payload': 1}]}],
+             'targets_by_type': {'ven_id': ['ven456']},
+             'response_required': 'always'}
+    msg = messaging.create_message('oadrDistributeEvent', events=[event])
+    message_type, message_payload = messaging.parse_message(msg)
+    assert message_payload['events'][0]['targets'] == [{'ven_id': 'ven456'}]
+
 @pytest.mark.asyncio
 async def test_client_warning_no_update_event_handler(caplog):
     caplog.set_level(logging.WARNING)
-    enable_default_logging()
     logger = logging.getLogger('openleadr')
     logger.setLevel(logging.DEBUG)
     server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))

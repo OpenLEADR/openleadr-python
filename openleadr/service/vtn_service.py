@@ -136,7 +136,7 @@ class VTNService:
             response_payload['request_id'] = generate_id()
 
         else:
-            response_type, response_payload = self.error_response(message_type,
+            response_type, response_payload = self.error_response('oadrResponse',
                                                                   STATUS_CODES.COMPLIANCE_ERROR,
                                                                   "A message of type "
                                                                   f"{message_type} should not be "
@@ -151,5 +151,5 @@ class VTNService:
         else:
             response_type = 'oadrResponse'
         response_payload = {'response': {'response_code': error_code,
-                                         'response_description': 'Certificate fingerprint mismatch'}}
+                                         'response_description': error_description}}
         return response_type, response_payload

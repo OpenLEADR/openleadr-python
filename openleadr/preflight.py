@@ -133,6 +133,8 @@ def _preflight_oadrDistributeEvent(message_payload):
     for event in message_payload['events']:
         if 'created_date_time' not in event['event_descriptor'] \
                 or not event['event_descriptor']['created_date_time']:
+            logger.warning("Your event descriptor did not contain a created_date_time. "
+                           "This will be automatically added.")
             event['event_descriptor']['created_date_time'] = datetime.now(timezone.utc)
 
     # Check that the target designations are correct and consistent
