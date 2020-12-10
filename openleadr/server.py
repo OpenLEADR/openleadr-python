@@ -52,25 +52,25 @@ class OpenADRServer:
         """
         Create a new OpenADR VTN (Server).
 
-        :param vtn_id string: An identifier string for this VTN. This is how you identify yourself
+        :param str vtn_id: An identifier string for this VTN. This is how you identify yourself
                               to the VENs that talk to you.
-        :param cert string: Path to the PEM-formatted certificate file that is used to sign outgoing
+        :param str cert: Path to the PEM-formatted certificate file that is used to sign outgoing
                             messages
-        :param key string: Path to the PEM-formatted private key file that is used to sign outgoing
+        :param str key: Path to the PEM-formatted private key file that is used to sign outgoing
                            messages
-        :param passphrase string: The passphrase used to decrypt the private key file
-        :param fingerprint_lookup callable: A callable that receives a ven_id and should return the
+        :param str passphrase: The passphrase used to decrypt the private key file
+        :param callable fingerprint_lookup: A callable that receives a ven_id and should return the
                                             registered fingerprint for that VEN. You should receive
                                             these fingerprints outside of OpenADR and configure them
                                             manually.
-        :param show_fingerprint boolean: Whether to print the fingerprint to your stdout on startup.
+        :param bool show_fingerprint: Whether to print the fingerprint to your stdout on startup.
                                          Defaults to True.
-        :param http_port integer: The port that the web server is exposed on (default: 8080)
-        :param http_host str: The host or IP address to bind the server to (default: 127.0.0.1).
-        :param http_cert str: The path to the PEM certificate for securing HTTP traffic.
-        :param http_key str: The path to the PEM private key for securing HTTP traffic.
-        :param http_ca_file str: The path to the CA-file that client certificates are checked against.
-        :param http_key_passphrase str: The passphrase for the HTTP private key.
+        :param int http_port: The port that the web server is exposed on (default: 8080)
+        :param str http_host: The host or IP address to bind the server to (default: 127.0.0.1).
+        :param str http_cert: The path to the PEM certificate for securing HTTP traffic.
+        :param str http_key: The path to the PEM private key for securing HTTP traffic.
+        :param str http_ca_file: The path to the CA-file that client certificates are checked against.
+        :param str http_key_passphrase: The passphrase for the HTTP private key.
         """
         # Set up the message queues
         self.message_queues = {}
@@ -155,6 +155,7 @@ class OpenADRServer:
                   notification_period=None, ramp_up_period=None, recovery_period=None):
         """
         Convenience method to add an event with a single signal.
+
         :param str ven_id: The ven_id to whom this event must be delivered.
         :param str signal_name: The OpenADR name of the signal; one of openleadr.objects.SIGNAL_NAME
         :param str signal_type: The OpenADR type of the signal; one of openleadr.objects.SIGNAL_TYPE
@@ -245,13 +246,13 @@ class OpenADRServer:
         """
         Add a handler to the OpenADRServer.
 
-        :param name string: The name for this handler. Should be one of: on_created_event,
+        :param str name: The name for this handler. Should be one of: on_created_event,
                             on_request_event, on_register_report, on_create_report,
                             on_created_report, on_request_report, on_update_report, on_poll,
                             on_query_registration, on_create_party_registration,
                             on_cancel_party_registration.
-        :param func coroutine: A coroutine that handles this event. It receives the message, and
-                               should return the contents of a response.
+        :param callable func: A function or coroutine that handles this type of occurrence.
+                              It receives the message, and should return the contents of a response.
         """
         logger.debug(f"Adding handler: {name} {func}")
         if name in self._MAP:
