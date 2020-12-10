@@ -172,3 +172,15 @@ You can validate incoming messages against a public key.
 This will automatically validate check that incoming messages are signed by the private key that belongs to the provided (public) certificate. If validation fails, you will see a Warning emitted, but the message will not be delivered to your handlers, protecting you from malicious messages being processed by your system. The sending party will see an error message returned.
 
 You should use both of the previous examples combined to secure both the incoming and the outgoing messages.
+
+
+.. _client_polling_jitter:
+
+A word on polling
+=================
+
+The OpenADR polling mechanism is very robust; there is very little chance that the client misses an important message. The downside is that there is some wasted bandwith (from polling when no relevant message is available from the VTN), and there is the risk of unnecessary VTN overload if all VENs poll synchronously.
+
+To mitigate the last point, the OpenLEADR VEN will, by default, 'jitter' the pollings by up to +/- 10% or +/- 5 minutes (whichever is smallest). The same goes for delivering the reports (the data collection will still happen on synchronized moments).
+
+If you don't want to jitter the polling requests on your VEN, you can disable this by passing ``allow_jitter=False`` to your ``OpenADRClient`` constructor.

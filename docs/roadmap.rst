@@ -20,6 +20,25 @@ Version Main features                      Target timeframe
 Changelog
 ---------
 
+openleadr 0.5.12
+~~~~~~~~~~~~~~~~
+
+Released: 10 december 2020
+
+New features:
+
+- Events now cycle through the correct 'far', 'near', 'active', 'completed'.
+- The Client now implements the ``on_update_event handler``, so that you can catch these event updates separately from the regular event messages.
+- Added support for the ramp_up_duration parameter on the ``server.add_event`` method.
+
+Bug fixes:
+
+- The OpenADRServer would block ``oadrPoll`` requests when no internal messages were available. This has been corrected.
+- Some left-over ``print()`` statements have been removed.
+- Nonce caching was badly broken in a previous version, this has now been fixed.
+
+
+
 openleadr 0.5.11
 ~~~~~~~~~~~~~~~~
 

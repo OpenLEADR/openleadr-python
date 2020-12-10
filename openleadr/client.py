@@ -22,6 +22,7 @@ import asyncio
 import inspect
 import logging
 import ssl
+import random
 from datetime import datetime, timedelta, timezone
 from functools import partial
 from http import HTTPStatus
@@ -44,7 +45,8 @@ class OpenADRClient:
     you can always choose to call them manually.
     """
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
-                 passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None):
+                 passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
+                 allow_jitter=True):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -87,6 +89,7 @@ class OpenADRClient:
         self.key_path = key
         self.passphrase = passphrase
         self.ca_file = ca_file
+        self.allow_jitter = allow_jitter
 
         if cert and key:
             with open(cert, 'rb') as file:
@@ -114,7 +117,7 @@ class OpenADRClient:
         """
         # if not hasattr(self, 'on_event'):
         #     raise NotImplementedError("You must implement on_event.")
-
+        self.loop = asyncio.get_event_loop()
         await self.create_party_registration()
 
         if not self.ven_id:
@@ -124,8 +127,7 @@ class OpenADRClient:
 
         if self.reports:
             await self.register_reports(self.reports)
-            loop = asyncio.get_event_loop()
-            self.report_queue_task = loop.create_task(self._report_queue_worker())
+            self.report_queue_task = self.loop.create_task(self._report_queue_worker())
 
         await self._poll()
 
@@ -134,7 +136,7 @@ class OpenADRClient:
             logger.warning("Polling with intervals of more than 24 hours is not supported. "
                            "Will use 24 hours as the logging interval.")
             self.poll_frequency = timedelta(hours=24)
-        cron_config = utils.cron_config(self.poll_frequency, randomize_seconds=True)
+        cron_config = utils.cron_config(self.poll_frequency, randomize_seconds=self.allow_jitter)
 
         self.scheduler.add_job(self._poll,
                                trigger='cron',
@@ -526,6 +528,11 @@ class OpenADRClient:
                                      'granularity': granularity,
                                      'job': job})
 
+    async def create_single_report(self, report_request):
+        """
+        Create a single report in response to a request from the VTN.
+        """
+
     async def update_report(self, report_request_id):
         """
         Call the previously registered report callback and send the result as a message to the VTN.
@@ -590,13 +597,23 @@ class OpenADRClient:
             expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
             if len(outgoing_report.intervals) == expected_len:
                 logger.info("The report is now complete with all the values. Will queue for sending.")
-                await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
+                if self.allow_jitter:
+                    delay = random.uniform(0, min(30, report_interval / 2))
+                    self.loop.create_task(utils.delayed_call(func=self.pending_reports.put(outgoing_report),
+                                                             delay=delay))
+                else:
+                    await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
             else:
                 logger.debug("The report is not yet complete, will hold until it is.")
                 self.incomplete_reports[report_request_id] = outgoing_report
         else:
             logger.info("Report will be sent now.")
-            await self.pending_reports.put(outgoing_report)
+            if self.allow_jitter:
+                delay = random.uniform(0, min(30, granularity.total_seconds() / 2))
+                self.loop.create_task(utils.delayed_call(func=self.pending_reports.put(outgoing_report),
+                                                         delay=delay))
+            else:
+                await self.pending_reports.put(outgoing_report)
 
     async def cancel_report(self, payload):
         """
@@ -610,7 +627,6 @@ class OpenADRClient:
 
         while True:
             report = await self.pending_reports.get()
-
             service = 'EiReport'
             message = self._create_message('oadrUpdateReport', reports=[report])
 
@@ -769,6 +785,11 @@ class OpenADRClient:
 
         elif response_type == 'oadrUpdateReport':
             await self._on_report(response_payload)
+
+        elif response_type == 'oadrCreateReport':
+            if 'report_requests' in response_payload:
+                for report_request in response_payload['report_requests']:
+                    await self.create_report(report_request)
 
         else:
             logger.warning(f"No handler implemented for incoming message "
