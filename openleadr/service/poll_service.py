@@ -117,8 +117,8 @@ class PollService(VTNService):
             result = self.on_poll(ven_id=payload['ven_id'])
         elif payload['ven_id'] in self.message_queues:
             try:
-                result = self.message_queues[payload['ven_id']].get_nowait()
-            except asyncio.QueueEmpty:
+                result = self.message_queues[payload['ven_id']].popleft()
+            except IndexError:
                 return 'oadrResponse', {}
         else:
             return 'oadrResponse', {}

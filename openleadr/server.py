@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
 from aiohttp import web
 from openleadr.service import EventService, PollService, RegistrationService, ReportService, \
                               OptService, VTNService
@@ -23,6 +22,7 @@ from openleadr import objects
 from openleadr import utils
 from functools import partial
 from datetime import datetime, timedelta, timezone
+from collections import deque
 import logging
 import ssl
 import re
@@ -221,8 +221,8 @@ class OpenADRServer:
                               event_signals=[event_signal],
                               targets=targets)
         if ven_id not in self.message_queues:
-            self.message_queues[ven_id] = asyncio.Queue()
-        self.message_queues[ven_id].put_nowait(event)
+            self.message_queues[ven_id] = deque()
+        self.message_queues[ven_id].append(event)
         self.services['event_service'].pending_events[event_id] = (event, callback)
         return event_id
 
@@ -234,13 +234,8 @@ class OpenADRServer:
                            that contains the event details.
         """
         if ven_id not in self.message_queues:
-            self.message_queues[ven_id] = asyncio.Queue()
-        self.message_queues[ven_id].put_nowait(event)
-
-    async def request_report(self):
-        """
-        Request a report from the client.
-        """
+            self.message_queues[ven_id] = deque()
+        self.message_queues[ven_id].append(event)
 
     def add_handler(self, name, func):
         """

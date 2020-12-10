@@ -169,3 +169,31 @@ async def test_event_status_opt_in_with_ramp_up():
     await client.stop()
     await server.stop()
     await asyncio.sleep(1)
+
+
+@pytest.mark.asyncio
+async def test_request_event():
+    loop = asyncio.get_event_loop()
+    client = OpenADRClient(ven_name='myven',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+
+    server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=datetime.timedelta(seconds=1))
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+
+    event_id = server.add_event(ven_id='ven123',
+                                signal_name='simple',
+                                signal_type='level',
+                                intervals=[{'dtstart': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=4),
+                                            'duration': datetime.timedelta(seconds=2),
+                                            'signal_payload': 1}],
+                                ramp_up_period=datetime.timedelta(seconds=2),
+                                callback=partial(event_callback))
+
+    assert server.services['event_service'].pending_events[event_id][0].event_descriptor.event_status == 'far'
+    await server.run_async()
+    await client.create_party_registration()
+    message_type, message_payload = await client.request_event()
+    assert message_type == 'oadrDistributeEvent'
+    message_type, message_payload = await client.request_event()
+    assert message_type == 'oadrResponse'
+    await server.stop()

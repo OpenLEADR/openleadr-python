@@ -20,6 +20,7 @@ from openleadr import objects, utils, enums
 import logging
 from datetime import datetime, timezone
 from functools import partial
+from dataclasses import asdict
 logger = logging.getLogger('openleadr')
 
 
@@ -38,19 +39,26 @@ class EventService(VTNService):
         """
         The VEN requests us to send any events we have.
         """
-        result = self.on_request_event(payload['ven_id'])
-        if asyncio.iscoroutine(result):
-            result = await result
-        if result is None:
-            return 'oadrDistributeEvent', {'events': []}
-        if isinstance(result, dict):
-            return 'oadrDistributeEvent', {'events': [result]}
-        if isinstance(result, objects.Event):
-            return 'oadrDistributeEvent', {'events': [result]}
-        if isinstance(result, list):
-            return 'oadrDistributeEvent', {'events': result}
+        if self.polling_method == 'external':
+            result = self.on_request_event(ven_id=payload['ven_id'])
+            if asyncio.iscoroutine(result):
+                result = await result
+        elif payload['ven_id'] in self.message_queues:
+            queue = self.message_queues[payload['ven_id']]
+            result = utils.get_next_event_from_deque(queue)
         else:
-            raise TypeError("Event handler should return None, a dict or a list")
+            return 'oadrResponse', {}
+
+        if result is None:
+            return 'oadrResponse', {}
+        if isinstance(result, dict) and 'event_descriptor' in result:
+            return 'oadrDistributeEvent', {'events': [result]}
+        elif isinstance(result, objects.Event):
+            return 'oadrDistributeEvent', {'events': [asdict(result)]}
+
+        logger.warning("Could not determine type of message "
+                       f"in response to oadrRequestEvent: {result}")
+        return 'oadrResponse', result
 
     def on_request_event(self, ven_id):
         """
@@ -125,4 +133,4 @@ class EventService(VTNService):
         event.event_descriptor.event_status = event_status
         if event_status == enums.EVENT_STATUS.CANCELLED:
             event.event_descriptor.modification_number += 1
-        self.message_queues[ven_id].put_nowait(event)
+        self.message_queues[ven_id].append(event)

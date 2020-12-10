@@ -123,6 +123,8 @@ class VTNService:
                 response_type, response_payload = result
                 if is_dataclass(response_payload):
                     response_payload = asdict(response_payload)
+                elif response_payload is None:
+                    response_payload = {}
             else:
                 response_type, response_payload = 'oadrResponse', {}
 
@@ -141,6 +143,7 @@ class VTNService:
                                                                   "A message of type "
                                                                   f"{message_type} should not be "
                                                                   "sent to this endpoint")
+        logger.info(f"Responding to {message_type} with a {response_type} message: {response_payload}.")
         return response_type, response_payload
 
     def error_response(self, message_type, error_code, error_description):

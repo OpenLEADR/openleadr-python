@@ -17,7 +17,7 @@
 from datetime import datetime, timedelta, timezone
 from dataclasses import is_dataclass, asdict
 from collections import OrderedDict
-from openleadr import enums
+from openleadr import enums, objects
 import asyncio
 import itertools
 import re
@@ -664,3 +664,20 @@ def setmember(obj, member, value):
         setattr(obj, member, value)
     else:
         obj[member] = value
+
+
+def get_next_event_from_deque(deque):
+    unused_elements = []
+    event = None
+    for i in range(len(deque)):
+        try:
+            msg = deque.popleft()
+            if isinstance(msg, objects.Event) or (isinstance(msg, dict) and 'event_descriptor' in msg):
+                event = msg
+                break
+            else:
+                unused_elements.append(msg)
+        except IndexError:
+            pass
+    deque.extend(unused_elements)
+    return event
