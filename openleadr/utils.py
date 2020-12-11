@@ -412,10 +412,10 @@ def find_by(dict_or_list, key, value, *args):
             _item = item
         for key, value in search_params:
             if isinstance(value, tuple):
-                if _item[key] not in value:
+                if key not in _item or _item[key] not in value:
                     break
             else:
-                if _item[key] != value:
+                if key not in _item or _item[key] != value:
                     break
         else:
             return item

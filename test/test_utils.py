@@ -231,6 +231,47 @@ def test_validate_report_measurement_dict_invalid_power_attributes(caplog):
     assert str(err.value) == ("The power_attributes of the measurement must contain the "
                               "following keys: 'voltage' (int), 'ac' (bool), 'hertz' (int).")
 
+def test_ungroup_target_by_type_with_single_str():
+    targets_by_type = {'ven_id': 'ven123'}
+    targets = utils.ungroup_targets_by_type(targets_by_type)
+    assert targets == [{'ven_id': 'ven123'}]
+
+def test_find_by_with_dict():
+    search_dict = {'one': {'a': 123, 'b': 456},
+                   'two': {'a': 321, 'b': 654}}
+    result = utils.find_by(search_dict, 'a', 123)
+    assert result == {'a': 123, 'b': 456}
+
+def test_find_by_with_missing_member():
+    search_list = [{'a': 123, 'b': 456},
+                   {'a': 321, 'b': 654, 'c': 1000}]
+    result = utils.find_by(search_list, 'c', 1000)
+    assert result == {'a': 321, 'b': 654, 'c': 1000}
+
+def test_ensure_str():
+    assert utils.ensure_str("Hello") == "Hello"
+    assert utils.ensure_str(b"Hello") == "Hello"
+    assert utils.ensure_str(None) is None
+    with pytest.raises(TypeError) as err:
+        utils.ensure_str(1)
+    assert str(err.value) == "Must be bytes or str"
+
+def test_ensure_bytes():
+    assert utils.ensure_bytes("Hello") == b"Hello"
+    assert utils.ensure_bytes(b"Hello") == b"Hello"
+    assert utils.ensure_bytes(None) is None
+    with pytest.raises(TypeError) as err:
+        utils.ensure_bytes(1)
+    assert str(err.value) == "Must be bytes or str"
+
+def test_booleanformat():
+    assert utils.booleanformat("true") == "true"
+    assert utils.booleanformat("false") == "false"
+    assert utils.booleanformat(True) == "true"
+    assert utils.booleanformat(False) == "false"
+    with pytest.raises(ValueError) as err:
+        assert utils.booleanformat(123)
+    assert str(err.value) == "A boolean value must be provided, not 123."
 
 def test_parse_duration():
     assert utils.parse_duration("PT1M") == timedelta(minutes=1)
