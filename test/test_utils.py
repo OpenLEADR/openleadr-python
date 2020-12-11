@@ -153,6 +153,7 @@ def test_get_event_from_deque():
     assert d.popleft() is msg_one
     assert d.popleft() is msg_two
     assert d.popleft() is msg_three
+    assert len(d) == 0
     assert utils.get_next_event_from_deque(d) is None
 
 

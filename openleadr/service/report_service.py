@@ -68,6 +68,7 @@ class ReportService(VTNService):
         super().__init__(vtn_id)
         self.report_callbacks = {}
         self.message_queues = message_queues
+        self.registered_reports = {}
 
     @handler('oadrRegisterReport')
     async def register_report(self, payload):
@@ -80,6 +81,7 @@ class ReportService(VTNService):
                 'min_sampling_interval' in args, 'max_sampling_interval' in args,
                 'unit' in args, 'scale' in args]):
             for report in payload['reports']:
+                self.registered_reports
                 if report['report_name'] == 'METADATA_TELEMETRY_STATUS':
                     result = [self.on_register_report(ven_id=payload['ven_id'],
                                                       resource_id=rd['report_subject']['resource_id'],
@@ -98,11 +100,16 @@ class ReportService(VTNService):
                                                       min_sampling_interval=rd['sampling_rate']['min_period'],
                                                       max_sampling_interval=rd['sampling_rate']['max_period'])
                               for rd in report['report_descriptions']]
+                elif report['report_name'] in ('METADATA_HISTORY_USAGE', 'METADATA_HISTORY_GREENBUTTON'):
+                    if payload['ven_id'] not in self.available_reports:
+                        self.available_reports[payload['ven_id']] = []
+                    self.registered_reports[payload['ven_id']].append(report)
                 else:
-                    logger.warning("Reports other than TELEMETRY_USAGE and TELEMETRY_STATUS are "
-                                   f"not yet supported. Skipping report {report['report_name']}.")
+                    logger.warning("Reports other than TELEMETRY_USAGE, TELEMETRY_STATUS, "
+                                   "HISTORY_USAGE and HISTORY_GREENBUTTON are not yet supported. "
+                                   f"Skipping report with name {report['report_name']}.")
                     report_requests.append(None)
-                    break
+                    continue
 
                 if iscoroutine(result[0]):
                     result = await gather(*result)
