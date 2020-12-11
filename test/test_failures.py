@@ -53,7 +53,7 @@ async def test_vtn_no_create_party_registration_handler(caplog):
     await asyncio.sleep(0.5)
     await server.stop()
     await client.stop()
-    assert len(caplog.messages) == 2
+    await asyncio.sleep(0)
     assert 'No VEN ID received from the VTN, aborting.' in caplog.messages
     assert ("You should implement and register your own on_create_party_registration "
             "handler if you want VENs to be able to connect to you. This handler will "
