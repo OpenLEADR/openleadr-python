@@ -515,25 +515,25 @@ def validate_report_measurement_dict(measurement):
         required_description = _MEASUREMENT_DESCRIPTIONS[name]
         if description != required_description:
             if description.lower() == required_description.lower():
-                logger.warning(f"The description for the measurement with name {name} "
-                               f"was not in the correct case; you provided {description} but "
-                               f"it should be {required_description}. "
+                logger.warning(f"The description for the measurement with name '{name}' "
+                               f"was not in the correct case; you provided '{description}' but "
+                               f"it should be '{required_description}'. "
                                "This was automatically corrected.")
                 measurement['description'] = required_description
             else:
-                raise ValueError(f"The measurement's description {description} "
+                raise ValueError(f"The measurement's description '{description}' "
                                  f"did not match the expected description for this type "
-                                 f" ({required_description}). Please correct this, or use "
+                                 f" ('{required_description}'). Please correct this, or use "
                                  "'customUnit' as the name.")
         if unit not in _ACCEPTABLE_UNITS[name]:
-            raise ValueError(f"The unit {unit} is not acceptable for measurement {name}. Allowed "
-                             f"units are {_ACCEPTABLE_UNITS[name]}.")
+            raise ValueError(f"The unit '{unit}' is not acceptable for measurement '{name}'. Allowed "
+                             f"units are: '" + "', '".join(_ACCEPTABLE_UNITS[name]) + "'.")
     else:
         if name != 'customUnit':
             logger.warning(f"You provided a measurement with an unknown name {name}. "
                            "This was corrected to 'customUnit'. Please correct this in your "
                            "report definition.")
-            measurement['report_description']['name'] = 'customUnit'
+            measurement['name'] = 'customUnit'
 
     if 'power' in name:
         if 'power_attributes' in measurement:

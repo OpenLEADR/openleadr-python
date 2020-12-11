@@ -157,6 +157,80 @@ def test_get_event_from_deque():
     assert utils.get_next_event_from_deque(d) is None
 
 
+def test_validate_report_measurement_dict_missing_items(caplog):
+    measurement = {'name': 'rainbows'}
+    with pytest.raises(ValueError) as err:
+        utils.validate_report_measurement_dict(measurement)
+    assert str(err.value) == (f"The measurement dict must contain the following keys: "
+                              "'name', 'description', 'unit'. Please correct this.")
+
+def test_validate_report_measurement_dict_invalid_name(caplog):
+    measurement = {'name': 'rainbows',
+                   'unit': 'B',
+                   'description': 'Rainbows'}
+    utils.validate_report_measurement_dict(measurement)
+    assert measurement['name'] == 'customUnit'
+    assert (f"You provided a measurement with an unknown name rainbows. "
+            "This was corrected to 'customUnit'. Please correct this in your "
+            "report definition.") in caplog.messages
+
+
+def test_validate_report_measurement_dict_invalid_unit():
+    with pytest.raises(ValueError) as err:
+        measurement = {'name': 'current',
+                       'unit': 'B',
+                       'description': 'Current'}
+        utils.validate_report_measurement_dict(measurement)
+    assert str(err.value) == (f"The unit 'B' is not acceptable for measurement 'current'. Allowed "
+                              f"units are: 'A'.")
+
+
+def test_validate_report_measurement_dict_invalid_description(caplog):
+    with pytest.raises(ValueError) as err:
+        measurement = {'name': 'current',
+                       'unit': 'A',
+                       'description': 'something'}
+        utils.validate_report_measurement_dict(measurement)
+
+    str(err.value) ==  (f"The measurement's description 'something' "
+                        f"did not match the expected description for this type "
+                        f" ('Current'). Please correct this, or use "
+                        "'customUnit' as the name.")
+
+def test_validate_report_measurement_dict_invalid_description_case(caplog):
+    measurement = {'name': 'current',
+                   'unit': 'A',
+                   'description': 'CURRENT'}
+    utils.validate_report_measurement_dict(measurement)
+    assert measurement['description'] == 'Current'
+
+    assert (f"The description for the measurement with name 'current' "
+            f"was not in the correct case; you provided 'CURRENT' but "
+            f"it should be 'Current'. "
+            "This was automatically corrected.") in caplog.messages
+
+
+def test_validate_report_measurement_dict_missing_power_attributes(caplog):
+    with pytest.raises(ValueError) as err:
+        measurement = {'name': 'powerReal',
+                       'description': 'RealPower',
+                       'unit': 'W'}
+        utils.validate_report_measurement_dict(measurement)
+    assert str(err.value) == ("A 'power' related measurement must contain a "
+                              "'power_attributes' section that contains the following "
+                              "keys: 'voltage' (int), 'ac' (boolean), 'hertz' (int)")
+
+
+def test_validate_report_measurement_dict_invalid_power_attributes(caplog):
+    with pytest.raises(ValueError) as err:
+        measurement = {'name': 'powerReal',
+                       'description': 'RealPower',
+                       'unit': 'W',
+                       'power_attributes': {'a': 123}}
+        utils.validate_report_measurement_dict(measurement)
+    assert str(err.value) == ("The power_attributes of the measurement must contain the "
+                              "following keys: 'voltage' (int), 'ac' (bool), 'hertz' (int).")
+
 
 def test_parse_duration():
     assert utils.parse_duration("PT1M") == timedelta(minutes=1)
