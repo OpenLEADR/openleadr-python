@@ -267,27 +267,25 @@ def parse_duration(value):
     """
     Parse a RFC5545 duration.
     """
-    # TODO: implement the full regex:
-    # matches = re.match(r'(\+|\-)?P((\d+Y)?(\d+M)?(\d+D)?T?(\d+H)?(\d+M)?(\d+S)?)|(\d+W)', value)
     if isinstance(value, timedelta):
         return value
-    matches = re.match(r'P(\d+(?:D|W))?T?(\d+H)?(\d+M)?(\d+S)?', value)
+    regex = r'(\+|\-)?P(?:(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)|(?:(\d+)W)'
+    matches = re.match(regex, value)
     if not matches:
-        return False
-    days = hours = minutes = seconds = 0
-    _days, _hours, _minutes, _seconds = matches.groups()
-    if _days:
-        if _days.endswith("D"):
-            days = int(_days[:-1])
-        elif _days.endswith("W"):
-            days = int(_days[:-1]) * 7
-    if _hours:
-        hours = int(_hours[:-1])
-    if _minutes:
-        minutes = int(_minutes[:-1])
-    if _seconds:
-        seconds = int(_seconds[:-1])
-    return timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        raise ValueError(f"The duration '{value}' did not match the requested format")
+    years, months, days, hours, minutes, seconds, weeks = (int(g) if g else 0 for g in matches.groups()[1:])
+    if years != 0:
+        logger.warning("Received a duration that specifies years, which is not a determinate duration. "
+                       "It will be interpreted as 1 year = 365 days.")
+        days = days + 365 * years
+    if months != 0:
+        logger.warning("Received a duration that specifies months, which is not a determinate duration "
+                       "It will be interpreted as 1 month = 30 days.")
+        days = days + 30 * months
+    duration = timedelta(weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds)
+    if matches.groups()[0] == "-":
+        duration = -1 * duration
+    return duration
 
 
 def parse_boolean(value):

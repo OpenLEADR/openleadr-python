@@ -157,3 +157,15 @@ def test_get_event_from_deque():
     assert utils.get_next_event_from_deque(d) is None
 
 
+
+def test_parse_duration():
+    assert utils.parse_duration("PT1M") == timedelta(minutes=1)
+    assert utils.parse_duration("PT1M5S") == timedelta(minutes=1, seconds=5)
+    assert utils.parse_duration("PT1H5M10S") == timedelta(hours=1, minutes=5, seconds=10)
+    assert utils.parse_duration("P1DT1H5M10S") == timedelta(days=1, hours=1, minutes=5, seconds=10)
+    assert utils.parse_duration("P1M") == timedelta(days=30)
+    assert utils.parse_duration("-P1M") == timedelta(days=-30)
+    assert utils.parse_duration("2W") == timedelta(days=14)
+    with pytest.raises(ValueError) as err:
+        utils.parse_duration("Hello")
+    assert str(err.value) == f"The duration 'Hello' did not match the requested format"
