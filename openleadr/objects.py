@@ -92,7 +92,7 @@ class Target:
 
 @dataclass
 class EventDescriptor:
-    event_id: int
+    event_id: str
     modification_number: int
     market_context: str
     event_status: str

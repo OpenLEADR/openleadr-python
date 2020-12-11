@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from openleadr.utils import generate_id, indent_xml, ensure_bytes
+from openleadr.utils import generate_id, ensure_bytes
 from openleadr.messaging import create_message, validate_xml_schema
 from openleadr import enums
 from lxml import etree

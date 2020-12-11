@@ -19,7 +19,6 @@ from dataclasses import is_dataclass, asdict
 from collections import OrderedDict
 from openleadr import enums, objects
 import asyncio
-import itertools
 import re
 import ssl
 import hashlib
@@ -37,24 +36,6 @@ def generate_id(*args, **kwargs):
     Generate a string that can be used as an identifier in OpenADR messages.
     """
     return str(uuid.uuid4())
-
-
-def indent_xml(message):
-    """
-    Indents the XML in a nice way.
-    """
-    INDENT_SIZE = 2
-    lines = [line.strip() for line in message.split("\n") if line.strip() != ""]
-    indent = 0
-    for i, line in enumerate(lines):
-        if i == 0:
-            continue
-        if re.search(r'^</[^>]+>$', line):
-            indent = indent - INDENT_SIZE
-        lines[i] = " " * indent + line
-        if not (re.search(r'</[^>]+>$', line) or line.endswith("/>")):
-            indent = indent + INDENT_SIZE
-    return "\n".join(lines)
 
 
 def flatten_xml(message):
@@ -316,18 +297,6 @@ def parse_boolean(value):
         return False
 
 
-def peek(iterable):
-    """
-    Peek into an iterable.
-    """
-    try:
-        first = next(iterable)
-    except StopIteration:
-        return None
-    else:
-        return itertools.chain([first], iterable)
-
-
 def datetimeformat(value, format=DATETIME_FORMAT):
     """
     Format a given datetime as a UTC ISO3339 string.
@@ -505,13 +474,6 @@ def get_cert_fingerprint_from_request(request):
         der_bytes = ssl_object.getpeercert(binary_form=True)
         if der_bytes:
             return certificate_fingerprint_from_der(der_bytes)
-
-
-def get_certificate_common_name(request):
-    cert = request.transport.get_extra_info('peercert')
-    if cert:
-        subject = dict(x[0] for x in cert['subject'])
-        return subject.get('commonName')
 
 
 def group_targets_by_type(list_of_targets):
