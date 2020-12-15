@@ -743,7 +743,7 @@ class OpenADRClient:
                 else:
                     self.responded_events[event_id] = result
             for i, result in enumerate(results):
-                if result not in ('optIn', 'optOut'):
+                if result not in ('optIn', 'optOut') and events[i]['response_required'] == 'always':
                     logger.error("Your on_event or on_update_event handler must return 'optIn' or 'optOut'; "
                                  f"you supplied {result}. Please fix your on_event handler.")
                     results[i] = 'optOut'
@@ -752,29 +752,27 @@ class OpenADRClient:
                          f"The error was {err.__class__.__name__}: {str(err)}")
             results = ['optOut'] * len(events)
 
-        if len(events) == 1:
-            logger.debug(f"Now responding with {results[0]}")
-        else:
-            logger.debug(f"Responding to multiple events: {results}.")
-
         event_responses = [{'response_code': 200,
                             'response_description': 'OK',
                             'opt_type': results[i],
                             'request_id': message['request_id'],
                             'modification_number': 1,
                             'event_id': events[i]['event_descriptor']['event_id']}
-                           for i, event in enumerate(events)]
+                           for i, event in enumerate(events) if event['response_required'] == 'always']
 
-        response = {'response_code': 200,
-                    'response_description': 'OK',
-                    'request_id': message['request_id']}
-        message = self._create_message('oadrCreatedEvent',
-                                       response=response,
-                                       event_responses=event_responses,
-                                       ven_id=self.ven_id)
-        service = 'EiEvent'
-        response_type, response_payload = await self._perform_request(service, message)
-        logger.info(response_type, response_payload)
+        if len(event_responses) > 0:
+            response = {'response_code': 200,
+                        'response_description': 'OK',
+                        'request_id': message['request_id']}
+            message = self._create_message('oadrCreatedEvent',
+                                           response=response,
+                                           event_responses=event_responses,
+                                           ven_id=self.ven_id)
+            service = 'EiEvent'
+            response_type, response_payload = await self._perform_request(service, message)
+            logger.info(response_type, response_payload)
+        else:
+            logger.info("Not sending any event responses, because a response was not required/allowed by the VTN.")
 
     async def _poll(self):
         logger.debug("Now polling for new messages")
