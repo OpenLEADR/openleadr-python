@@ -196,6 +196,7 @@ class Event:
     targets: List[Target] = None
     targets_by_type: Dict = None
     active_period: ActivePeriod = None
+    response_required: str = 'always'
 
     def __post_init__(self):
         if self.active_period is None:

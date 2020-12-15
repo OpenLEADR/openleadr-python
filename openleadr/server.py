@@ -222,14 +222,12 @@ class OpenADRServer:
         event = objects.Event(active_period=active_period,
                               event_descriptor=event_descriptor,
                               event_signals=[event_signal],
-                              targets=targets)
-        if ven_id not in self.message_queues:
-            self.message_queues[ven_id] = deque()
-        self.message_queues[ven_id].append(event)
-        self.services['event_service'].pending_events[event_id] = (event, callback)
+                              targets=targets,
+                              response_required=response_required)
+        self.add_raw_event(ven_id=ven_id, event=event, callback=callback)
         return event_id
 
-    def add_raw_event(self, ven_id, event, callback):
+    def add_raw_event(self, ven_id, event, callback=None):
         """
         Add a new event to the queue for a specific VEN.
         :param str ven_id: The ven_id to which this event should be distributed.
@@ -238,11 +236,19 @@ class OpenADRServer:
         :param callable callback: A callback that will receive the opt status for this event.
                                   This callback receives ven_id, event_id, opt_type as its arguments.
         """
+        if utils.getmember(event, 'response_required') == 'always':
+            if callback is None:
+                logger.warning("You did not provide a 'callback', which means you won't know if the "
+                               "VEN will opt in or opt out of your event. You should consider adding "
+                               "a callback for this.")
         if ven_id not in self.message_queues:
             self.message_queues[ven_id] = deque()
         event_id = utils.getmember(utils.getmember(event, 'event_descriptor'), 'event_id')
         self.message_queues[ven_id].append(event)
-        self.services['event_service'].pending_events[event_id] = (event, callback)
+        if callback is not None:
+            self.services['event_service'].pending_events[event_id] = (event, callback)
+        if utils.getmember(event, 'response_required') == 'never':
+            self.services['event_service'].schedule_event_updates(ven_id, event)
         return event_id
 
     def add_handler(self, name, func):
