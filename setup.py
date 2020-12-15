@@ -15,16 +15,12 @@
 # limitations under the License.
 
 from setuptools import setup
-import os
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION')) as file:
-    VERSION = file.read().strip()
-
 setup(name='openleadr',
-      version=VERSION,
+      version='0.5.14',
       description='Python library for dealing with OpenADR',
       long_description=long_description,
       long_description_content_type='text/markdown',
