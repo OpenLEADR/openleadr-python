@@ -261,10 +261,7 @@ def parse_datetime(value):
         if micro is None:
             micro = 0
         else:
-            if len(micro) == 6:
-                micro = int(micro)
-            else:
-                micro = int(micro + "0" * (6 - len(micro)))
+            micro = int(micro + "0" * (6 - len(micro)))
         return datetime(year, month, day, hour, minute, second, micro, tzinfo=timezone.utc)
     else:
         logger.warning(f"parse_datetime: {value} did not match format")
