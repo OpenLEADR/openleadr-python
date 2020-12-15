@@ -81,10 +81,9 @@ class ReportService(VTNService):
                 'min_sampling_interval' in args, 'max_sampling_interval' in args,
                 'unit' in args, 'scale' in args]):
             for report in payload['reports']:
-                self.registered_reports
                 if report['report_name'] == 'METADATA_TELEMETRY_STATUS':
                     result = [self.on_register_report(ven_id=payload['ven_id'],
-                                                      resource_id=rd['report_subject']['resource_id'],
+                                                      resource_id=rd.get('report_subject', {}).get('resource_id'),
                                                       measurement='Status',
                                                       unit=None,
                                                       scale=None,
@@ -93,7 +92,7 @@ class ReportService(VTNService):
                               for rd in report['report_descriptions']]
                 elif report['report_name'] == 'METADATA_TELEMETRY_USAGE':
                     result = [self.on_register_report(ven_id=payload['ven_id'],
-                                                      resource_id=rd['report_subject']['resource_id'],
+                                                      resource_id=rd.get('report_subject', {}).get('resource_id'),
                                                       measurement=rd['measurement']['description'],
                                                       unit=rd['measurement']['unit'],
                                                       scale=rd['measurement']['scale'],
