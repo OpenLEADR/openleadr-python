@@ -508,7 +508,165 @@ def test_add_report_non_standard_measurement():
     assert client.reports[0].report_descriptions[0].measurement.description == 'rainbows'
 
 
-async def test_report_registration_broken_handlers(caplog):
+@pytest.mark.asyncio
+async def test_different_on_register_report_handlers(caplog):
+    def on_create_party_registration(registration_info):
+        return 'ven123', 'reg123'
+
+    def get_value():
+        return 123.456
+
+    def report_callback(data):
+        pass
+
+    def on_register_report_returning_none(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval):
+        return None
+
+    def on_register_report_returning_string(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval):
+        return "Hello There"
+
+    def on_register_report_returning_uncallable_first_element(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval):
+        return ("Hello", "There")
+
+    def on_register_report_returning_non_datetime_second_element(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval):
+        return (report_callback, "Hello There")
+
+    def on_register_report_returning_non_datetime_third_element(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval):
+        return (report_callback, timedelta(minutes=10), "Hello There")
+
+    def on_register_report_returning_too_long_tuple(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval):
+        return (report_callback, timedelta(minutes=10), timedelta(minutes=10), "Hello")
+
+    def on_register_report_full_returning_string(report):
+        return "Hello There"
+
+    def on_register_report_full_returning_list_of_strings(report):
+        return ["Hello", "There"]
+
+    def on_register_report_full_returning_list_of_tuples_of_wrong_length(report):
+        return [("Hello", "There")]
+
+    def on_register_report_full_returning_list_of_tuples_with_no_callable(report):
+        return [("Hello", "There", "World")]
+
+    def on_register_report_full_returning_list_of_tuples_with_no_timedelta(report):
+        return [(report_callback, "Hello There")]
+
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+
+    client = OpenADRClient(ven_name='myven',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    client.add_report(resource_id='Device001',
+                      measurement='voltage',
+                      sampling_rate=timedelta(minutes=10),
+                      callback=get_value)
+
+    await server.run()
+    await client.create_party_registration()
+    assert client.ven_id == 'ven123'
+
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    messages = [rec.message for rec in caplog.records if rec.levelno == logging.ERROR]
+    assert len(messages) == 0
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_returning_none)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    messages = [rec.message for rec in caplog.records if rec.levelno == logging.ERROR]
+    assert len(messages) == 0
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_returning_string)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert "Your on_register_report handler must return a tuple; it returned 'Hello There' (str)." in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_returning_uncallable_first_element)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert(f"Your on_register_report handler did not return the correct tuple. "
+           "It should return a (callback, sampling_interval) or "
+           "(callback, sampling_interval, reporting_interval) tuple, where "
+           "the callback is a callable function or coroutine, and "
+           "sampling_interval and reporting_interval are of type datetime.timedelta. "
+           "It returned: '('Hello', 'There')'. The first element was not callable.") in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_returning_non_datetime_second_element)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert (f"Your on_register_report handler did not return the correct tuple. "
+            "It should return a (callback, sampling_interval) or "
+            "(callback, sampling_interval, reporting_interval) tuple, where "
+            "sampling_interval and reporting_interval are of type datetime.timedelta. "
+            f"It returned: '{(report_callback, 'Hello There')}'. The second element was not of type timedelta.") in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_returning_non_datetime_third_element)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert ("Your on_register_report handler did not return the correct tuple. "
+            "It should return a (callback, sampling_interval) or "
+            "(callback, sampling_interval, reporting_interval) tuple, where "
+            "sampling_interval and reporting_interval are of type datetime.timedelta. "
+            f"It returned: '{(report_callback, timedelta(minutes=10), 'Hello There')}'. The third element was not of type timedelta.") in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_returning_too_long_tuple)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert ("Your on_register_report handler returned a tuple of the wrong length. "
+            "It should be 2 or 3. "
+            f"It returned: '{(report_callback, timedelta(minutes=10), timedelta(minutes=10), 'Hello')}'.") in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_full_returning_string)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert "Your on_register_report handler must return a list of tuples. It returned 'Hello There' (str)." in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_full_returning_list_of_strings)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert ("Your on_register_report handler did not return a list of tuples. "
+            f"The first item from the list was 'Hello' (str).") in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_full_returning_list_of_tuples_of_wrong_length)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert ("Your on_register_report handler returned tuples of the wrong length. "
+            "It should be 3 or 4. It returned: '('Hello', 'There')'.") in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_full_returning_list_of_tuples_with_no_callable)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert ("Your on_register_report handler did not return the correct tuple. "
+            "It should return a list of (r_id, callback, sampling_interval) or "
+            "(r_id, callback, sampling_interval, reporting_interval) tuples, "
+            "where the r_id is a string, callback is a callable function or "
+            "coroutine, and sampling_interval and reporting_interval are of "
+            "type datetime.timedelta. It returned: '('Hello', 'There', 'World')'. "
+            "The second element was not callable.") in caplog.messages
+    caplog.clear()
+
+    server.add_handler('on_register_report', on_register_report_full_returning_list_of_tuples_with_no_timedelta)
+    await client.register_reports(client.reports)
+    assert len(client.report_requests) == 0
+    assert ("Your on_register_report handler returned tuples of the wrong length. "
+            f"It should be 3 or 4. It returned: '({report_callback}, 'Hello There')'.") in caplog.messages
+    await server.stop()
+    await client.stop()
+
+
+@pytest.mark.asyncio
+async def test_report_registration_broken_handlers_raw_message(caplog):
     msg = """<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <p1:oadrPayload xmlns:p1="http://openadr.org/oadr-2.0b/2012/07">
   <p1:oadrSignedObject>
@@ -630,6 +788,3 @@ async def test_report_registration_broken_handlers(caplog):
     assert f"Your on_register_report handler must return a list of tuples. It returned 'Hello There Again' (str)." in caplog.messages
 
     await server.stop()
-
-if __name__ == "__main__":
-    asyncio.run(test_update_reports())

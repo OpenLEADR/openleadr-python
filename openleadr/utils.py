@@ -647,7 +647,8 @@ def get_next_event_from_deque(deque):
     deque.extend(unused_elements)
     return event
 
-def validate_report_request_tuples(list_of_report_requests):
+
+def validate_report_request_tuples(list_of_report_requests, full_mode=False):
     if len(list_of_report_requests) == 0:
         return
     for report_requests in list_of_report_requests:
@@ -660,37 +661,69 @@ def validate_report_request_tuples(list_of_report_requests):
             # Check if it is a tuple
             elif not isinstance(rrq, tuple):
                 report_requests[i] = None
-                logger.error(f"Your on_register_report did not return a tuple. It returned '{rrq}'.")
+                if full_mode:
+                    logger.error("Your on_register_report handler did not return a list of tuples. "
+                                 f"The first item from the list was '{rrq}' ({rrq.__class__.__name__}).")
+                else:
+                    logger.error("Your on_register_report handler did not return a tuple. "
+                                 f"It returned '{rrq}'. Please see the documentation for the correct format.")
 
             # Check if it has the correct length
             elif not len(rrq) in (3, 4):
                 report_requests[i] = None
-                logger.error("Your on_register_report returned a tuple of the wrong length. "
-                             f"It should be 2 or 3. It returned '{rrq}'.")
+                if full_mode:
+                    logger.error("Your on_register_report handler returned tuples of the wrong length. "
+                                 f"It should be 3 or 4. It returned: '{rrq}'.")
+                else:
+                    logger.error("Your on_register_report handler returned a tuple of the wrong length. "
+                                 f"It should be 2 or 3. It returned: '{rrq[1:]}'.")
 
             # Check if the first element is callable
             elif not callable(rrq[1]):
                 report_requests[i] = None
-                logger.error(f"Your on_register_report did not return the correct tuple. "
-                             "It should return a (callback, sampling_interval) or "
-                             "(callback, sampling_interval, reporting_interval) tuple, where "
-                             "sampling_interval and reporting_interval are of type datetime.timedelta. "
-                             f"It returned: '{rrq}'. The first element was not callable.")
+                if full_mode:
+                    logger.error(f"Your on_register_report handler did not return the correct tuple. "
+                                 "It should return a list of (r_id, callback, sampling_interval) or "
+                                 "(r_id, callback, sampling_interval, reporting_interval) tuples, where "
+                                 "the r_id is a string, callback is a callable function or coroutine, and "
+                                 "sampling_interval and reporting_interval are of type datetime.timedelta. "
+                                 f"It returned: '{rrq}'. The second element was not callable.")
+                else:
+                    logger.error(f"Your on_register_report handler did not return the correct tuple. "
+                                 "It should return a (callback, sampling_interval) or "
+                                 "(callback, sampling_interval, reporting_interval) tuple, where "
+                                 "the callback is a callable function or coroutine, and "
+                                 "sampling_interval and reporting_interval are of type datetime.timedelta. "
+                                 f"It returned: '{rrq[1:]}'. The first element was not callable.")
 
             # Check if the second element is a timedelta
             elif not isinstance(rrq[2], timedelta):
                 report_requests[i] = None
-                logger.error(f"Your on_register_report did not return the correct tuple. "
-                             "It should return a (callback, sampling_interval) or "
-                             "(callback, sampling_interval, reporting_interval) tuple, where "
-                             "sampling_interval and reporting_interval are of type datetime.timedelta. "
-                             f"It returned: '{rrq}'. The second element was not of type timedelta.")
+                if full_mode:
+                    logger.error(f"Your on_register_report handler did not return the correct tuple. "
+                                 "It should return a list of (r_id, callback, sampling_interval) or "
+                                 "(r_id, callback, sampling_interval, reporting_interval) tuples, where "
+                                 "sampling_interval and reporting_interval are of type datetime.timedelta. "
+                                 f"It returned: '{rrq}'. The third element was not of type timedelta.")
+                else:
+                    logger.error(f"Your on_register_report handler did not return the correct tuple. "
+                                 "It should return a (callback, sampling_interval) or "
+                                 "(callback, sampling_interval, reporting_interval) tuple, where "
+                                 "sampling_interval and reporting_interval are of type datetime.timedelta. "
+                                 f"It returned: '{rrq[1:]}'. The second element was not of type timedelta.")
 
             # Check if the third element is a timedelta (if it exists)
             elif len(rrq) == 4 and not isinstance(rrq[3], timedelta):
                 report_requests[i] = None
-                logger.error(f"Your on_register_report did not return the correct tuple. "
-                             "It should return a (callback, sampling_interval) or "
-                             "(callback, sampling_interval, reporting_interval) tuple, where "
-                             "sampling_interval and reporting_interval are of type datetime.timedelta. "
-                             f"It returned: '{rrq}'. The third element was not of type timedelta.")
+                if full_mode:
+                    logger.error(f"Your on_register_report handler did not return the correct tuple. "
+                                 "It should return a list of (r_id, callback, sampling_interval) or "
+                                 "(r_id, callback, sampling_interval, reporting_interval) tuples, where "
+                                 "sampling_interval and reporting_interval are of type datetime.timedelta. "
+                                 f"It returned: '{rrq}'. The fourth element was not of type timedelta.")
+                else:
+                    logger.error(f"Your on_register_report handler did not return the correct tuple. "
+                                 "It should return a (callback, sampling_interval) or "
+                                 "(callback, sampling_interval, reporting_interval) tuple, where "
+                                 "sampling_interval and reporting_interval are of type datetime.timedelta. "
+                                 f"It returned: '{rrq[1:]}'. The third element was not of type timedelta.")

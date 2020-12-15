@@ -112,30 +112,37 @@ class ReportService(VTNService):
                 if iscoroutine(result[0]):
                     result = await gather(*result)
                 for i, r in enumerate(result):
+                    if r is None:
+                        continue
                     if not isinstance(r, tuple):
-                        logger.error(f"Your on_register_report handler must return a tuple; it returned '{r}' ({r.__class__.__name__}).")
+                        logger.error("Your on_register_report handler must return a tuple; "
+                                     f"it returned '{r}' ({r.__class__.__name__}).")
                         result[i] = None
                 result = [(report['report_descriptions'][i]['r_id'], *result[i])
                           for i in range(len(report['report_descriptions'])) if isinstance(result[i], tuple)]
                 report_requests.append(result)
+            utils.validate_report_request_tuples(report_requests)
         else:
             # Use the 'full' mode for openADR reporting
             result = [self.on_register_report(report) for report in payload['reports']]
             if iscoroutine(result[0]):
                 result = await gather(*result)      # Now we have r_id, callback, sampling_rate
             for i, r in enumerate(result):
+                if r is None:
+                    continue
                 if not isinstance(r, list):
-                    logger.error(f"Your on_register_report handler must return a list of tuples. It returned '{r}' ({r.__class__.__name__}).")
+                    logger.error("Your on_register_report handler must return a list of tuples. "
+                                 f"It returned '{r}' ({r.__class__.__name__}).")
                     result[i] = None
             report_requests = result
+            utils.validate_report_request_tuples(report_requests, full_mode=True)
 
-        # Validate the report requests for being of the proper type and lengs
-        utils.validate_report_request_tuples(report_requests)
+
         for i, report_request in enumerate(report_requests):
-            if report_request is None or len(report_request) == 0:
+            if report_request is None or len(report_request) == 0 or all(rrq is None for rrq in report_request):
                 continue
             # Check if all sampling rates per report_request are the same
-            sampling_interval = min(rrq[2] for rrq in report_request if rrq is not None)
+            sampling_interval = min(rrq[2] for rrq in report_request if isinstance(rrq, tuple))
             if not all(rrq is not None and report_request[0][2] == sampling_interval for rrq in report_request):
                 logger.error("OpenADR does not support multiple different sampling rates per "
                              "report. OpenLEADR will set all sampling rates to "
@@ -144,7 +151,7 @@ class ReportService(VTNService):
         # Form the report request
         oadr_report_requests = []
         for i, report_request in enumerate(report_requests):
-            if report_request is None or len(report_request) == 0:
+            if report_request is None or len(report_request) == 0 or all(rrq is None for rrq in report_request):
                 continue
 
             orig_report = payload['reports'][i]
