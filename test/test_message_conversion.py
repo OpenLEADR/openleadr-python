@@ -21,7 +21,10 @@ from pprint import pprint
 from termcolor import colored
 from datetime import datetime, timezone, timedelta
 import pytest
+from pprint import pprint, pformat
+from lxml import etree
 from dataclasses import asdict
+import re
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -280,8 +283,34 @@ testcases = [
 
 @pytest.mark.parametrize('message_type,data', testcases)
 def test_message(message_type, data):
+    # file = open('representations.rst', 'a')
+    # print(f".. _{message_type}:", file=file)
+    # print("", file=file)
+    # print(message_type, file=file)
+    # print("="*len(message_type), file=file)
+    # print("", file=file)
+    # print("OpenADR payload:", file=file)
+    # print("", file=file)
+    # print(".. code-block:: xml", file=file)
+    # print("    ", file=file)
     message = create_message(message_type, **data)
+    # message = re.sub(r"\s\s+","",message)
+    # message = message.replace("\n","")
+    # xml_lines = etree.tostring(etree.fromstring(message.replace('\n', '').encode('utf-8')), pretty_print=True).decode('utf-8').splitlines()
+    # for line in xml_lines:
+    #      print("    " + line, file=file)
+    # print("", file=file)
+    # print("OpenLEADR representation:", file=file)
+    # print("    ", file=file)
+    # print(".. code-block:: python3", file=file)
+    # print("    ", file=file)
+    validate_xml_schema(message)
     parsed = parse_message(message)[1]
+    # dict_lines = pformat(parsed).splitlines()
+    # for line in dict_lines:
+    #     print("    " + line, file=file)
+    # print("", file=file)
+    # print("", file=file)
     if message_type == 'oadrRegisterReport':
         for report in data['reports']:
             for rd in report['report_descriptions']:

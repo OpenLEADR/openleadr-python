@@ -46,7 +46,7 @@ async def test_ssl_certificates():
     server.add_handler('on_create_party_registration', partial(on_create_party_registration,
                                                                future=registration_future))
     await server.run_async()
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
     # Run the client
     client = OpenADRClient(ven_name='myven',
                            vtn_url='https://localhost:8080/OpenADR2/Simple/2.0b',
@@ -62,7 +62,7 @@ async def test_ssl_certificates():
 
     await client.stop()
     await server.stop()
-    await asyncio.sleep(0)
+    #await asyncio.sleep(0)
 
 @pytest.mark.asyncio
 async def test_ssl_certificates_wrong_cert():
@@ -78,7 +78,7 @@ async def test_ssl_certificates_wrong_cert():
     server.add_handler('on_create_party_registration', partial(on_create_party_registration,
                                                                future=registration_future))
     await server.run_async()
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
 
     # Run the client
     client = OpenADRClient(ven_name='myven',

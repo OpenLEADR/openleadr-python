@@ -54,9 +54,9 @@ async def test_internal_message_queue():
                      callback=partial(event_callback, future=event_callback_future))
 
     await server.run_async()
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
     await client.run()
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
     status = await event_callback_future
     assert status == 'optIn'
 
@@ -66,7 +66,7 @@ async def test_internal_message_queue():
     message_type, message_payload = await asyncio.wait_for(client.poll(), 0.5)
     assert message_type == 'oadrResponse'
 
-    await asyncio.sleep(1)  # Wait for the event to be completed
+    #await asyncio.sleep(1)  # Wait for the event to be completed
     await client.stop()
     await server.stop()
 
@@ -95,7 +95,7 @@ async def test_event_status_opt_in():
 
     assert server.services['event_service'].pending_events[event_id][0].event_descriptor.event_status == 'far'
     await server.run_async()
-    await asyncio.sleep(0.5)
+    #await asyncio.sleep(0.5)
     await client.run()
 
     await event_callback_future
@@ -117,7 +117,7 @@ async def test_event_status_opt_in():
 
     await client.stop()
     await server.stop()
-    await asyncio.sleep(0)
+    #await asyncio.sleep(0)
 
 @pytest.mark.asyncio
 async def test_event_status_opt_in_with_ramp_up():
@@ -144,7 +144,7 @@ async def test_event_status_opt_in_with_ramp_up():
 
     assert server.services['event_service'].pending_events[event_id][0].event_descriptor.event_status == 'far'
     await server.run_async()
-    await asyncio.sleep(0.5)
+    #await asyncio.sleep(0.5)
     await client.run()
 
     await event_callback_future
@@ -164,11 +164,11 @@ async def test_event_status_opt_in_with_ramp_up():
     print("Watiting for event future 4")
     result = await event_update_futures[2]
     assert result['event_descriptor']['event_status'] == 'completed'
-    await asyncio.sleep(0.5)
+    #await asyncio.sleep(0.5)
 
     await client.stop()
     await server.stop()
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
 
 
 @pytest.mark.asyncio

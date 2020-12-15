@@ -115,7 +115,7 @@ async def test_report_registration():
                       unit='V')
 
     asyncio.create_task(server.run_async())
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
     # Register the client
     await client.create_party_registration()
 
@@ -171,7 +171,7 @@ async def test_report_registration_with_status_report():
                       resource_id='Device001')
 
     asyncio.create_task(server.run_async())
-    await asyncio.sleep(1)
+    # await asyncio.sleep(1)
     # Register the client
     await client.create_party_registration()
 
@@ -222,7 +222,7 @@ async def test_report_registration_full():
 
 
     await server.run_async()
-    await asyncio.sleep(0.1)
+    # await asyncio.sleep(0.1)
     # Register the client
     await client.create_party_registration()
 
@@ -294,7 +294,7 @@ async def test_update_reports():
 
     assert len(client.reports) == 2
     asyncio.create_task(server.run_async())
-    await asyncio.sleep(1)
+    # await asyncio.sleep(1)
 
     # Run the client asynchronously
     print("Running the client")
@@ -364,7 +364,7 @@ async def test_incremental_reports():
                        partial(on_create_party_registration, future=party_future))
 
     loop.create_task(server.run_async())
-    await asyncio.sleep(1)
+    # await asyncio.sleep(1)
     await client.run()
     print("Awaiting party future")
     await party_future
@@ -376,7 +376,7 @@ async def test_incremental_reports():
     await collect_futures[0]
     print("check")
 
-    await asyncio.sleep(1)
+    # await asyncio.sleep(1)
     print("Checking that the report was not yet sent... ", end="")
     assert update_report_future.done() is False
     print("check")
@@ -390,7 +390,7 @@ async def test_incremental_reports():
 
     await server.stop()
     await client.stop()
-    await asyncio.sleep(0)
+    # await asyncio.sleep(0)
 
 
 
@@ -428,18 +428,18 @@ async def test_update_report_data_collection_mode_full():
                                                      receive_futures=[report_received_future]))
 
     await server.run_async()
-    await asyncio.sleep(0.1)
+    # await asyncio.sleep(0.1)
 
     print(f"The time is now {datetime.now()}")
     t = time.time()
     wait_for = int(t/2) * 2 + 2 - t
-    await asyncio.sleep(wait_for)
+    # await asyncio.sleep(wait_for)
     print(f"The time is now {datetime.now()}, running client")
     await client.run()
 
     await party_registration_future
     await report_register_future
-    await asyncio.sleep(1)
+    # await asyncio.sleep(1)
     print(f"The time is now {datetime.now()}, checking if report was triggered")
     assert data_collection_future.done() is False
 

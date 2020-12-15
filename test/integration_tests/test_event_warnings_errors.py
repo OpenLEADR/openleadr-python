@@ -34,7 +34,7 @@ async def test_client_no_event_handler(caplog):
     server.add_handler('on_create_party_registration', on_create_party_registration)
     print("Running server")
     await server.run_async()
-    await asyncio.sleep(0.1)
+    # await asyncio.sleep(0.1)
     print("Running client")
     await client.run()
 
@@ -72,7 +72,7 @@ async def test_client_faulty_event_handler(caplog):
     server.add_handler('on_create_party_registration', on_create_party_registration)
     print("Running server")
     await server.run_async()
-    await asyncio.sleep(0.1)
+    # await asyncio.sleep(0.1)
     print("Running client")
     await client.run()
 
@@ -109,7 +109,7 @@ async def test_client_exception_event_handler(caplog):
     server.add_handler('on_create_party_registration', on_create_party_registration)
     print("Running server")
     await server.run_async()
-    await asyncio.sleep(0.1)
+    # await asyncio.sleep(0.1)
     print("Running client")
     await client.run()
 
@@ -148,7 +148,7 @@ async def test_client_good_event_handler(caplog):
     server.add_handler('on_create_party_registration', on_create_party_registration)
     print("Running server")
     await server.run_async()
-    await asyncio.sleep(0.1)
+    # await asyncio.sleep(0.1)
     print("Running client")
     await client.run()
 
@@ -170,7 +170,7 @@ async def test_client_good_event_handler(caplog):
     assert len(caplog.records) == 0
     await client.stop()
     await server.stop()
-    await asyncio.sleep(1)
+    # await asyncio.sleep(1)
 
 @pytest.mark.asyncio
 async def test_server_warning_conflicting_poll_methods(caplog):
@@ -321,7 +321,7 @@ async def test_client_warning_no_update_event_handler(caplog):
                            vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
     client.add_handler('on_event', good_on_event)
     await server.run_async()
-    await asyncio.sleep(0.5)
+    # await asyncio.sleep(0.5)
     await client.run()
     await asyncio.sleep(2)
     assert ("You should implement your own on_update_event handler. This handler receives "

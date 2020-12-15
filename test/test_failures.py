@@ -50,10 +50,10 @@ async def test_vtn_no_create_party_registration_handler(caplog):
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
     await server.run_async()
     await client.run()
-    await asyncio.sleep(0.5)
+    #await asyncio.sleep(0.5)
     await server.stop()
     await client.stop()
-    await asyncio.sleep(0)
+    #await asyncio.sleep(0)
     assert 'No VEN ID received from the VTN, aborting.' in caplog.messages
     assert ("You should implement and register your own on_create_party_registration "
             "handler if you want VENs to be able to connect to you. This handler will "
@@ -94,7 +94,7 @@ async def test_server_handler_exception(caplog):
     client = OpenADRClient(ven_name='myven',
                            vtn_url=f'http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b')
     await client.run()
-    await asyncio.sleep(0.5)
+    #await asyncio.sleep(0.5)
     await client.stop()
     await server.stop()
     for message in caplog.messages:
@@ -116,7 +116,7 @@ async def test_throw_protocol_error(caplog):
     client = OpenADRClient(ven_name='myven',
                            vtn_url=f'http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b')
     await client.run()
-    await asyncio.sleep(0.5)
+    #await asyncio.sleep(0.5)
     await client.stop()
     await server.stop()
     assert 'We got a non-OK OpenADR response from the server: 450: OUT OF SEQUENCE' in caplog.messages
