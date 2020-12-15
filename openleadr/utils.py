@@ -256,7 +256,15 @@ def parse_datetime(value):
     """
     matches = re.match(r'(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.?(\d{1,6})?\d*Z', value)
     if matches:
-        year, month, day, hour, minute, second, micro = (int(value) for value in matches.groups())
+        year, month, day, hour, minute, second = (int(value)for value in matches.groups()[:-1])
+        micro = matches.groups()[-1]
+        if micro is None:
+            micro = 0
+        else:
+            if len(micro) == 6:
+                micro = int(micro)
+            else:
+                micro = int(micro + "0" * (6 - len(micro)))
         return datetime(year, month, day, hour, minute, second, micro, tzinfo=timezone.utc)
     else:
         logger.warning(f"parse_datetime: {value} did not match format")
