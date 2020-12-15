@@ -148,9 +148,10 @@ class OpenADRServer:
             task.cancel()
         await self.app_runner.cleanup()
 
-    def add_event(self, ven_id, signal_name, signal_type, intervals, callback, targets=None,
-                  targets_by_type=None, target=None, market_context="oadr://unknown.context",
-                  notification_period=None, ramp_up_period=None, recovery_period=None):
+    def add_event(self, ven_id, signal_name, signal_type, intervals, callback=None, event_id=None,
+                  targets=None, targets_by_type=None, target=None, response_required='always',
+                  market_context="oadr://unknown.context", notification_period=None,
+                  ramp_up_period=None, recovery_period=None):
         """
         Convenience method to add an event with a single signal.
 
@@ -178,7 +179,11 @@ class OpenADRServer:
             return
         if not re.match(r"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", market_context):
             raise ValueError("The Market Context must be a valid URI.")
-        event_id = utils.generate_id()
+        event_id = event_id or utils.generate_id()
+
+        if response_required not in ('always', 'never'):
+            raise ValueError(f"'response_required' should be either 'always' or 'never', "
+                             "you provided {response_required}.")
 
         # Figure out the target for this Event
         if target is None and targets is None and targets_by_type is None:
