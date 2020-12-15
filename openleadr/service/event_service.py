@@ -83,9 +83,12 @@ class EventService(VTNService):
                 opt_type = event_response['opt_type']
                 if event_response['event_id'] in self.pending_events:
                     event, callback = self.pending_events.pop(event_id)
-                    result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
-                    if asyncio.iscoroutine(result):
-                        result = await result
+                    if asyncio.isfuture(callback):
+                        callback.set_result(opt_type)
+                    else:
+                        result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
+                        if asyncio.iscoroutine(result):
+                            result = await result
                     if opt_type == 'optIn':
                         self.running_events[event_id] = (event, callback)
                         now = datetime.now(timezone.utc)

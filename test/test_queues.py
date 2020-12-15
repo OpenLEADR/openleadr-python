@@ -241,3 +241,45 @@ async def test_raw_event():
     await client.stop()
     await server.stop()
 
+
+@pytest.mark.asyncio
+async def test_create_event_with_future_as_callback():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+    event = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',
+                                                                   modification_number=0,
+                                                                   event_status='far',
+                                                                   market_context='http://marketcontext01'),
+                          event_signals=[objects.EventSignal(signal_id='signal001',
+                                                             signal_type='level',
+                                                             signal_name='simple',
+                                                             intervals=[objects.Interval(dtstart=now,
+                                                                                         duration=datetime.timedelta(minutes=10),
+                                                                                         signal_payload=1)]),
+                                        objects.EventSignal(signal_id='signal002',
+                                                            signal_type='price',
+                                                            signal_name='ELECTRICITY_PRICE',
+                                                            intervals=[objects.Interval(dtstart=now,
+                                                                                        duration=datetime.timedelta(minutes=10),
+                                                                                        signal_payload=1)])],
+                          targets=[objects.Target(ven_id='ven123')])
+    loop = asyncio.get_event_loop()
+    event_callback_future = loop.create_future()
+    server.add_raw_event(ven_id='ven123', event=event, callback=event_callback_future)
+
+    on_event_future = loop.create_future()
+    client = OpenADRClient(ven_name='myven',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    client.add_handler('on_event', partial(on_event_opt_in, future=on_event_future))
+
+    await server.run_async()
+    await client.run()
+    event = await on_event_future
+    assert len(event['event_signals']) == 2
+
+    result = await event_callback_future
+    assert result == 'optIn'
+
+    await client.stop()
+    await server.stop()
