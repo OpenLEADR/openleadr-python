@@ -83,7 +83,7 @@ class EventService(VTNService):
                 opt_type = event_response['opt_type']
                 if event_response['event_id'] in self.pending_events:
                     event, callback = self.pending_events.pop(event_id)
-                    if asyncio.isfuture(callback):
+                    if isinstance(callback, asyncio.Future):
                         callback.set_result(opt_type)
                     else:
                         result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
@@ -94,9 +94,15 @@ class EventService(VTNService):
                         self.schedule_event_updates(ven_id, event)
                 elif event_response['event_id'] in self.running_events:
                     event, callback = self.running_events.pop(event_id)
-                    result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
-                    if asyncio.iscoroutine(result):
-                        result = await result
+                    if isinstance(callback, asyncio.Future):
+                        logger.warning(f"Got a second response '{opt_type}' from ven '{ven_id}' "
+                                       f"to event '{event_id}', which we cannot use because the "
+                                       "callback future you provided was already completed during "
+                                       "the first response.")
+                    else:
+                        result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
+                        if asyncio.iscoroutine(result):
+                            result = await result
         else:
             result = self.on_created_event(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
             if asyncio.iscoroutine(result):
