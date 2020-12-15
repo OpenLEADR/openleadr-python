@@ -94,17 +94,20 @@ class EventService(VTNService):
                         if active_period.ramp_up_period is not None and event.event_descriptor.event_status == 'far':
                             ramp_up_start_delay = (active_period.dtstart - active_period.ramp_up_period) - now
                             update_coro = partial(self._update_event_status, ven_id, event, 'near')
-                            loop.create_task(utils.delayed_call(func=update_coro, delay=ramp_up_start_delay))
+                            loop.create_task(utils.delayed_call(func=update_coro, delay=ramp_up_start_delay),
+                                             name=f'DelayedCall-{utils.generate_id()}')
                         # Schedule status update to 'active'
                         if event.event_descriptor.event_status in ('near', 'far'):
                             active_start_delay = active_period.dtstart - now
                             update_coro = partial(self._update_event_status, ven_id, event, 'active')
-                            loop.create_task(utils.delayed_call(func=update_coro, delay=active_start_delay))
+                            loop.create_task(utils.delayed_call(func=update_coro, delay=active_start_delay),
+                                             name=f'DelayedCall-{utils.generate_id()}')
                         # Schedule status update to 'completed'
                         if event.event_descriptor.event_status in ('near', 'far', 'active'):
                             active_end_delay = active_period.dtstart + active_period.duration - now
                             update_coro = partial(self._update_event_status, ven_id, event, 'completed')
-                            loop.create_task(utils.delayed_call(func=update_coro, delay=active_end_delay))
+                            loop.create_task(utils.delayed_call(func=update_coro, delay=active_end_delay),
+                                             name=f'DelayedCall-{utils.generate_id()}')
                 elif event_response['event_id'] in self.running_events:
                     event, callback = self.running_events.pop(event_id)
                     result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)

@@ -151,7 +151,11 @@ class OpenADRClient:
             self.scheduler.shutdown()
         if self.report_queue_task:
             self.report_queue_task.cancel()
+        delayed_call_tasks = [task for task in asyncio.all_tasks() if task.get_name().startswith('DelayedCall')]
+        for task in delayed_call_tasks:
+            task.cancel()
         await self.client_session.close()
+        await asyncio.sleep(0)
 
     def add_handler(self, handler, callback):
         """
@@ -600,7 +604,8 @@ class OpenADRClient:
                 if self.allow_jitter:
                     delay = random.uniform(0, min(30, report_interval / 2))
                     self.loop.create_task(utils.delayed_call(func=self.pending_reports.put(outgoing_report),
-                                                             delay=delay))
+                                                             delay=delay),
+                                          name=f'DelayedCall-{utils.generate_id()}')
                 else:
                     await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
             else:
@@ -611,7 +616,8 @@ class OpenADRClient:
             if self.allow_jitter:
                 delay = random.uniform(0, min(30, granularity.total_seconds() / 2))
                 self.loop.create_task(utils.delayed_call(func=self.pending_reports.put(outgoing_report),
-                                                         delay=delay))
+                                                         delay=delay),
+                                      name=f'DelayedCall-{utils.generate_id()}')
             else:
                 await self.pending_reports.put(outgoing_report)
 

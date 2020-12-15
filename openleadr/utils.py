@@ -582,15 +582,18 @@ def determine_event_status(active_period):
 
 
 async def delayed_call(func, delay):
-    if isinstance(delay, timedelta):
-        delay = delay.total_seconds()
-    await asyncio.sleep(delay)
-    if asyncio.iscoroutinefunction(func):
-        await func()
-    elif asyncio.iscoroutine(func):
-        await func
-    else:
-        func()
+    try:
+        if isinstance(delay, timedelta):
+            delay = delay.total_seconds()
+        await asyncio.sleep(delay)
+        if asyncio.iscoroutinefunction(func):
+            await func()
+        elif asyncio.iscoroutine(func):
+            await func
+        else:
+            func()
+    except asyncio.CancelledError:
+        pass
 
 
 def hasmember(obj, member):

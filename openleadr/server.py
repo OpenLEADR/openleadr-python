@@ -23,6 +23,7 @@ from openleadr import utils
 from functools import partial
 from datetime import datetime, timedelta, timezone
 from collections import deque
+import asyncio
 import logging
 import ssl
 import re
@@ -147,7 +148,13 @@ class OpenADRServer:
         print("*" * 80)
         print("")
 
+    async def run_async(self):
+        await self.run()
+
     async def stop(self):
+        delayed_call_tasks = [task for task in asyncio.all_tasks() if task.get_name().startswith('DelayedCall')]
+        for task in delayed_call_tasks:
+            task.cancel()
         await self.app_runner.cleanup()
 
     def add_event(self, ven_id, signal_name, signal_type, intervals, callback, targets=None,
