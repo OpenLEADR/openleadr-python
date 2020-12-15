@@ -1,6 +1,7 @@
 from openleadr import OpenADRClient, OpenADRServer, enable_default_logging
 import asyncio
 import pytest
+import aiohttp
 from datetime import datetime, timedelta
 from functools import partial
 import logging
@@ -46,6 +47,7 @@ async def on_register_report(ven_id, resource_id, measurement, unit, scale,
     Deal with this report.
     """
     print(f"Called on register report {ven_id}, {resource_id}, {measurement}, {unit}, {scale}, {min_sampling_interval}, {max_sampling_interval}")
+    assert resource_id in ('Device001', 'Device002')
     if futures:
         futures.pop(0).set_result(True)
     if receive_futures:
@@ -345,7 +347,7 @@ async def test_incremental_reports():
     client.add_report(callback=partial(collect_data_multi, futures=collect_futures),
                       report_specifier_id='myhistory',
                       measurement='voltage',
-                      resource_id='mydevice',
+                      resource_id='Device001',
                       sampling_rate=timedelta(seconds=2))
 
     server = OpenADRServer(vtn_id='myvtn')
@@ -457,7 +459,7 @@ def test_add_report_invalid_unit(caplog):
     client.add_report(callback=print,
                       report_specifier_id='myreport',
                       measurement='voltage',
-                      resource_id='mydevice',
+                      resource_id='Device001',
                       sampling_rate=timedelta(seconds=10),
                       unit='A')
     assert caplog.record_tuples == [("openleadr", logging.WARNING, f"The supplied unit A for measurement voltage will be ignored, V will be used instead. Allowed units for this measurement are: V")]
@@ -468,7 +470,7 @@ def test_add_report_invalid_scale():
         client.add_report(callback=print,
                           report_specifier_id='myreport',
                           measurement='power_real',
-                          resource_id='mydevice',
+                          resource_id='Device001',
                           sampling_rate=timedelta(seconds=10),
                           unit='W',
                           scale='xxx')
@@ -478,7 +480,7 @@ def test_add_report_invalid_description(caplog):
     client.add_report(callback=print,
                       report_specifier_id='myreport',
                       measurement={'name': 'voltage', 'description': 'SomethingWrong', 'unit': 'V'},
-                      resource_id='mydevice',
+                      resource_id='Device001',
                       sampling_rate=timedelta(seconds=10))
     msg = create_message('oadrRegisterReport', reports=client.reports)
 
@@ -489,7 +491,7 @@ def test_add_report_invalid_description(caplog):
         client.add_report(callback=print,
                           report_specifier_id='myreport',
                           measurement={'name': 'voltage', 'description': 'SomethingWrong', 'unit': 'V'},
-                          resource_id='mydevice',
+                          resource_id='Device001',
                           sampling_rate=timedelta(seconds=10))
 
 
@@ -498,7 +500,7 @@ def test_add_report_non_standard_measurement():
     client.add_report(callback=print,
                       report_specifier_id='myreport',
                       measurement='rainbows',
-                      resource_id='mydevice',
+                      resource_id='Device001',
                       sampling_rate=timedelta(seconds=10),
                       unit='A')
     assert len(client.reports) == 1
@@ -506,6 +508,128 @@ def test_add_report_non_standard_measurement():
     assert client.reports[0].report_descriptions[0].measurement.description == 'rainbows'
 
 
+async def test_report_registration_broken_handlers(caplog):
+    msg = """<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<p1:oadrPayload xmlns:p1="http://openadr.org/oadr-2.0b/2012/07">
+  <p1:oadrSignedObject>
+    <p1:oadrRegisterReport xmlns:p3="http://docs.oasis-open.org/ns/energyinterop/201110" p3:schemaVersion="2.0b" xmlns:p2="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
+      <p2:requestID>B8A6E0D2D4</p2:requestID>
+      <p1:oadrReport xmlns:p3="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:p4="http://docs.oasis-open.org/ns/energyinterop/201110">
+        <p3:duration>
+          <p3:duration>PT120M</p3:duration>
+        </p3:duration>
+        <p1:oadrReportDescription xmlns:p4="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:p5="http://docs.oasis-open.org/ns/emix/2011/06/power" xmlns:p6="http://docs.oasis-open.org/ns/emix/2011/06">
+          <p4:rID>rid_energy_4184bb93</p4:rID>
+          <p4:reportDataSource>
+            <p4:resourceID>DEVICE1</p4:resourceID>
+          </p4:reportDataSource>
+          <p4:reportType>reading</p4:reportType>
+          <p5:energyReal xmlns:p6="http://docs.oasis-open.org/ns/emix/2011/06/siscale">
+            <p5:itemDescription/>
+            <p5:itemUnits>Wh</p5:itemUnits>
+            <p6:siScaleCode>none</p6:siScaleCode>
+          </p5:energyReal>
+          <p4:readingType>Direct Read</p4:readingType>
+          <p6:marketContext/>
+          <p1:oadrSamplingRate>
+            <p1:oadrMinPeriod>PT1M</p1:oadrMinPeriod>
+            <p1:oadrMaxPeriod>PT1M</p1:oadrMaxPeriod>
+            <p1:oadrOnChange>false</p1:oadrOnChange>
+          </p1:oadrSamplingRate>
+        </p1:oadrReportDescription>
+        <p1:oadrReportDescription xmlns:p4="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:p5="http://docs.oasis-open.org/ns/emix/2011/06/power" xmlns:p6="http://docs.oasis-open.org/ns/emix/2011/06">
+          <p4:rID>rid_power_4184bb93</p4:rID>
+          <p4:reportDataSource>
+            <p4:resourceID>DEVICE1</p4:resourceID>
+          </p4:reportDataSource>
+          <p4:reportType>reading</p4:reportType>
+          <p5:powerReal xmlns:p6="http://docs.oasis-open.org/ns/emix/2011/06/siscale">
+            <p5:itemDescription/>
+            <p5:itemUnits>W</p5:itemUnits>
+            <p6:siScaleCode>none</p6:siScaleCode>
+            <p5:powerAttributes>
+              <p5:hertz>60</p5:hertz>
+              <p5:voltage>120</p5:voltage>
+              <p5:ac>true</p5:ac>
+            </p5:powerAttributes>
+          </p5:powerReal>
+          <p4:readingType>Direct Read</p4:readingType>
+          <p6:marketContext/>
+          <p1:oadrSamplingRate>
+            <p1:oadrMinPeriod>PT1M</p1:oadrMinPeriod>
+            <p1:oadrMaxPeriod>PT1M</p1:oadrMaxPeriod>
+            <p1:oadrOnChange>false</p1:oadrOnChange>
+          </p1:oadrSamplingRate>
+        </p1:oadrReportDescription>
+        <p4:reportRequestID>0</p4:reportRequestID>
+        <p4:reportSpecifierID>DEMO_TELEMETRY_USAGE</p4:reportSpecifierID>
+        <p4:reportName>METADATA_TELEMETRY_USAGE</p4:reportName>
+        <p4:createdDateTime>2020-12-15T14:10:32Z</p4:createdDateTime>
+      </p1:oadrReport>
+      <p3:venID>ven_id</p3:venID>
+    </p1:oadrRegisterReport>
+  </p1:oadrSignedObject>
+</p1:oadrPayload>"""
+    server = OpenADRServer(vtn_id='myvtn')
+    await server.run()
+
+
+    # Test with no configured callbacks
+
+    from aiohttp import ClientSession
+    async with ClientSession() as session:
+        async with session.post("http://localhost:8080/OpenADR2/Simple/2.0b/EiReport",
+                                  headers={'content-type': 'Application/XML'},
+                                  data=msg.encode('utf-8')) as resp:
+            assert resp.status == 200
+
+
+    # Test with a working callback
+
+    def report_callback(data):
+        print(data)
+
+    def working_on_register_report(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval):
+        return report_callback, min_sampling_interval
+
+    server.add_handler('on_register_report', working_on_register_report)
+    async with ClientSession() as session:
+        async with session.post("http://localhost:8080/OpenADR2/Simple/2.0b/EiReport",
+                                  headers={'content-type': 'Application/XML'},
+                                  data=msg.encode('utf-8')) as resp:
+            assert resp.status == 200
+
+
+    # Test with a broken callback
+
+    def broken_on_register_report(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval):
+        return "Hello There"
+
+    server.add_handler('on_register_report', broken_on_register_report)
+    async with ClientSession() as session:
+        async with session.post("http://localhost:8080/OpenADR2/Simple/2.0b/EiReport",
+                                  headers={'content-type': 'Application/XML'},
+                                  data=msg.encode('utf-8')) as resp:
+            assert resp.status == 200
+
+    # assert "Your on_register_report handler must return a tuple; it returned 'Hello There' (str)." in caplog.messages
+
+
+    # Test with a broken full callback
+
+    def broken_on_register_report_full(report):
+        return "Hello There Again"
+
+    server.add_handler('on_register_report', broken_on_register_report_full)
+    async with ClientSession() as session:
+        async with session.post("http://localhost:8080/OpenADR2/Simple/2.0b/EiReport",
+                                  headers={'content-type': 'Application/XML'},
+                                  data=msg.encode('utf-8')) as resp:
+            assert resp.status == 200
+
+    assert f"Your on_register_report handler must return a list of tuples. It returned 'Hello There Again' (str)." in caplog.messages
+
+    await server.stop()
 
 if __name__ == "__main__":
     asyncio.run(test_update_reports())

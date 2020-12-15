@@ -16,8 +16,7 @@
 
 from . import service, handler, VTNService
 from asyncio import iscoroutine, gather
-from openleadr.utils import generate_id, find_by, group_by
-from openleadr import objects
+from openleadr import objects, utils
 import logging
 import inspect
 logger = logging.getLogger('openleadr')
@@ -112,22 +111,26 @@ class ReportService(VTNService):
 
                 if iscoroutine(result[0]):
                     result = await gather(*result)
+                for i, r in enumerate(result):
+                    if not isinstance(r, tuple):
+                        logger.error(f"Your on_register_report handler must return a tuple; it returned '{r}' ({r.__class__.__name__}).")
+                        result[i] = None
                 result = [(report['report_descriptions'][i]['r_id'], *result[i])
-                          for i in range(len(report['report_descriptions'])) if result[i] is not None]
+                          for i in range(len(report['report_descriptions'])) if isinstance(result[i], tuple)]
                 report_requests.append(result)
         else:
             # Use the 'full' mode for openADR reporting
             result = [self.on_register_report(report) for report in payload['reports']]
             if iscoroutine(result[0]):
                 result = await gather(*result)      # Now we have r_id, callback, sampling_rate
+            for i, r in enumerate(result):
+                if not isinstance(r, list):
+                    logger.error(f"Your on_register_report handler must return a list of tuples. It returned '{r}' ({r.__class__.__name__}).")
+                    result[i] = None
             report_requests = result
 
-        for i, report_request in enumerate(report_requests):
-            if report_request is not None:
-                if not all(len(rrq) in (3, 4) for rrq in report_request):
-                    logger.error("Your on_register_report handler did not return a valid response")
-
-        # Validate the report requests
+        # Validate the report requests for being of the proper type and lengs
+        utils.validate_report_request_tuples(report_requests)
         for i, report_request in enumerate(report_requests):
             if report_request is None or len(report_request) == 0:
                 continue
@@ -141,12 +144,12 @@ class ReportService(VTNService):
         # Form the report request
         oadr_report_requests = []
         for i, report_request in enumerate(report_requests):
-            if report_request is None:
+            if report_request is None or len(report_request) == 0:
                 continue
 
             orig_report = payload['reports'][i]
             report_specifier_id = orig_report['report_specifier_id']
-            report_request_id = generate_id()
+            report_request_id = utils.generate_id()
             specifier_payloads = []
             for rrq in report_request:
                 if len(rrq) == 3:
@@ -155,7 +158,7 @@ class ReportService(VTNService):
                 elif len(rrq) == 4:
                     r_id, callback, sampling_interval, report_interval = rrq
 
-                report_description = find_by(orig_report['report_descriptions'], 'r_id', r_id)
+                report_description = utils.find_by(orig_report['report_descriptions'], 'r_id', r_id)
                 reading_type = report_description['reading_type']
                 specifier_payloads.append(objects.SpecifierPayload(r_id=r_id,
                                                                    reading_type=reading_type))
@@ -202,7 +205,7 @@ class ReportService(VTNService):
                 if iscoroutine(result):
                     result = await result
                 continue
-            for r_id, values in group_by(report['intervals'], 'report_payload.r_id').items():
+            for r_id, values in utils.group_by(report['intervals'], 'report_payload.r_id').items():
                 # Find the callback that was registered.
                 if (report_request_id, r_id) in self.report_callbacks:
                     # Collect the values
