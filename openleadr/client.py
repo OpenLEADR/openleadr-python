@@ -14,14 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-OpenADR Client for Python
-"""
-
 import asyncio
 import inspect
 import logging
 import ssl
+import sys
 import random
 from datetime import datetime, timedelta, timezone
 from functools import partial
@@ -151,9 +148,10 @@ class OpenADRClient:
             self.scheduler.shutdown()
         if self.report_queue_task:
             self.report_queue_task.cancel()
-        delayed_call_tasks = [task for task in asyncio.all_tasks() if task.get_name().startswith('DelayedCall')]
-        for task in delayed_call_tasks:
-            task.cancel()
+        if sys.version_info.minor > 8:
+            delayed_call_tasks = [task for task in asyncio.all_tasks() if task.get_name().startswith('DelayedCall')]
+            for task in delayed_call_tasks:
+                task.cancel()
         await self.client_session.close()
         await asyncio.sleep(0)
 
@@ -603,9 +601,12 @@ class OpenADRClient:
                 logger.info("The report is now complete with all the values. Will queue for sending.")
                 if self.allow_jitter:
                     delay = random.uniform(0, min(30, report_interval / 2))
+                    if sys.version_info.minor >= 8:
+                        name = {'name': f'DelayedCall-OutgoingReport-{utils.generate_id()}'}
+                    else:
+                        name = {}
                     self.loop.create_task(utils.delayed_call(func=self.pending_reports.put(outgoing_report),
-                                                             delay=delay),
-                                          name=f'DelayedCall-{utils.generate_id()}')
+                                                             delay=delay), **name)
                 else:
                     await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
             else:
@@ -615,9 +616,12 @@ class OpenADRClient:
             logger.info("Report will be sent now.")
             if self.allow_jitter:
                 delay = random.uniform(0, min(30, granularity.total_seconds() / 2))
+                if sys.version_info.minor >= 8:
+                    name = {'name': f'DelayedCall-OutgoingReport-{utils.generate_id()}'}
+                else:
+                    name = {}
                 self.loop.create_task(utils.delayed_call(func=self.pending_reports.put(outgoing_report),
-                                                         delay=delay),
-                                      name=f'DelayedCall-{utils.generate_id()}')
+                                                         delay=delay), **name)
             else:
                 await self.pending_reports.put(outgoing_report)
 

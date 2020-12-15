@@ -18,6 +18,7 @@ from . import service, handler, VTNService
 import asyncio
 from openleadr import objects, utils, enums
 import logging
+import sys
 from datetime import datetime, timezone
 from functools import partial
 from dataclasses import asdict
@@ -128,21 +129,34 @@ class EventService(VTNService):
         loop = asyncio.get_event_loop()
         now = datetime.now(timezone.utc)
         active_period = event.active_period
+
+        # Named tasks is only supported in Python 3.8+
+        if sys.version_info.minor >= 8:
+            named_tasks = True
+        else:
+            named_tasks = False
+            name = {}
+
         # Schedule status update to 'near' if applicable
         if active_period.ramp_up_period is not None and event.event_descriptor.event_status == 'far':
             ramp_up_start_delay = (active_period.dtstart - active_period.ramp_up_period) - now
             update_coro = partial(self._update_event_status, ven_id, event, 'near')
-            loop.create_task(utils.delayed_call(func=update_coro, delay=ramp_up_start_delay),
-                             name=f'DelayedCall-EventStatusToNear-{event.event_descriptor.event_id}')
+            if named_tasks:
+                name = {'name': f'DelayedCall-EventStatusToNear-{event.event_descriptor.event_id}'}
+            loop.create_task(utils.delayed_call(func=update_coro, delay=ramp_up_start_delay), **name)
+
         # Schedule status update to 'active'
         if event.event_descriptor.event_status in ('near', 'far'):
             active_start_delay = active_period.dtstart - now
             update_coro = partial(self._update_event_status, ven_id, event, 'active')
-            loop.create_task(utils.delayed_call(func=update_coro, delay=active_start_delay),
-                             name=f'DelayedCall-EventStatusToActive-{event.event_descriptor.event_id}')
+            if named_tasks:
+                name = {'name': f'DelayedCall-EventStatusToActive-{event.event_descriptor.event_id}'}
+            loop.create_task(utils.delayed_call(func=update_coro, delay=active_start_delay), **name)
+
         # Schedule status update to 'completed'
         if event.event_descriptor.event_status in ('near', 'far', 'active'):
             active_end_delay = active_period.dtstart + active_period.duration - now
             update_coro = partial(self._update_event_status, ven_id, event, 'completed')
-            loop.create_task(utils.delayed_call(func=update_coro, delay=active_end_delay),
-                             name=f'DelayedCall-EventStatusToCompleted-{event.event_descriptor.event_id}')
+            if named_tasks:
+                name = {'name': f'DelayedCall-EventStatusToActive-{event.event_descriptor.event_id}'}
+            loop.create_task(utils.delayed_call(func=update_coro, delay=active_end_delay), **name)
