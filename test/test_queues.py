@@ -196,6 +196,7 @@ async def test_request_event():
     assert message_type == 'oadrDistributeEvent'
     message_type, message_payload = await client.request_event()
     assert message_type == 'oadrResponse'
+    await client.stop()
     await server.stop()
 
 
@@ -280,6 +281,5 @@ async def test_create_event_with_future_as_callback():
 
     result = await event_callback_future
     assert result == 'optIn'
-
     await client.stop()
     await server.stop()

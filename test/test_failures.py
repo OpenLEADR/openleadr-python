@@ -204,6 +204,18 @@ def test_replay_protect_malformed_nonce(caplog):
         messaging._verify_replay_protect(tree)
     assert str(err.value) == "Missing or malformed ReplayProtect element in the message signature."
 
+
+def test_server_add_unknown_handler(caplog):
+    server = OpenADRServer(vtn_id='myvtn')
+    with pytest.raises(NameError) as err:
+        server.add_handler('unknown_name', print)
+    assert str(err.value) == ("Unknown handler 'unknown_name'. Correct handler names are: "
+                              "'on_created_event', 'on_request_event', 'on_register_report', "
+                              "'on_create_report', 'on_created_report', 'on_request_report', "
+                              "'on_update_report', 'on_poll', 'on_query_registration', "
+                              "'on_create_party_registration', 'on_cancel_party_registration'.")
+
+
 ##########################################################################################
 
 SERVER_PORT = 8001

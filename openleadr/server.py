@@ -27,6 +27,7 @@ import asyncio
 import logging
 import ssl
 import re
+import inspect
 logger = logging.getLogger('openleadr')
 
 
@@ -143,7 +144,8 @@ class OpenADRServer:
         await self.run()
 
     async def stop(self):
-        delayed_call_tasks = [task for task in asyncio.all_tasks() if task.get_name().startswith('DelayedCall')]
+        delayed_call_tasks = [task for task in asyncio.all_tasks()
+                              if task.get_name().startswith('DelayedCall')]
         for task in delayed_call_tasks:
             task.cancel()
         await self.app_runner.cleanup()
@@ -182,8 +184,8 @@ class OpenADRServer:
         event_id = event_id or utils.generate_id()
 
         if response_required not in ('always', 'never'):
-            raise ValueError(f"'response_required' should be either 'always' or 'never', "
-                             "you provided {response_required}.")
+            raise ValueError("'response_required' should be either 'always' or 'never'; "
+                             f"you provided '{response_required}'.")
 
         # Figure out the target for this Event
         if target is None and targets is None and targets_by_type is None:
@@ -205,6 +207,7 @@ class OpenADRServer:
                                            signal_type=signal_type,
                                            signal_id=utils.generate_id(),
                                            targets=targets)
+
         # Make sure the intervals carry timezone-aware timestamps
         for interval in intervals:
             if utils.getmember(interval, 'dtstart').tzinfo is None:
@@ -241,6 +244,13 @@ class OpenADRServer:
                 logger.warning("You did not provide a 'callback', which means you won't know if the "
                                "VEN will opt in or opt out of your event. You should consider adding "
                                "a callback for this.")
+            elif not asyncio.isfuture(callback):
+                args = inspect.signature(callback).parameters
+                if not all(['ven_id' in args, 'event_id' in args, 'opt_type' in args]):
+                    raise ValueError("The 'callback' must have at least the following parameters: "
+                                     "'ven_id' (str), 'event_id' (str), 'opt_type' (str). Please fix "
+                                     "your 'callback' handler.")
+
         if ven_id not in self.message_queues:
             self.message_queues[ven_id] = deque()
         event_id = utils.getmember(utils.getmember(event, 'event_descriptor'), 'event_id')
@@ -270,5 +280,5 @@ class OpenADRServer:
                 self.services['poll_service'].polling_method = 'external'
                 self.services['event_service'].polling_method = 'external'
         else:
-            raise NameError(f"Unknown handler {name}. "
-                            f"Correct handler names are: {self._MAP.keys()}")
+            raise NameError(f"""Unknown handler '{name}'. """
+                            f"""Correct handler names are: '{"', '".join(self._MAP.keys())}'.""")

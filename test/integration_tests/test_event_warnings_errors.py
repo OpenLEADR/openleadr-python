@@ -41,6 +41,7 @@ async def test_client_no_event_handler(caplog):
     event_confirm_future = asyncio.get_event_loop().create_future()
     print("Adding event")
     server.add_event(ven_id='venid',
+                     event_id='test_client_no_event_handler',
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
@@ -78,6 +79,7 @@ async def test_client_faulty_event_handler(caplog):
     event_confirm_future = asyncio.get_event_loop().create_future()
     print("Adding event")
     server.add_event(ven_id='venid',
+                     event_id='test_client_faulty_event_handler',
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
@@ -114,6 +116,7 @@ async def test_client_exception_event_handler(caplog):
     event_confirm_future = asyncio.get_event_loop().create_future()
     print("Adding event")
     server.add_event(ven_id='venid',
+                     event_id='test_client_exception_event_handler',
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
@@ -152,6 +155,7 @@ async def test_client_good_event_handler(caplog):
     event_confirm_future = asyncio.get_event_loop().create_future()
     print("Adding event")
     server.add_event(ven_id='venid',
+                     event_id='test_client_good_event_handler',
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
@@ -176,6 +180,7 @@ async def test_server_warning_conflicting_poll_methods(caplog):
     server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))
     server.add_handler('on_poll', print)
     server.add_event(ven_id='venid',
+                     event_id='test_server_warning_conflicting_poll_methods',
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
@@ -197,6 +202,7 @@ async def test_server_warning_naive_datetimes_in_event(caplog):
     logger.setLevel(logging.DEBUG)
     server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))
     server.add_event(ven_id='venid',
+                     event_id='test_server_warning_naive_datetimes_in_event',
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(),
@@ -303,6 +309,7 @@ async def test_client_warning_no_update_event_handler(caplog):
     server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))
     server.add_handler('on_create_party_registration', on_create_party_registration)
     server.add_event(ven_id='venid',
+                     event_id='test_client_warning_no_update_event_handler',
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
@@ -322,4 +329,63 @@ async def test_client_warning_no_update_event_handler(caplog):
             "choice. Will re-use the previous opt status for this event_id for now") in [record.msg for record in caplog.records]
     await client.stop()
     await server.stop()
-    await asyncio.gather(*[t for t in asyncio.all_tasks()][1:])
+
+@pytest.mark.asyncio
+async def test_server_add_event_with_wrong_callback_signature(caplog):
+    def dummy_callback(some_param):
+        pass
+    caplog.set_level(logging.WARNING)
+    logger = logging.getLogger('openleadr')
+    logger.setLevel(logging.DEBUG)
+    server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))
+    with pytest.raises(ValueError) as err:
+        server.add_event(ven_id='venid',
+                         event_id='test_server_add_event_with_wrong_callback_signature',
+                         signal_name='simple',
+                         signal_type='level',
+                         intervals=[{'dtstart': datetime.now(timezone.utc),
+                                     'duration': timedelta(seconds=1),
+                                     'signal_payload': 1.1}],
+                         target={'ven_id': 'venid'},
+                         callback=dummy_callback)
+
+@pytest.mark.asyncio
+async def test_server_add_event_with_no_callback(caplog):
+    def dummy_callback(some_param):
+        pass
+    caplog.set_level(logging.WARNING)
+    logger = logging.getLogger('openleadr')
+    logger.setLevel(logging.DEBUG)
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_event(ven_id='venid',
+                     event_id='test_server_add_event_with_no_callback',
+                     signal_name='simple',
+                     signal_type='level',
+                     intervals=[{'dtstart': datetime.now(timezone.utc),
+                                 'duration': timedelta(seconds=1),
+                                 'signal_payload': 1.1}],
+                     target={'ven_id': 'venid'})
+    assert ("You did not provide a 'callback', which means you won't know if the "
+            "VEN will opt in or opt out of your event. You should consider adding "
+            "a callback for this.") in caplog.messages
+
+@pytest.mark.asyncio
+async def test_server_add_event_with_no_callback_response_never_required(caplog):
+    caplog.set_level(logging.WARNING)
+    logger = logging.getLogger('openleadr')
+    logger.setLevel(logging.DEBUG)
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_event(ven_id='venid',
+                     event_id='test_server_add_event_with_no_callback_response_never_required',
+                     signal_name='simple',
+                     signal_type='level',
+                     intervals=[{'dtstart': datetime.now(timezone.utc),
+                                 'duration': timedelta(seconds=1),
+                                 'signal_payload': 1.1}],
+                     target={'ven_id': 'venid'},
+                     response_required='never')
+    await server.run()
+    await server.stop()
+    assert ("You did not provide a 'callback', which means you won't know if the "
+            "VEN will opt in or opt out of your event. You should consider adding "
+            "a callback for this.") not in caplog.messages
