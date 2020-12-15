@@ -117,9 +117,9 @@ class ActivePeriod:
     dtstart: datetime
     duration: timedelta
     tolerance: dict = None
-    notification: dict = None
-    ramp_up: dict = None
-    recovery: dict = None
+    notification_period: dict = None
+    ramp_up_period: dict = None
+    recovery_period: dict = None
 
 
 @dataclass
