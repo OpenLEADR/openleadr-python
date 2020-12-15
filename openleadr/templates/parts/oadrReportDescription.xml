@@ -1,8 +1,10 @@
-<oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06">
+<oadr:oadrReportDescription xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power">
   <ei:rID>{{ report_description.r_id }}</ei:rID>
-  {% if report_description.report_subject %}
+  {% if report_description.report_subject and report_description.report_subject.end_device_asset.mrid %}
   <ei:reportSubject>
-    <ei:resourceID>{{ report_description.report_subject.resource_id }}</ei:resourceID>
+    <power:endDeviceAsset>
+      <power:mrid>{{ report_description.report_subject.end_device_asset.mrid }}</power:mrid>
+    </power:endDeviceAsset>
   </ei:reportSubject>
   {% endif %}
 
