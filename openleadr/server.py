@@ -233,16 +233,21 @@ class OpenADRServer:
         self.services['event_service'].pending_events[event_id] = (event, callback)
         return event_id
 
-    def add_raw_event(self, ven_id, event):
+    def add_raw_event(self, ven_id, event, callback):
         """
         Add a new event to the queue for a specific VEN.
         :param str ven_id: The ven_id to which this event should be distributed.
         :param dict event: The event (as a dict or as a objects.Event instance)
                            that contains the event details.
+        :param callable callback: A callback that will receive the opt status for this event.
+                                  This callback receives ven_id, event_id, opt_type as its arguments.
         """
         if ven_id not in self.message_queues:
             self.message_queues[ven_id] = deque()
+        event_id = utils.getmember(utils.getmember(event, 'event_descriptor'), 'event_id')
         self.message_queues[ven_id].append(event)
+        self.services['event_service'].pending_events[event_id] = (event, callback)
+        return event_id
 
     def add_handler(self, name, func):
         """
