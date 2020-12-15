@@ -120,16 +120,7 @@ class OpenADRServer:
         VTNService.fingerprint_lookup = staticmethod(fingerprint_lookup)
         self.__setattr__ = self.add_handler
 
-    def run(self):
-        """
-        Starts the asyncio-loop and runs the server in it. This function is
-        blocking. For other ways to run the server in a more flexible context,
-        please refer to the `aiohttp documentation
-        <https://docs.aiohttp.org/en/stable/web_advanced.html#aiohttp-web-app-runners>`_.
-        """
-        web.run_app(self.app)
-
-    async def run_async(self):
+    async def run(self):
         """
         Starts the server in an already-running asyncio loop.
         """
