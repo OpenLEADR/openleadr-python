@@ -285,19 +285,8 @@ def test_parse_duration():
         utils.parse_duration("Hello")
     assert str(err.value) == f"The duration 'Hello' did not match the requested format"
 
-
-def test_parse_datetime_no_microseconds():
-    dt = "2020-12-15T11:29:34Z"
-    result = utils.parse_datetime(dt)
-    assert result == datetime(2020, 12, 15, 11, 29, 34, tzinfo=timezone.utc)
-
-def test_parse_datetime_with_microseconds():
-    dt = "2020-12-15T11:29:34.123456Z"
-    result = utils.parse_datetime(dt)
-    assert result == datetime(2020, 12, 15, 11, 29, 34, 123456, tzinfo=timezone.utc)
-
-
-def test_parse_datetime_with_milliseconds():
-    dt = "2020-12-15T11:29:34.123Z"
-    result = utils.parse_datetime(dt)
-    assert result == datetime(2020, 12, 15, 11, 29, 34, 123000, tzinfo=timezone.utc)
+def test_parse_datetime():
+    assert utils.parse_datetime("2020-12-15T11:29:34Z") == datetime(2020, 12, 15, 11, 29, 34, tzinfo=timezone.utc)
+    assert utils.parse_datetime("2020-12-15T11:29:34.123456Z") == datetime(2020, 12, 15, 11, 29, 34, 123456, tzinfo=timezone.utc)
+    assert utils.parse_datetime("2020-12-15T11:29:34.123Z") == datetime(2020, 12, 15, 11, 29, 34, 123000, tzinfo=timezone.utc)
+    assert utils.parse_datetime("2020-12-15T11:29:34.123456789Z") == datetime(2020, 12, 15, 11, 29, 34, 123456, tzinfo=timezone.utc)
