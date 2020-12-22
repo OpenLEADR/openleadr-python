@@ -23,14 +23,14 @@ from datetime import datetime, timedelta, timezone
 from lxml import etree
 import os
 
-with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'cert.pem'), 'rb') as file:
+with open(os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'certificates', 'dummy_ven.crt'), 'rb') as file:
     TEST_CERT = file.read()
-with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'key.pem'), 'rb') as file:
+with open(os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'certificates', 'dummy_ven.key'), 'rb') as file:
     TEST_KEY = file.read()
 TEST_KEY_PASSWORD = 'openadr'
 
 def test_message_validation():
-    msg = create_message('oadrPoll', ven_id='123', cert=TEST_CERT, key=TEST_KEY, passphrase='openadr')
+    msg = create_message('oadrPoll', ven_id='123', cert=TEST_CERT, key=TEST_KEY)
     tree = etree.fromstring(msg.encode('utf-8'))
     validate_xml_signature(tree)
     parsed_type, parsed_message = parse_message(msg)
@@ -80,8 +80,7 @@ def test_message_validation_complex():
                          response={'request_id': 123, 'response_code': 200, 'response_description': 'OK'},
                          events=[event],
                          cert=TEST_CERT,
-                         key=TEST_KEY,
-                         passphrase='openadr')
+                         key=TEST_KEY)
     tree = etree.fromstring(msg.encode('utf-8'))
     validate_xml_signature(tree)
     parsed_type, parsed_msg = parse_message(msg)

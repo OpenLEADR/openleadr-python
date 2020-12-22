@@ -1,3 +1,5 @@
+set -e
+
 echo "Please make sure the line RANDFILE = ... is commented out in your /etc/ssl/openssl.conf."
 
 echo "Generating the CA key"

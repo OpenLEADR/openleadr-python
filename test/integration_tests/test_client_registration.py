@@ -31,8 +31,8 @@ VEN_NAME = 'myven'
 VEN_ID = '1234abcd'
 VTN_ID = "TestVTN"
 
-CERTFILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cert.pem")
-KEYFILE =  os.path.join(os.path.dirname(os.path.dirname(__file__)), "key.pem")
+CERTFILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'certificates', 'dummy_ven.crt')
+KEYFILE =  os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'certificates', 'dummy_ven.key')
 
 
 async def _on_create_party_registration(payload):
@@ -49,7 +49,7 @@ async def start_server():
 
 @pytest.fixture
 async def start_server_with_signatures():
-    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, passphrase='openadr', fingerprint_lookup=fingerprint_lookup, http_port=SERVER_PORT)
+    server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, fingerprint_lookup=fingerprint_lookup, http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
     await server.run_async()
     yield
@@ -87,7 +87,7 @@ async def test_create_party_registration_with_signatures(start_server_with_signa
         cert = file.read()
     client = OpenADRClient(ven_name=VEN_NAME,
                            vtn_url=f"http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b",
-                           cert=CERTFILE, key=KEYFILE, passphrase='openadr', vtn_fingerprint=certificate_fingerprint(cert))
+                           cert=CERTFILE, key=KEYFILE, vtn_fingerprint=certificate_fingerprint(cert))
 
     response_type, response_payload = await client.create_party_registration()
     assert response_type == 'oadrCreatedPartyRegistration'

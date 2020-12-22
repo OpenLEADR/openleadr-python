@@ -172,7 +172,7 @@ class OpenADRClient:
                    reading_type=enums.READING_TYPE.DIRECT_READ,
                    report_type=enums.REPORT_TYPE.READING, sampling_rate=None, data_source=None,
                    scale="none", unit=None, power_ac=True, power_hertz=50, power_voltage=230,
-                   market_context=None):
+                   market_context=None, end_device_asset_mrid=None, report_data_source=None):
         """
         Add a new reporting capability to the client.
 
@@ -201,7 +201,15 @@ class OpenADRClient:
         :param str report_type: An OpenADR report type (found in openleadr.enums.REPORT_TYPE)
         :param datetime.timedelta sampling_rate: The sampling rate for the measurement.
         :param str unit: The unit for this measurement.
-
+        :param boolean power_ac: Whether the power is AC (True) or DC (False).
+                                 Only required when supplying a power-related measurement.
+        :param int power_hertz: Grid frequency of the power.
+                                Only required when supplying a power-related measurement.
+        :param int power_voltage: Voltage of the power.
+                                  Only required when supplying a power-related measurement.
+        :param str market_context: The Market Context that this report belongs to.
+        :param str end_device_asset_mrid: the Meter ID for the end device that is measured by this report.
+        :param report_data_source: A (list of) target(s) that this report is related to.
         """
 
         # Verify input
@@ -673,6 +681,11 @@ class OpenADRClient:
         if event['event_descriptor']['event_id'] in self.events:
             return self.responded_events['event_id']
 
+    async def on_register_report(self, report):
+        """
+        Placeholder for the on_register_report handler.
+        """
+
     ###########################################################################
     #                                                                         #
     #                                  LOW LEVEL                              #
@@ -799,6 +812,11 @@ class OpenADRClient:
             if 'report_requests' in response_payload:
                 for report_request in response_payload['report_requests']:
                     await self.create_report(report_request)
+
+        elif response_type == 'oadrRegisterReport':
+            if 'reports' in response_payload and len(response_payload['reports']) > 0:
+                for report in response_payload['reports']:
+                    await self.register_report(report)
 
         else:
             logger.warning(f"No handler implemented for incoming message "
