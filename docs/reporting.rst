@@ -289,7 +289,9 @@ or a list of ``(datetime.datetime, value)`` tuples. This last type is useful whe
 
 This was already described in the previous section on this page.
 
+
 .. receiving_reports::
+
 Receiving Reports (VTN)
 -----------------------
 

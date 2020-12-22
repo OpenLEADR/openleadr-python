@@ -12,13 +12,79 @@ Upcoming releases
 ======= ================================== ====================
 Version Main features                      Target timeframe
 ======= ================================== ====================
-0.6.0   Implement XMPP transport           Januari 2020
+0.6.0   Implement XMPP transport           January 2020
 1.0.0   Certification by OpenADR Alliance  T.B.A.
 ======= ================================== ====================
 
 
 Changelog
 ---------
+
+openleadr 0.5.16
+~~~~~~~~~~~~~~~~
+
+Released: 15 december 2020
+
+Bug fixes:
+
+- Various bug fixes surrounding report registration. If your handlers returned only None or some incompatible values, it should now be much more graceful and helpful about it.
+- Some bug fixes surrounding the placement of the resourceID within the oadrRegisterReport messages.
+- Fixed parsing datetimes that don't contain microseconds; it is now also compatible with datetimes that only provide milliseconds.
+
+
+openleadr 0.5.15
+~~~~~~~~~~~~~~~~
+
+Released: 15 december 2020
+
+Bug fixes:
+
+- Restore Python 3.7 compatibility (got broken in 0.5.14)
+
+New features:
+
+- You can now use a future instead of a callback function or coroutine when adding an event. This allows you to add and event and await the response in a single place.
+- You can now add events that don't require a response, and the VEN will no longer respond to events that don't expect a response. In this case, your on_event handler may still, but does not need to, return an opt status. The returned opt status will be ignored in that case.
+
+
+openleadr 0.5.14
+~~~~~~~~~~~~~~~~
+
+Released: 15 december 2020
+
+New features:
+
+- Added support for a status callback to the server.add_raw_event method, just like the ``server.add_event`` method.
+
+API changes:
+
+- Removed the stale server.run() method and replaced it with a coroutine that does the same as ``server.run_async()``.
+
+Bug fixes:
+
+- Removed a naming inconsistency in the objects.ActivePeriod object.
+- Silently cancel running tasks when stopping the client or server.
+- Implemented the full duration regex for parsing timedeltas.
+- Various improvements to the test suite and some stale code cleanup.
+
+Other changes:
+
+- Changed the way openleadr is packaged, dropped the setup-time inclusion of the VERSION file.
+- OpenLEADR is now also available under the previous name pyopenadr. A new version of pyopenadr will be released in lockstep with new versions of openleadr. pyopenadr only contains an ``__init__`` file that does ``from openleadr import *``.
+
+openleadr 0.5.13
+~~~~~~~~~~~~~~~~
+
+Released: 10 december 2020
+
+New features:
+
+- This version adds support for the oadrRequestEvent on the VTN side.
+
+Bug fixes:
+
+- Fixed a bug where messages from the VTN that did not contain an EiResponse field caused a KeyError in the VEN (#33).
+
 
 openleadr 0.5.12
 ~~~~~~~~~~~~~~~~
