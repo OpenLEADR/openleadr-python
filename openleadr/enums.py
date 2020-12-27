@@ -54,7 +54,7 @@ class SIGNAL_TYPE(metaclass=Enum):
     SETPOINT = "setpoint"
     X_LOAD_CONTROL_CAPACITY = "x-loadControlCapacity"
     X_LOAD_CONTROL_LEVEL_OFFSET = "x-loadControlLevelOffset"
-    X_LOAD_CONTROL_PERCENT_OFFSET = "x-loadControlPorcentOffset"
+    X_LOAD_CONTROL_PERCENT_OFFSET = "x-loadControlPercentOffset"
     X_LOAD_CONTROL_SETPOINT = "x-loadControlSetpoint"
 
 
