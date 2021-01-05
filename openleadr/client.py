@@ -827,12 +827,13 @@ class OpenADRClient:
 
     async def _ensure_client_session(self):
         if not self.client_session:
+            headers = {'content-type': 'application/xml'}
             if self.cert_path:
                 ssl_context = ssl.create_default_context(cafile=self.ca_file,
                                                          purpose=ssl.Purpose.CLIENT_AUTH)
                 ssl_context.load_cert_chain(self.cert_path, self.key_path, self.passphrase)
                 ssl_context.check_hostname = False
                 connector = aiohttp.TCPConnector(ssl=ssl_context)
-                self.client_session = aiohttp.ClientSession(connector=connector)
+                self.client_session = aiohttp.ClientSession(connector=connector, headers=headers)
             else:
-                self.client_session = aiohttp.ClientSession()
+                self.client_session = aiohttp.ClientSession(headers=headers)

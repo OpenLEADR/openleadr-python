@@ -44,8 +44,15 @@ class VTNService:
         """
         Handle all incoming POST requests.
         """
-        content = await request.read()
         try:
+            # Check the Content-Type header
+            content_type = request.headers.get('content-type', '')
+            if not content_type.lower().startswith("application/xml"):
+                raise errors.HTTPError(response_code=HTTPStatus.BAD_REQUEST,
+                                       response_description="The Content-Type header must be application/xml, "
+                                                            "you provided {request.headers.get('content-type', '')}")
+            content = await request.read()
+
             # Validate the message to the XML Schema
             message_tree = validate_xml_schema(content)
 
