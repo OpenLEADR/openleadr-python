@@ -446,7 +446,8 @@ class OpenADRClient:
         request_id = utils.generate_id()
         payload = {'request_id': request_id,
                    'ven_id': self.ven_id,
-                   'reports': reports}
+                   'reports': reports,
+                   'report_request_id': 0}
 
         service = 'EiReport'
         message = self._create_message('oadrRegisterReport', **payload)
