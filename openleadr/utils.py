@@ -569,19 +569,18 @@ def get_active_period_from_intervals(intervals, as_dict=True):
 
 
 def determine_event_status(active_period):
-    if is_dataclass(active_period):
-        active_period = asdict(active_period)
     now = datetime.now(timezone.utc)
-    if active_period['dtstart'].tzinfo is None:
-        active_period['dtstart'] = active_period['dtstart'].astimezone(timezone.utc)
-    active_period_start = active_period['dtstart']
-    active_period_end = active_period['dtstart'] + active_period['duration']
+    active_period_start = getmember(active_period, 'dtstart')
+    if active_period_start.tzinfo is None:
+        active_period_start = active_period_start.astimezone(timezone.utc)
+        setmember(active_period, 'dtstart', active_period_start)
+    active_period_end = active_period_start + getmember(active_period, 'duration')
     if now >= active_period_end:
         return 'completed'
     if now >= active_period_start:
         return 'active'
-    if active_period.get('ramp_up_duration') is not None:
-        ramp_up_start = active_period_start - active_period['ramp_up_duration']
+    if getmember(active_period, 'ramp_up_period') is not None:
+        ramp_up_start = active_period_start - getmember(active_period, 'ramp_up_period')
         if now >= ramp_up_start:
             return 'near'
     return 'far'
