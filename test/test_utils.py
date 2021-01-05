@@ -290,6 +290,48 @@ def test_parse_datetime():
     assert utils.parse_datetime("2020-12-15T11:29:34.123456Z") == datetime(2020, 12, 15, 11, 29, 34, 123456, tzinfo=timezone.utc)
     assert utils.parse_datetime("2020-12-15T11:29:34.123Z") == datetime(2020, 12, 15, 11, 29, 34, 123000, tzinfo=timezone.utc)
     assert utils.parse_datetime("2020-12-15T11:29:34.123456789Z") == datetime(2020, 12, 15, 11, 29, 34, 123456, tzinfo=timezone.utc)
+
+@pytest.mark.asyncio
+async def test_await_if_required():
+    def normal_func():
+        return 123
+
+    async def coro_func():
+        return 456
+
+    result = await utils.await_if_required(normal_func())
+    assert result == 123
+
+    result = await utils.await_if_required(coro_func())
+    assert result == 456
+
+    result = await utils.await_if_required(None)
+    assert result == None
+
+@pytest.mark.asyncio
+async def test_gather_if_required():
+    def normal_func():
+        return 123
+
+    async def coro_func():
+        return 456
+
+    raw_results = [normal_func(), normal_func(), normal_func()]
+    results = await utils.gather_if_required(raw_results)
+    assert results == [123, 123, 123]
+
+    raw_results = [coro_func(), coro_func(), coro_func()]
+    results = await utils.gather_if_required(raw_results)
+    assert results == [456, 456, 456]
+
+    raw_results = [coro_func(), normal_func(), None]
+    results = await utils.gather_if_required(raw_results)
+    assert results == [456, 123, None]
+
+    raw_results = []
+    results = await utils.gather_if_required(raw_results)
+    assert results == []
+
 def test_order_events():
     now = datetime.now(timezone.utc)
     event_1_active_high_prio = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',

@@ -735,6 +735,25 @@ def validate_report_request_tuples(list_of_report_requests, full_mode=False):
                                  f"It returned: '{rrq[1:]}'. The third element was not of type timedelta.")
 
 
+async def await_if_required(result):
+    if asyncio.iscoroutine(result):
+        result = await result
+    return result
+
+
+async def gather_if_required(results):
+    if results is None:
+        return results
+    if len(results) > 0:
+        if not any([asyncio.iscoroutine(r) for r in results]):
+            results = results
+        elif all([asyncio.iscoroutine(r) for r in results]):
+            results = await asyncio.gather(*results)
+        else:
+            results = [await await_if_required(result) for result in results]
+    return results
+
+
 def order_events(events, limit=None, offset=None):
     """
     Order the events according to the OpenADR rules:
