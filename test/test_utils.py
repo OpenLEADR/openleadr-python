@@ -1,5 +1,5 @@
 from openleadr import utils, objects
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import pytest
 from datetime import datetime, timezone, timedelta
 from collections import deque
@@ -290,3 +290,92 @@ def test_parse_datetime():
     assert utils.parse_datetime("2020-12-15T11:29:34.123456Z") == datetime(2020, 12, 15, 11, 29, 34, 123456, tzinfo=timezone.utc)
     assert utils.parse_datetime("2020-12-15T11:29:34.123Z") == datetime(2020, 12, 15, 11, 29, 34, 123000, tzinfo=timezone.utc)
     assert utils.parse_datetime("2020-12-15T11:29:34.123456789Z") == datetime(2020, 12, 15, 11, 29, 34, 123456, tzinfo=timezone.utc)
+def test_order_events():
+    now = datetime.now(timezone.utc)
+    event_1_active_high_prio = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',
+                                                                     modification_number=0,
+                                                                     created_date_time=now,
+                                                                     event_status='far',
+                                                                     priority=1,
+                                                                     market_context='http://context01'),
+                                             active_period=objects.ActivePeriod(dtstart=now - timedelta(minutes=5),
+                                                                                duration=timedelta(minutes=10)),
+                                             event_signals=[objects.EventSignal(intervals=[objects.Interval(dtstart=now,
+                                                                                                            duration=timedelta(minutes=10),
+                                                                                                            signal_payload=1)],
+                                                                                signal_name='simple',
+                                                                                signal_type='level',
+                                                                                signal_id='signal001')],
+                                             targets=[{'ven_id': 'ven001'}])
+
+    event_2_active_low_prio = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',
+                                                                     modification_number=0,
+                                                                     created_date_time=now,
+                                                                     event_status='far',
+                                                                     priority=2,
+                                                                     market_context='http://context01'),
+                                            active_period=objects.ActivePeriod(dtstart=now - timedelta(minutes=5),
+                                                                               duration=timedelta(minutes=10)),
+                                            event_signals=[objects.EventSignal(intervals=[objects.Interval(dtstart=now,
+                                                                                                           duration=timedelta(minutes=10),
+                                                                                                           signal_payload=1)],
+                                                                               signal_name='simple',
+                                                                               signal_type='level',
+                                                                               signal_id='signal001')],
+                                            targets=[{'ven_id': 'ven001'}])
+
+    event_3_active_no_prio = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',
+                                                                     modification_number=0,
+                                                                     created_date_time=now,
+                                                                     event_status='far',
+                                                                     market_context='http://context01'),
+                                            active_period=objects.ActivePeriod(dtstart=now - timedelta(minutes=5),
+                                                                               duration=timedelta(minutes=10)),
+                                            event_signals=[objects.EventSignal(intervals=[objects.Interval(dtstart=now,
+                                                                                                           duration=timedelta(minutes=10),
+                                                                                                           signal_payload=1)],
+                                                                               signal_name='simple',
+                                                                               signal_type='level',
+                                                                               signal_id='signal001')],
+                                            targets=[{'ven_id': 'ven001'}])
+
+    event_4_far_early = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',
+                                                                     modification_number=0,
+                                                                     created_date_time=now,
+                                                                     event_status='far',
+                                                                     market_context='http://context01'),
+                                     active_period=objects.ActivePeriod(dtstart=now + timedelta(minutes=5),
+                                                                        duration=timedelta(minutes=10)),
+                                     event_signals=[objects.EventSignal(intervals=[objects.Interval(dtstart=now,
+                                                                                                    duration=timedelta(minutes=10),
+                                                                                                    signal_payload=1)],
+                                                                        signal_name='simple',
+                                                                        signal_type='level',
+                                                                        signal_id='signal001')],
+                                     targets=[{'ven_id': 'ven001'}])
+
+    event_5_far_later = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',
+                                                                     modification_number=0,
+                                                                     created_date_time=now,
+                                                                     event_status='far',
+                                                                     market_context='http://context01'),
+                                     active_period=objects.ActivePeriod(dtstart=now + timedelta(minutes=10),
+                                                                        duration=timedelta(minutes=10)),
+                                     event_signals=[objects.EventSignal(intervals=[objects.Interval(dtstart=now,
+                                                                                                    duration=timedelta(minutes=10),
+                                                                                                    signal_payload=1)],
+                                                                        signal_name='simple',
+                                                                        signal_type='level',
+                                                                        signal_id='signal001')],
+                                     targets=[{'ven_id': 'ven001'}])
+
+    events = [event_5_far_later, event_4_far_early, event_3_active_no_prio, event_2_active_low_prio, event_1_active_high_prio]
+    ordered_events = utils.order_events(events)
+    assert ordered_events == [event_1_active_high_prio, event_2_active_low_prio, event_3_active_no_prio, event_4_far_early, event_5_far_later]
+
+    ordered_events = utils.order_events(event_1_active_high_prio)
+    assert ordered_events == [event_1_active_high_prio]
+
+    event_1_as_dict = asdict(event_1_active_high_prio)
+    ordered_events = utils.order_events(event_1_as_dict)
+    assert ordered_events == [event_1_as_dict]
