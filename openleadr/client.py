@@ -309,7 +309,7 @@ class OpenADRClient:
                                                        report_type=report_type,
                                                        sampling_rate=sampling_rate,
                                                        measurement=item_base,
-                                                       market_context='Market01')
+                                                       market_context=market_context)
         self.report_callbacks[(report.report_specifier_id, r_id)] = callback
         report.report_descriptions.append(report_description)
 
