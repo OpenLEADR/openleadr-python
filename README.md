@@ -70,3 +70,16 @@ To run the test suite, you can use the following command:
 ./python_env/bin/python3 -m pytest -v test/
 ```
 
+## Developing with Docker
+
+It can also use following command to download Docker image to complete the development setup for working with OpenLEADR:
+
+```bash
+docker pull peter279k/openleadr-python:latest
+```
+
+Running Docker image as the container on the background:
+
+```bash
+docker run --name=openleadr-python -it -d peter279k/openleadr-python:latest
+```
