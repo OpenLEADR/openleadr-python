@@ -80,6 +80,8 @@ class OpenADRClient:
         self.scheduler = AsyncIOScheduler()
         self.client_session = None
         self.report_queue_task = None
+
+        self.received_events = {}               # Holds the events that we received.
         self.responded_events = {}              # Holds the events that we already saw.
 
         self.cert_path = cert
@@ -138,6 +140,9 @@ class OpenADRClient:
         self.scheduler.add_job(self._poll,
                                trigger='cron',
                                **cron_config)
+        self.scheduler.add_job(self._event_cleanup,
+                               trigger='interval',
+                               seconds=300)
         self.scheduler.start()
 
     async def stop(self):
@@ -312,6 +317,7 @@ class OpenADRClient:
                                                        market_context=market_context)
         self.report_callbacks[(report.report_specifier_id, r_id)] = callback
         report.report_descriptions.append(report_description)
+        return report_specifier_id, r_id
 
     ###########################################################################
     #                                                                         #
@@ -745,9 +751,17 @@ class OpenADRClient:
             for event in message['events']:
                 event_id = event['event_descriptor']['event_id']
                 event_status = event['event_descriptor']['event_status']
-                if event_id in self.responded_events:
-                    result = self.on_update_event(event)
+                modification_number = event['event_descriptor']['modification_number']
+                if event_id in self.received_events:
+                    if self.received_events[event_id]['event_descriptor']['modification_number'] == modification_number:
+                        # Re-submit the same opt type as we already had previously
+                        result = self.responded_events[event_id]
+                    else:
+                        # Wait for the result of the on_update_event handler
+                        result = self.on_update_event(event)
                 else:
+                    # Wait for the result of the on_event
+                    self.received_events[event_id] = event
                     result = self.on_event(event)
                 if asyncio.iscoroutine(result):
                     result = await result
@@ -772,7 +786,9 @@ class OpenADRClient:
                             'request_id': message['request_id'],
                             'modification_number': 1,
                             'event_id': events[i]['event_descriptor']['event_id']}
-                           for i, event in enumerate(events) if event['response_required'] == 'always']
+                           for i, event in enumerate(events)
+                           if event['response_required'] == 'always'
+                           and not utils.determine_event_status(event['active_period']) == 'completed']
 
         if len(event_responses) > 0:
             response = {'response_code': 200,
@@ -787,6 +803,16 @@ class OpenADRClient:
             logger.info(response_type, response_payload)
         else:
             logger.info("Not sending any event responses, because a response was not required/allowed by the VTN.")
+
+    async def _event_cleanup(self):
+        """
+        Periodic task that will clean up completed events in our memory.
+        """
+        print("Checking for stale events")
+        for event in list(self.received_events):
+            if utils.determine_event_status(self.received_events[event]['active_period']) == 'completed':
+                logger.debug(f"Removing event {event} because it is completed.")
+                self.received_events.pop(event)
 
     async def _poll(self):
         logger.debug("Now polling for new messages")

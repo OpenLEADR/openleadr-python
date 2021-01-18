@@ -13,8 +13,8 @@ def on_create_party_registration(registration_info):
 async def on_event(event):
     return 'optIn'
 
-async def on_event_opt_in(event, future):
-    if future.done() is False:
+async def on_event_opt_in(event, future=None):
+    if future and future.done() is False:
         future.set_result(event)
     return 'optIn'
 
@@ -70,107 +70,6 @@ async def test_internal_message_queue():
     await client.stop()
     await server.stop()
 
-
-@pytest.mark.asyncio
-async def test_event_status_opt_in():
-    loop = asyncio.get_event_loop()
-    client = OpenADRClient(ven_name='myven',
-                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
-    distribute_event_future = loop.create_future()
-    event_update_futures = [loop.create_future() for i in range(2)]
-    client.add_handler('on_event', partial(on_event_opt_in, future=distribute_event_future))
-    client.add_handler('on_update_event', partial(on_update_event, futures=event_update_futures))
-
-    server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=datetime.timedelta(seconds=1))
-    server.add_handler('on_create_party_registration', on_create_party_registration)
-
-    event_callback_future = loop.create_future()
-    event_id = server.add_event(ven_id='ven123',
-                                signal_name='simple',
-                                signal_type='level',
-                                intervals=[{'dtstart': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=2),
-                                            'duration': datetime.timedelta(seconds=2),
-                                            'signal_payload': 1}],
-                                callback=partial(event_callback, future=event_callback_future))
-
-    assert server.services['event_service'].pending_events[event_id][0].event_descriptor.event_status == 'far'
-    await server.run_async()
-    #await asyncio.sleep(0.5)
-    await client.run()
-
-    await event_callback_future
-
-    print("Waiting for event future 1")
-    result = await distribute_event_future
-    assert result['event_descriptor']['event_status'] == 'far'
-    assert len(client.responded_events) == 1
-
-    print("Watiting for event future 2")
-    result = await event_update_futures[0]
-    assert result['event_descriptor']['event_status'] == 'active'
-    assert len(client.responded_events) == 1
-
-    print("Watiting for event future 3")
-    result = await event_update_futures[1]
-    assert result['event_descriptor']['event_status'] == 'completed'
-    assert len(client.responded_events) == 0
-
-    await client.stop()
-    await server.stop()
-    #await asyncio.sleep(0)
-
-@pytest.mark.asyncio
-async def test_event_status_opt_in_with_ramp_up():
-    loop = asyncio.get_event_loop()
-    client = OpenADRClient(ven_name='myven',
-                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
-    distribute_event_future = loop.create_future()
-    event_update_futures = [loop.create_future() for i in range(3)]
-    client.add_handler('on_event', partial(on_event_opt_in, future=distribute_event_future))
-    client.add_handler('on_update_event', partial(on_update_event, futures=event_update_futures))
-
-    server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=datetime.timedelta(seconds=1))
-    server.add_handler('on_create_party_registration', on_create_party_registration)
-
-    event_callback_future = loop.create_future()
-    event_id = server.add_event(ven_id='ven123',
-                                signal_name='simple',
-                                signal_type='level',
-                                intervals=[{'dtstart': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=4),
-                                            'duration': datetime.timedelta(seconds=2),
-                                            'signal_payload': 1}],
-                                ramp_up_period=datetime.timedelta(seconds=2),
-                                callback=partial(event_callback, future=event_callback_future))
-
-    assert server.services['event_service'].pending_events[event_id][0].event_descriptor.event_status == 'far'
-    await server.run_async()
-    #await asyncio.sleep(0.5)
-    await client.run()
-
-    await event_callback_future
-
-    print("Waiting for event future 1")
-    result = await distribute_event_future
-    assert result['event_descriptor']['event_status'] == 'far'
-
-    print("Watiting for event future 2")
-    result = await event_update_futures[0]
-    assert result['event_descriptor']['event_status'] == 'near'
-
-    print("Watiting for event future 3")
-    result = await event_update_futures[1]
-    assert result['event_descriptor']['event_status'] == 'active'
-
-    print("Watiting for event future 4")
-    result = await event_update_futures[2]
-    assert result['event_descriptor']['event_status'] == 'completed'
-    #await asyncio.sleep(0.5)
-
-    await client.stop()
-    await server.stop()
-    #await asyncio.sleep(1)
-
-
 @pytest.mark.asyncio
 async def test_request_event():
     loop = asyncio.get_event_loop()
@@ -189,13 +88,13 @@ async def test_request_event():
                                 ramp_up_period=datetime.timedelta(seconds=2),
                                 callback=partial(event_callback))
 
-    assert server.services['event_service'].pending_events[event_id][0].event_descriptor.event_status == 'far'
+    assert server.events['ven123'][0].event_descriptor.event_status == 'far'
     await server.run_async()
     await client.create_party_registration()
     message_type, message_payload = await client.request_event()
     assert message_type == 'oadrDistributeEvent'
     message_type, message_payload = await client.request_event()
-    assert message_type == 'oadrResponse'
+    assert message_type == 'oadrDistributeEvent'
     await client.stop()
     await server.stop()
 
@@ -283,3 +182,105 @@ async def test_create_event_with_future_as_callback():
     assert result == 'optIn'
     await client.stop()
     await server.stop()
+
+@pytest.mark.asyncio
+async def test_multiple_events_in_queue():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+
+    loop = asyncio.get_event_loop()
+    event_1_callback_future = loop.create_future()
+    event_2_callback_future = loop.create_future()
+    server.add_event(ven_id='ven123',
+                     signal_name='simple',
+                     signal_type='level',
+                     intervals=[objects.Interval(dtstart=now,
+                                                 duration=datetime.timedelta(seconds=1),
+                                                 signal_payload=1)],
+                     callback=event_1_callback_future)
+
+    await server.run()
+
+    on_event_future = loop.create_future()
+    client = OpenADRClient(ven_name='ven123',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    await client.create_party_registration()
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrDistributeEvent'
+    events = response_payload['events']
+    assert len(events) == 1
+    event_id = events[0]['event_descriptor']['event_id']
+    request_id = response_payload['request_id']
+    await client.created_event(request_id=request_id,
+                               event_id=event_id,
+                               opt_type='optIn',
+                               modification_number=0)
+
+    server.add_event(ven_id='ven123',
+                     signal_name='simple',
+                     signal_type='level',
+                     intervals=[objects.Interval(dtstart=now + datetime.timedelta(seconds=1),
+                                                 duration=datetime.timedelta(seconds=1),
+                                                 signal_payload=1)],
+                     callback=event_2_callback_future)
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrDistributeEvent'
+    events = response_payload['events']
+
+    # Assert that we still have two events in the response
+    assert len(events) == 2
+
+    # Wait one second and retrieve the events again
+    await asyncio.sleep(1)
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrDistributeEvent'
+    events = response_payload['events']
+    assert len(events) == 2
+    assert events[1]['event_descriptor']['event_status'] == 'completed'
+
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrDistributeEvent'
+    events = response_payload['events']
+    assert len(events) == 1
+    await asyncio.sleep(1)
+
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrDistributeEvent'
+
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrResponse'
+
+    await server.stop()
+
+@pytest.mark.asyncio
+async def test_client_event_cleanup():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+
+    loop = asyncio.get_event_loop()
+    event_1_callback_future = loop.create_future()
+    event_2_callback_future = loop.create_future()
+    server.add_event(ven_id='ven123',
+                     signal_name='simple',
+                     signal_type='level',
+                     intervals=[objects.Interval(dtstart=now,
+                                                 duration=datetime.timedelta(seconds=1),
+                                                 signal_payload=1)],
+                     callback=event_1_callback_future)
+    await server.run()
+
+    client = OpenADRClient(ven_name='ven123',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    client.add_handler('on_event', on_event_opt_in)
+    await client.run()
+    await asyncio.sleep(0.5)
+    assert len(client.received_events) == 1
+
+    await asyncio.sleep(0.5)
+    await client._event_cleanup()
+    assert len(client.received_events) == 0
+
+    await server.stop()
+    await client.stop()

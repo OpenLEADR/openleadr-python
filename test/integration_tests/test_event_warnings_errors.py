@@ -308,6 +308,7 @@ async def test_client_warning_no_update_event_handler(caplog):
     logger.setLevel(logging.DEBUG)
     server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))
     server.add_handler('on_create_party_registration', on_create_party_registration)
+    event_accepted_future = asyncio.get_event_loop().create_future()
     server.add_event(ven_id='venid',
                      event_id='test_client_warning_no_update_event_handler',
                      signal_name='simple',
@@ -316,14 +317,21 @@ async def test_client_warning_no_update_event_handler(caplog):
                                  'duration': timedelta(seconds=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
-                     callback=on_event_accepted)
+                     callback=event_accepted_future)
     client = OpenADRClient(ven_name='myven',
                            vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
     client.add_handler('on_event', good_on_event)
-    await server.run_async()
-    # await asyncio.sleep(0.5)
+    print("Starting server")
+    await server.run()
     await client.run()
-    await asyncio.sleep(2)
+    print("Waiting for first event to be accepted...")
+    await event_accepted_future
+
+    # Manually update the event
+    server.events['venid'][0].event_descriptor.modification_number = 1
+    server.events_updated['venid'] = True
+
+    await asyncio.sleep(1)
     assert ("You should implement your own on_update_event handler. This handler receives "
             "an Event dict and should return either 'optIn' or 'optOut' based on your "
             "choice. Will re-use the previous opt status for this event_id for now") in [record.msg for record in caplog.records]

@@ -72,7 +72,8 @@ class VTNService:
                 response_type, response_payload = await self.handle_message(message_type,
                                                                             message_payload)
             except Exception as err:
-                logger.error("An exception occurred during the execution of your handler: "
+                logger.error("An exception occurred during the execution of your "
+                             f"{self.__class__.__name__} handler: "
                              f"{err.__class__.__name__}: {err}")
                 raise err
 

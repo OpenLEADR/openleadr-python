@@ -16,49 +16,51 @@
 
 from . import service, handler, VTNService
 import asyncio
-from openleadr import objects, utils, enums
+from openleadr import utils, errors
 import logging
-import sys
-from datetime import datetime, timezone
-from functools import partial
-from dataclasses import asdict
 logger = logging.getLogger('openleadr')
 
 
 @service('EiEvent')
 class EventService(VTNService):
 
-    def __init__(self, vtn_id, polling_method='internal', message_queues=None):
+    def __init__(self, vtn_id, polling_method='internal'):
         super().__init__(vtn_id)
         self.polling_method = polling_method
-        self.message_queues = message_queues
-        self.pending_events = {}        # Holds the event callbacks
-        self.running_events = {}        # Holds the event callbacks for accepted events
+        self.events = {}
+        self.completed_event_ids = {}   # Holds the ids of completed events
+        self.event_callbacks = {}
+        self.event_opt_types = {}
 
     @handler('oadrRequestEvent')
     async def request_event(self, payload):
         """
         The VEN requests us to send any events we have.
         """
-        if self.polling_method == 'external':
+        ven_id = payload['ven_id']
+        if self.polling_method == 'internal':
+            if ven_id in self.events and self.events[ven_id]:
+                events = utils.order_events(self.events[ven_id])
+                for event in events:
+                    event_status = utils.getmember(utils.getmember(event, 'event_descriptor'), 'event_status')
+                    # Pop the event from the events so that this is the last time it is communicated
+                    if event_status == 'completed':
+                        self.events[ven_id].pop(self.events[ven_id].index(event))
+            else:
+                events = None
+        else:
             result = self.on_request_event(ven_id=payload['ven_id'])
             if asyncio.iscoroutine(result):
                 result = await result
-        elif payload['ven_id'] in self.message_queues:
-            queue = self.message_queues[payload['ven_id']]
-            result = utils.get_next_event_from_deque(queue)
+            if result is None:
+                events = None
+            else:
+                events = utils.order_events(result)
+
+        if events is None:
+            return 'oadrResponse', {}
         else:
-            return 'oadrResponse', {}
-
-        if result is None:
-            return 'oadrResponse', {}
-        if isinstance(result, dict) and 'event_descriptor' in result:
-            return 'oadrDistributeEvent', {'events': [result]}
-        elif isinstance(result, objects.Event):
-            return 'oadrDistributeEvent', {'events': [asdict(result)]}
-
-        logger.warning("Could not determine type of message "
-                       f"in response to oadrRequestEvent: {result}")
+            return 'oadrDistributeEvent', {'events': events}
         return 'oadrResponse', result
 
     def on_request_event(self, ven_id):
@@ -81,24 +83,19 @@ class EventService(VTNService):
             for event_response in payload['event_responses']:
                 event_id = event_response['event_id']
                 opt_type = event_response['opt_type']
-                if event_response['event_id'] in self.pending_events:
-                    event, callback = self.pending_events.pop(event_id)
+                if event_id not in [utils.getmember(utils.getmember(event, 'event_descriptor'), 'event_id')
+                                    for event in self.events[ven_id]] + self.completed_event_ids.get(ven_id, []):
+                    raise errors.InvalidIdError
+                if event_response['event_id'] in self.event_callbacks:
+                    event, callback = self.event_callbacks.pop(event_id)
                     if isinstance(callback, asyncio.Future):
-                        callback.set_result(opt_type)
-                    else:
-                        result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
-                        if asyncio.iscoroutine(result):
-                            result = await result
-                    if opt_type == 'optIn':
-                        self.running_events[event_id] = (event, callback)
-                        self.schedule_event_updates(ven_id, event)
-                elif event_response['event_id'] in self.running_events:
-                    event, callback = self.running_events.pop(event_id)
-                    if isinstance(callback, asyncio.Future):
-                        logger.warning(f"Got a second response '{opt_type}' from ven '{ven_id}' "
-                                       f"to event '{event_id}', which we cannot use because the "
-                                       "callback future you provided was already completed during "
-                                       "the first response.")
+                        if callback.done():
+                            logger.warning(f"Got a second response '{opt_type}' from ven '{ven_id}' "
+                                           f"to event '{event_id}', which we cannot use because the "
+                                           "callback future you provided was already completed during "
+                                           "the first response.")
+                        else:
+                            callback.set_result(opt_type)
                     else:
                         result = callback(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
                         if asyncio.iscoroutine(result):
@@ -118,51 +115,3 @@ class EventService(VTNService):
                        "handler will receive a ven_id, event_id and opt_status. "
                        "You don't need to return anything from this handler.")
         return None
-
-    def _update_event_status(self, ven_id, event, event_status):
-        """
-        Update the event to the given Status.
-        """
-        event.event_descriptor.event_status = event_status
-        if event_status == enums.EVENT_STATUS.CANCELLED:
-            event.event_descriptor.modification_number += 1
-        self.message_queues[ven_id].append(event)
-
-    def schedule_event_updates(self, ven_id, event):
-        """
-        Schedules the event updates.
-        """
-        loop = asyncio.get_event_loop()
-        now = datetime.now(timezone.utc)
-        active_period = event.active_period
-
-        # Named tasks is only supported in Python 3.8+
-        if sys.version_info.minor >= 8:
-            named_tasks = True
-        else:
-            named_tasks = False
-            name = {}
-
-        # Schedule status update to 'near' if applicable
-        if active_period.ramp_up_period is not None and event.event_descriptor.event_status == 'far':
-            ramp_up_start_delay = (active_period.dtstart - active_period.ramp_up_period) - now
-            update_coro = partial(self._update_event_status, ven_id, event, 'near')
-            if named_tasks:
-                name = {'name': f'DelayedCall-EventStatusToNear-{event.event_descriptor.event_id}'}
-            loop.create_task(utils.delayed_call(func=update_coro, delay=ramp_up_start_delay), **name)
-
-        # Schedule status update to 'active'
-        if event.event_descriptor.event_status in ('near', 'far'):
-            active_start_delay = active_period.dtstart - now
-            update_coro = partial(self._update_event_status, ven_id, event, 'active')
-            if named_tasks:
-                name = {'name': f'DelayedCall-EventStatusToActive-{event.event_descriptor.event_id}'}
-            loop.create_task(utils.delayed_call(func=update_coro, delay=active_start_delay), **name)
-
-        # Schedule status update to 'completed'
-        if event.event_descriptor.event_status in ('near', 'far', 'active'):
-            active_end_delay = active_period.dtstart + active_period.duration - now
-            update_coro = partial(self._update_event_status, ven_id, event, 'completed')
-            if named_tasks:
-                name = {'name': f'DelayedCall-EventStatusToActive-{event.event_descriptor.event_id}'}
-            loop.create_task(utils.delayed_call(func=update_coro, delay=active_end_delay), **name)

@@ -568,19 +568,18 @@ def get_active_period_from_intervals(intervals, as_dict=True):
 
 
 def determine_event_status(active_period):
-    if is_dataclass(active_period):
-        active_period = asdict(active_period)
     now = datetime.now(timezone.utc)
-    if active_period['dtstart'].tzinfo is None:
-        active_period['dtstart'] = active_period['dtstart'].astimezone(timezone.utc)
-    active_period_start = active_period['dtstart']
-    active_period_end = active_period['dtstart'] + active_period['duration']
+    active_period_start = getmember(active_period, 'dtstart')
+    if active_period_start.tzinfo is None:
+        active_period_start = active_period_start.astimezone(timezone.utc)
+        setmember(active_period, 'dtstart', active_period_start)
+    active_period_end = active_period_start + getmember(active_period, 'duration')
     if now >= active_period_end:
         return 'completed'
     if now >= active_period_start:
         return 'active'
-    if active_period.get('ramp_up_duration') is not None:
-        ramp_up_start = active_period_start - active_period['ramp_up_duration']
+    if getmember(active_period, 'ramp_up_period', None) is not None:
+        ramp_up_start = active_period_start - getmember(active_period, 'ramp_up_period')
         if now >= ramp_up_start:
             return 'near'
     return 'far'
@@ -614,14 +613,20 @@ def hasmember(obj, member):
     return False
 
 
-def getmember(obj, member):
+def getmember(obj, member, missing='_RAISE_'):
     """
     Get a member from a dict or dataclass
     """
     if is_dataclass(obj):
-        return getattr(obj, member)
+        if not missing == '_RAISE_' and not hasattr(obj, member):
+            return missing
+        else:
+            return getattr(obj, member)
     else:
-        return obj[member]
+        if missing == '_RAISE_':
+            return obj[member]
+        else:
+            return obj.get(member, missing)
 
 
 def setmember(obj, member, value):
@@ -727,3 +732,71 @@ def validate_report_request_tuples(list_of_report_requests, full_mode=False):
                                  "(callback, sampling_interval, reporting_interval) tuple, where "
                                  "sampling_interval and reporting_interval are of type datetime.timedelta. "
                                  f"It returned: '{rrq[1:]}'. The third element was not of type timedelta.")
+
+
+async def await_if_required(result):
+    if asyncio.iscoroutine(result):
+        result = await result
+    return result
+
+
+async def gather_if_required(results):
+    if results is None:
+        return results
+    if len(results) > 0:
+        if not any([asyncio.iscoroutine(r) for r in results]):
+            results = results
+        elif all([asyncio.iscoroutine(r) for r in results]):
+            results = await asyncio.gather(*results)
+        else:
+            results = [await await_if_required(result) for result in results]
+    return results
+
+
+def order_events(events, limit=None, offset=None):
+    """
+    Order the events according to the OpenADR rules:
+    - active events before inactive events
+    - high priority before low priority
+    - earlier before later
+    """
+    def event_priority(event):
+        # The default and lowest priority is 0, which we should interpret as a high value.
+        priority = getmember(getmember(event, 'event_descriptor'), 'priority', float('inf'))
+        if priority == 0:
+            priority = float('inf')
+        return priority
+
+    if events is None:
+        return None
+    if isinstance(events, objects.Event):
+        events = [events]
+    elif isinstance(events, dict):
+        events = [events]
+
+    # Update the event statuses
+    for event in events:
+        event_status = determine_event_status(getmember(event, 'active_period'))
+        setmember(getmember(event, 'event_descriptor'), 'event_status', event_status)
+
+    # Short circuit if we only have one event:
+    if len(events) == 1:
+        return events
+
+    # Get all the active events first
+    active_events = [event for event in events if getmember(getmember(event, 'event_descriptor'), 'event_status') == 'active']
+    other_events = [event for event in events if getmember(getmember(event, 'event_descriptor'), 'event_status') != 'active']
+
+    # Sort the active events by priority
+    active_events.sort(key=lambda e: event_priority(e))
+
+    # Sort the active events by start date
+    active_events.sort(key=lambda e: getmember(getmember(e, 'active_period'), 'dtstart'))
+
+    # Sort the non-active events by their start date
+    other_events.sort(key=lambda e: getmember(getmember(e, 'active_period'), 'dtstart'))
+
+    ordered_events = active_events + other_events
+    if limit and offset:
+        return ordered_events[offset:offset+limit]
+    return ordered_events

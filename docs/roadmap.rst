@@ -95,7 +95,7 @@ New features:
 
 - Events now cycle through the correct 'far', 'near', 'active', 'completed'.
 - The Client now implements the ``on_update_event handler``, so that you can catch these event updates separately from the regular event messages.
-- Added support for the ramp_up_duration parameter on the ``server.add_event`` method.
+- Added support for the ramp_up_period parameter on the ``server.add_event`` method.
 
 Bug fixes:
 
