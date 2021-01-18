@@ -59,6 +59,12 @@ class VTNService:
             # Parse the message to a type and payload dict
             message_type, message_payload = parse_message(content)
 
+            if 'vtn_id' in message_payload \
+                    and message_payload['vtn_id'] is not None \
+                    and message_payload['vtn_id'] != self.vtn_id:
+                raise errors.InvalidIdError(f"The supplied vtnID is invalid. It should be '{self.vtn_id}', "
+                                            f"you supplied {message_payload['vtn_id']}.")
+
             # Authenticate the message
             if request.secure and 'ven_id' in message_payload:
                 await authenticate_message(request, message_tree, message_payload,
