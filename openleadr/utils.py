@@ -653,7 +653,7 @@ def get_next_event_from_deque(deque):
     return event
 
 
-def validate_report_request_tuples(list_of_report_requests, full_mode=False):
+def validate_report_request_tuples(list_of_report_requests, mode='full'):
     if len(list_of_report_requests) == 0:
         return
     for report_requests in list_of_report_requests:
@@ -666,7 +666,7 @@ def validate_report_request_tuples(list_of_report_requests, full_mode=False):
             # Check if it is a tuple
             elif not isinstance(rrq, tuple):
                 report_requests[i] = None
-                if full_mode:
+                if mode == 'full':
                     logger.error("Your on_register_report handler did not return a list of tuples. "
                                  f"The first item from the list was '{rrq}' ({rrq.__class__.__name__}).")
                 else:
@@ -676,7 +676,7 @@ def validate_report_request_tuples(list_of_report_requests, full_mode=False):
             # Check if it has the correct length
             elif not len(rrq) in (3, 4):
                 report_requests[i] = None
-                if full_mode:
+                if mode == 'full':
                     logger.error("Your on_register_report handler returned tuples of the wrong length. "
                                  f"It should be 3 or 4. It returned: '{rrq}'.")
                 else:
@@ -686,7 +686,7 @@ def validate_report_request_tuples(list_of_report_requests, full_mode=False):
             # Check if the first element is callable
             elif not callable(rrq[1]):
                 report_requests[i] = None
-                if full_mode:
+                if mode == 'full':
                     logger.error(f"Your on_register_report handler did not return the correct tuple. "
                                  "It should return a list of (r_id, callback, sampling_interval) or "
                                  "(r_id, callback, sampling_interval, reporting_interval) tuples, where "
@@ -704,7 +704,7 @@ def validate_report_request_tuples(list_of_report_requests, full_mode=False):
             # Check if the second element is a timedelta
             elif not isinstance(rrq[2], timedelta):
                 report_requests[i] = None
-                if full_mode:
+                if mode == 'full':
                     logger.error(f"Your on_register_report handler did not return the correct tuple. "
                                  "It should return a list of (r_id, callback, sampling_interval) or "
                                  "(r_id, callback, sampling_interval, reporting_interval) tuples, where "
@@ -720,7 +720,7 @@ def validate_report_request_tuples(list_of_report_requests, full_mode=False):
             # Check if the third element is a timedelta (if it exists)
             elif len(rrq) == 4 and not isinstance(rrq[3], timedelta):
                 report_requests[i] = None
-                if full_mode:
+                if mode == 'full':
                     logger.error(f"Your on_register_report handler did not return the correct tuple. "
                                  "It should return a list of (r_id, callback, sampling_interval) or "
                                  "(r_id, callback, sampling_interval, reporting_interval) tuples, where "

@@ -26,7 +26,7 @@ async def lookup_ven(ven_name=None, ven_id=None):
     """
     Look up a ven by its name or ID
     """
-    return {'ven_id': '1234'}
+    return {'ven_id': 'ven1234'}
 
 async def receive_data(data, future=None):
     if future:
@@ -582,7 +582,7 @@ async def test_different_on_register_report_handlers(caplog):
     server.add_handler('on_register_report', on_register_report_returning_string)
     await client.register_reports(client.reports)
     assert len(client.report_requests) == 0
-    assert "Your on_register_report handler must return a tuple; it returned 'Hello There' (str)." in caplog.messages
+    assert "Your on_register_report handler must return a tuple or None; it returned 'Hello There' (str)." in caplog.messages
     caplog.clear()
 
     server.add_handler('on_register_report', on_register_report_returning_uncallable_first_element)
@@ -627,13 +627,13 @@ async def test_different_on_register_report_handlers(caplog):
     server.add_handler('on_register_report', on_register_report_full_returning_string)
     await client.register_reports(client.reports)
     assert len(client.report_requests) == 0
-    assert "Your on_register_report handler must return a list of tuples. It returned 'Hello There' (str)." in caplog.messages
+    assert "Your on_register_report handler must return a list of tuples or None; it returned 'Hello There' (str)." in caplog.messages
     caplog.clear()
 
     server.add_handler('on_register_report', on_register_report_full_returning_list_of_strings)
     await client.register_reports(client.reports)
     assert len(client.report_requests) == 0
-    assert ("Your on_register_report handler did not return a list of tuples. "
+    assert ("Your on_register_report handler must return a list of tuples or None; "
             f"The first item from the list was 'Hello' (str).") in caplog.messages
     caplog.clear()
 
@@ -661,6 +661,7 @@ async def test_different_on_register_report_handlers(caplog):
     assert len(client.report_requests) == 0
     assert ("Your on_register_report handler returned tuples of the wrong length. "
             f"It should be 3 or 4. It returned: '({report_callback}, 'Hello There')'.") in caplog.messages
+
     await server.stop()
     await client.stop()
 
@@ -785,6 +786,25 @@ async def test_report_registration_broken_handlers_raw_message(caplog):
                                   data=msg.encode('utf-8')) as resp:
             assert resp.status == 200
 
-    assert f"Your on_register_report handler must return a list of tuples. It returned 'Hello There Again' (str)." in caplog.messages
+    assert f"Your on_register_report handler must return a list of tuples or None; it returned 'Hello There Again' (str)." in caplog.messages
 
+    await server.stop()
+
+
+@pytest.mark.asyncio
+async def test_register_historic_report():
+    client = OpenADRClient(ven_name='myven',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    client.add_report(report_name='HISTORY_USAGE',
+                      callback=get_historic_data,
+                      measurement='voltage',
+                      resource_id='Device001',
+                      sampling_rate=timedelta(seconds=1))
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+    # server.add_handler('on_register_report', on_register_report_historic)
+    await server.run()
+    await client.run()
+    assert len(server.registered_reports) == 1
+    await client.stop()
     await server.stop()
