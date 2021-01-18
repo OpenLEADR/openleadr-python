@@ -24,7 +24,6 @@ import ssl
 import hashlib
 import uuid
 import logging
-import functools
 
 logger = logging.getLogger('openleadr')
 
@@ -579,7 +578,7 @@ def determine_event_status(active_period):
         return 'completed'
     if now >= active_period_start:
         return 'active'
-    if getmember(active_period, 'ramp_up_period') is not None:
+    if getmember(active_period, 'ramp_up_period', None) is not None:
         ramp_up_start = active_period_start - getmember(active_period, 'ramp_up_period')
         if now >= ramp_up_start:
             return 'near'
@@ -778,7 +777,7 @@ def order_events(events, limit=None, offset=None):
     # Update the event statuses
     for event in events:
         event_status = determine_event_status(getmember(event, 'active_period'))
-        setmember(getmember(event, 'active_period'), 'event_status', event_status)
+        setmember(getmember(event, 'event_descriptor'), 'event_status', event_status)
 
     # Short circuit if we only have one event:
     if len(events) == 1:

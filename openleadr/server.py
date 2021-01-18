@@ -16,13 +16,12 @@
 
 from aiohttp import web
 from openleadr.service import EventService, PollService, RegistrationService, ReportService, \
-                              OptService, VTNService
+                              VTNService
 from openleadr.messaging import create_message
 from openleadr import objects
 from openleadr import utils
 from functools import partial
 from datetime import datetime, timedelta, timezone
-from collections import deque
 import asyncio
 import inspect
 import logging
@@ -76,19 +75,25 @@ class OpenADRServer:
         :param str http_key_passphrase: The passphrase for the HTTP private key.
         """
         # Set up the message queues
-        self.message_queues = {}
 
         self.app = web.Application()
-        self.services = {'event_service': EventService(vtn_id, message_queues=self.message_queues),
-                         'report_service': ReportService(vtn_id, message_queues=self.message_queues),
-                         'poll_service': PollService(vtn_id, message_queues=self.message_queues),
-                         'opt_service': OptService(vtn_id),
-                         'registration_service': RegistrationService(vtn_id,
-                                                                     poll_freq=requested_poll_freq)}
+        self.services = {}
+        self.services['event_service'] = EventService(vtn_id)
+        self.services['report_service'] = ReportService(vtn_id)
+        self.services['poll_service'] = PollService(vtn_id)
+        self.services['registration_service'] = RegistrationService(vtn_id, poll_freq=requested_poll_freq)
+
+        # Register the other services with the poll service
+        self.services['poll_service'].event_service = self.services['event_service']
+        self.services['poll_service'].report_service = self.services['report_service']
+
+        # Set up the HTTP handlers for the services
         if http_path_prefix[-1] == "/":
             http_path_prefix = http_path_prefix[:-1]
         self.app.add_routes([web.post(f"{http_path_prefix}/{s.__service_name__}", s.handler)
                              for s in self.services.values()])
+
+        # Configure the web server
         self.http_port = http_port
         self.http_host = http_host
         self.http_path_prefix = http_path_prefix
@@ -155,7 +160,7 @@ class OpenADRServer:
     def add_event(self, ven_id, signal_name, signal_type, intervals, callback=None, event_id=None,
                   targets=None, targets_by_type=None, target=None, response_required='always',
                   market_context="oadr://unknown.context", notification_period=None,
-                  ramp_up_period=None, recovery_period=None):
+                  ramp_up_period=None, recovery_period=None, signal_target_mrid=None):
         """
         Convenience method to add an event with a single signal.
 
@@ -207,8 +212,7 @@ class OpenADRServer:
         event_signal = objects.EventSignal(intervals=intervals,
                                            signal_name=signal_name,
                                            signal_type=signal_type,
-                                           signal_id=utils.generate_id(),
-                                           targets=targets)
+                                           signal_id=utils.generate_id())
 
         # Make sure the intervals carry timezone-aware timestamps
         for interval in intervals:
@@ -253,14 +257,18 @@ class OpenADRServer:
                                      "'ven_id' (str), 'event_id' (str), 'opt_type' (str). Please fix "
                                      "your 'callback' handler.")
 
-        if ven_id not in self.message_queues:
-            self.message_queues[ven_id] = deque()
         event_id = utils.getmember(utils.getmember(event, 'event_descriptor'), 'event_id')
-        self.message_queues[ven_id].append(event)
+        # Create the event queue if it does not exist yet
+        if ven_id not in self.events:
+            self.events[ven_id] = []
+
+        # Add event to the queue
+        self.events[ven_id].append(event)
+        self.events_updated[ven_id] = True
+
+        # Add the callback for the response to this event
         if callback is not None:
-            self.services['event_service'].pending_events[event_id] = (event, callback)
-        if utils.getmember(event, 'response_required') == 'never':
-            self.services['event_service'].schedule_event_updates(ven_id, event)
+            self.event_callbacks[event_id] = (event, callback)
         return event_id
 
     def add_handler(self, name, func):
@@ -284,3 +292,19 @@ class OpenADRServer:
         else:
             raise NameError(f"""Unknown handler '{name}'. """
                             f"""Correct handler names are: '{"', '".join(self._MAP.keys())}'.""")
+
+    @property
+    def registered_reports(self):
+        return self.services['report_service'].registered_reports
+
+    @property
+    def events(self):
+        return self.services['event_service'].events
+
+    @property
+    def events_updated(self):
+        return self.services['poll_service'].events_updated
+
+    @property
+    def event_callbacks(self):
+        return self.services['event_service'].event_callbacks

@@ -33,6 +33,14 @@ def test_setmember():
     utils.setmember(obj, 'a', 10)
     assert utils.getmember(obj, 'a') == 10
 
+def test_setmember_nested():
+    dc_parent = dc()
+    dc_parent.a = dc()
+
+    assert utils.getmember(utils.getmember(dc_parent, 'a'), 'a') == 2
+    utils.setmember(utils.getmember(dc_parent, 'a'), 'a', 3)
+    assert dc_parent.a.a == 3
+
 @pytest.mark.asyncio
 async def test_delayed_call_with_func():
     async def myfunc():
@@ -64,7 +72,7 @@ def test_determine_event_status_active():
 def test_determine_event_status_near():
     active_period = {'dtstart': datetime.now(timezone.utc) + timedelta(seconds=3),
                      'duration': timedelta(seconds=5),
-                     'ramp_up_duration': timedelta(seconds=5)}
+                     'ramp_up_period': timedelta(seconds=5)}
     assert utils.determine_event_status(active_period) == 'near'
 
 def test_determine_event_status_far():
@@ -75,7 +83,7 @@ def test_determine_event_status_far():
 def test_determine_event_status_far_with_ramp_up():
     active_period = {'dtstart': datetime.now(timezone.utc) + timedelta(seconds=10),
                      'duration': timedelta(seconds=5),
-                     'ramp_up_duration': timedelta(seconds=5)}
+                     'ramp_up_period': timedelta(seconds=5)}
     assert utils.determine_event_status(active_period) == 'far'
 
 def test_get_active_period_from_intervals():

@@ -102,10 +102,13 @@ logger = logging.getLogger('openleadr')
 @service('OadrPoll')
 class PollService(VTNService):
 
-    def __init__(self, vtn_id, polling_method='internal', message_queues=None):
+    def __init__(self, vtn_id, polling_method='internal', event_service=None, report_service=None):
         super().__init__(vtn_id)
         self.polling_method = polling_method
-        self.message_queues = message_queues
+        self.events_updated = {}
+        self.report_requests = {}
+        self.event_service = event_service
+        self.report_service = report_service
 
     @handler('oadrPoll')
     async def poll(self, payload):
@@ -115,13 +118,13 @@ class PollService(VTNService):
         """
         if self.polling_method == 'external':
             result = self.on_poll(ven_id=payload['ven_id'])
-        elif payload['ven_id'] in self.message_queues:
-            try:
-                result = self.message_queues[payload['ven_id']].popleft()
-            except IndexError:
-                return 'oadrResponse', {}
+        elif self.events_updated.get(payload['ven_id']):
+            # Send a oadrDistributeEvent whenever the events were updated
+            result = await self.event_service.request_event({'ven_id': payload['ven_id']})
+            self.events_updated[payload['ven_id']] = False
         else:
             return 'oadrResponse', {}
+
         if asyncio.iscoroutine(result):
             result = await result
         if result is None:
