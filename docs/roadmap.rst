@@ -20,10 +20,22 @@ Version Main features                      Target timeframe
 Changelog
 ---------
 
+openleadr 0.5.17
+~~~~~~~~~~~~~~~~
+
+Released: 5 January 2021
+
+Bug fixes:
+
+- reportRequestID is now correctly set to 0 in the oadrRegisterReport message
+- The Content-Type header is now correctly set on all VEN requests, and the VTN will check for it.
+- x-LoadrControlPercentOffset contained a typo
+- The oadrRegisterReport reportDescription would contain an invalid default MarketContext, which is now fixed
+
 openleadr 0.5.16
 ~~~~~~~~~~~~~~~~
 
-Released: 15 december 2020
+Released: 15 December 2020
 
 Bug fixes:
 
@@ -35,7 +47,7 @@ Bug fixes:
 openleadr 0.5.15
 ~~~~~~~~~~~~~~~~
 
-Released: 15 december 2020
+Released: 15 December 2020
 
 Bug fixes:
 
@@ -50,7 +62,7 @@ New features:
 openleadr 0.5.14
 ~~~~~~~~~~~~~~~~
 
-Released: 15 december 2020
+Released: 15 December 2020
 
 New features:
 
@@ -75,7 +87,7 @@ Other changes:
 openleadr 0.5.13
 ~~~~~~~~~~~~~~~~
 
-Released: 10 december 2020
+Released: 10 December 2020
 
 New features:
 
@@ -89,7 +101,7 @@ Bug fixes:
 openleadr 0.5.12
 ~~~~~~~~~~~~~~~~
 
-Released: 10 december 2020
+Released: 10 December 2020
 
 New features:
 
@@ -108,7 +120,7 @@ Bug fixes:
 openleadr 0.5.11
 ~~~~~~~~~~~~~~~~
 
-Released: 3 december 2020
+Released: 3 December 2020
 
 New features:
 
@@ -129,7 +141,7 @@ Changes:
 openleadr 0.5.10
 ~~~~~~~~~~~~~~~~
 
-Released: 1 december 2020
+Released: 1 December 2020
 
 Bug fixes:
 
@@ -138,7 +150,7 @@ Bug fixes:
 openleadr 0.5.9
 ~~~~~~~~~~~~~~~
 
-Released: 1 december 2020
+Released: 1 December 2020
 
 New features:
 
@@ -153,7 +165,7 @@ Bug fixes:
 openleadr 0.5.8
 ~~~~~~~~~~~~~~~
 
-Released: 30 november 2020
+Released: 30 November 2020
 
 New features:
 
@@ -163,7 +175,7 @@ New features:
 openleadr 0.5.7
 ~~~~~~~~~~~~~~~
 
-Released: 27 november 2020
+Released: 27 November 2020
 
 Bugs fixed:
 
@@ -172,7 +184,7 @@ Bugs fixed:
 openleadr 0.5.5
 ~~~~~~~~~~~~~~~
 
-Released: 23 november 2020
+Released: 23 November 2020
 
 New features:
 
@@ -182,7 +194,7 @@ New features:
 openleadr 0.5.4
 ~~~~~~~~~~~~~~~
 
-Released: 23 november 2020
+Released: 23 November 2020
 
 New features:
 
@@ -192,7 +204,7 @@ New features:
 openleadr 0.5.3
 ~~~~~~~~~~~~~~~
 
-Released: 20 november 2020
+Released: 20 November 2020
 
 New features:
 
@@ -203,7 +215,7 @@ New features:
 openleadr 0.5.2
 ~~~~~~~~~~~~~~~
 
-Released: 19 november 2020
+Released: 19 November 2020
 
 
 Bug fixes:
@@ -218,7 +230,7 @@ Known issues:
 openleadr 0.5.1
 ~~~~~~~~~~~~~~~
 
-Released: 19 november 2020
+Released: 19 November 2020
 
 New features:
 
@@ -238,7 +250,7 @@ Known issues:
 openleadr 0.5.0
 ~~~~~~~~~~~~~~~
 
-Released: 16 november 2020
+Released: 16 November 2020
 
 First release to pypi.org.
 
@@ -249,7 +261,7 @@ New features:
 openleadr 0.4.0
 ~~~~~~~~~~~~~~~
 
-Released: 16 november 2020
+Released: 16 November 2020
 
 Only released to git.
 
