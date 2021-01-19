@@ -16,9 +16,24 @@ Version Main features                      Target timeframe
 1.0.0   Certification by OpenADR Alliance  T.B.A.
 ======= ================================== ====================
 
+.. _changelog:
 
 Changelog
 ---------
+
+openleadr 0.5.18
+~~~~~~~~~~~~~~~~
+
+Released: 22 January 2021
+
+Bug fixes:
+
+- OpenLEADR now correctly communicates all active and upcoming events in the correct order on every eiRequestEvent or, if a new event was added, on the next oadrPoll action from the client.
+
+Improvements:
+
+- Some more value checking in the reporting mechanism
+- Various restructurings of the code surrounding report registration and delivery
 
 openleadr 0.5.17
 ~~~~~~~~~~~~~~~~
