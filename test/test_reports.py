@@ -565,6 +565,7 @@ async def test_different_on_register_report_handlers(caplog):
     await server.run()
     await client.create_party_registration()
     assert client.ven_id == 'ven123'
+    caplog.clear()
 
     await client.register_reports(client.reports)
     assert len(client.report_requests) == 0
