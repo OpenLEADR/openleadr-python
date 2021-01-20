@@ -58,6 +58,9 @@ html_theme = 'alabaster'
 html_theme_options = {
     'logo': 'logo-tall.png',
     'logo_name': False,
+    'github_button': 'true',
+    'github_type': 'star',
+    'github_count': 'true',
     'github_user': 'openleadr',
     'github_repo': 'openleadr-python',
     'font_family': 'sans-serif',

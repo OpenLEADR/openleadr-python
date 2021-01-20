@@ -16,7 +16,9 @@ A straightforward example of an OpenADR VEN, which has one report and an event h
 
     import asyncio
     from datetime import timedelta
-    from openleadr import OpenADRClient
+    from openleadr import OpenADRClient, enable_default_logging
+
+    enable_default_logging()
 
     async def collect_report_value():
         # This callback is called when you need to collect a value for your Report
@@ -28,7 +30,8 @@ A straightforward example of an OpenADR VEN, which has one report and an event h
         return 'optIn'
 
     # Create the client object
-    client = OpenADRClient(ven_name='myven', vtn_url='http://some-vtn.com/OpenADR2/Simple/2.0b')
+    client = OpenADRClient(ven_name='ven123',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
 
     # Add the report capability to the client
     client.add_report(callback=collect_report_value,
