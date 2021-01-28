@@ -448,6 +448,17 @@ def group_by(list_, key, pop_key=False):
     return grouped
 
 
+def pop_by(list_, key, value, *args):
+    """
+    Pop the first item that satisfies the search params from the given list.
+    """
+    item = find_by(list_, key, value, *args)
+    if item:
+        index = list_.index(item)
+        list_.pop(index)
+    return item
+
+
 def cron_config(interval, randomize_seconds=False):
     """
     Returns a dict with cron settings for the given interval
@@ -776,16 +787,19 @@ def order_events(events, limit=None, offset=None):
 
     # Update the event statuses
     for event in events:
-        event_status = determine_event_status(getmember(event, 'active_period'))
-        setmember(event, 'event_descriptor.event_status', event_status)
+        if getmember(event, 'event_descriptor.event_status') != enums.EVENT_STATUS.CANCELLED:
+            event_status = determine_event_status(getmember(event, 'active_period'))
+            setmember(event, 'event_descriptor.event_status', event_status)
 
     # Short circuit if we only have one event:
     if len(events) == 1:
         return events
 
     # Get all the active events first
-    active_events = [event for event in events if getmember(event, 'event_descriptor.event_status') == 'active']
-    other_events = [event for event in events if getmember(event, 'event_descriptor.event_status') != 'active']
+    active_events = [event for event in events
+                     if getmember(event, 'event_descriptor.event_status') == 'active']
+    other_events = [event for event in events
+                    if getmember(event, 'event_descriptor.event_status') != 'active']
 
     # Sort the active events by priority
     active_events.sort(key=lambda e: event_priority(e))

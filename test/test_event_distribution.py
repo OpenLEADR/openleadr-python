@@ -284,3 +284,55 @@ async def test_client_event_cleanup():
 
     await server.stop()
     await client.stop()
+
+
+@pytest.mark.asyncio
+async def test_cancel_event():
+    async def opt_in_to_event(event, future=None):
+        if future:
+            future.set_result(True)
+        return 'optIn'
+
+    async def on_update_event(event, future=None):
+        if future:
+            future.set_result(event)
+        return 'optIn'
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=datetime.timedelta(seconds=1))
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+
+    loop = asyncio.get_event_loop()
+    event_1_callback_future = loop.create_future()
+    event_id = server.add_event(ven_id='ven123',
+                                signal_name='simple',
+                                signal_type='level',
+                                intervals=[objects.Interval(dtstart=now,
+                                                            duration=datetime.timedelta(seconds=60),
+                                                            signal_payload=1)],
+                                callback=event_1_callback_future,
+                                response_required='always')
+    await server.run()
+
+    client = OpenADRClient(ven_name='ven123',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    client.add_handler('on_event', opt_in_to_event)
+    cancel_future = loop.create_future()
+    client.add_handler('on_update_event', partial(on_update_event, future=cancel_future))
+    await client.run()
+    await event_1_callback_future
+    server.cancel_event('ven123', event_id)
+
+    result = await cancel_future
+    assert utils.getmember(result, 'event_descriptor.event_status') == 'cancelled'
+
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrResponse'
+
+    await client._event_cleanup()
+
+    assert len(client.responded_events) == 0
+    assert len(client.received_events) == 0
+
+    await server.stop()
+    await client.stop()

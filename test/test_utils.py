@@ -220,6 +220,13 @@ def test_find_by_nested_dict():
     result = utils.find_by(search_list, 'dict1.c', 1000)
     assert result == {'dict1': {'a': 321, 'b': 654, 'c': 1000}}
 
+def test_pop_by():
+    search_list = [{'dict1': {'a': 123, 'b': 456}},
+                   {'dict1': {'a': 321, 'b': 654, 'c': 1000}}]
+    result = utils.pop_by(search_list, 'dict1.c', 1000)
+    assert result == {'dict1': {'a': 321, 'b': 654, 'c': 1000}}
+    assert result not in search_list
+
 def test_ensure_str():
     assert utils.ensure_str("Hello") == "Hello"
     assert utils.ensure_str(b"Hello") == "Hello"

@@ -81,7 +81,7 @@ class OpenADRClient:
         self.client_session = None
         self.report_queue_task = None
 
-        self.received_events = {}               # Holds the events that we received.
+        self.received_events = []               # Holds the events that we received.
         self.responded_events = {}              # Holds the events that we already saw.
 
         self.cert_path = cert
@@ -133,7 +133,7 @@ class OpenADRClient:
         # Set up automatic polling
         if self.poll_frequency > timedelta(hours=24):
             logger.warning("Polling with intervals of more than 24 hours is not supported. "
-                           "Will use 24 hours as the logging interval.")
+                           "Will use 24 hours as the polling interval.")
             self.poll_frequency = timedelta(hours=24)
         cron_config = utils.cron_config(self.poll_frequency, randomize_seconds=self.allow_jitter)
 
@@ -408,7 +408,7 @@ class OpenADRClient:
     #                                                                         #
     ###########################################################################
 
-    async def request_event(self, reply_limit=1):
+    async def request_event(self, reply_limit=None):
         """
         Request the next Event from the VTN, if it has any.
         """
@@ -682,7 +682,8 @@ class OpenADRClient:
         """
         Placeholder for the on_update_event handler.
         """
-        logger.warning("You should implement your own on_update_event handler. This handler receives "
+        logger.warning("An Event was updated, but you don't have an on_updated_event handler configured. "
+                       "You should implement your own on_update_event handler. This handler receives "
                        "an Event dict and should return either 'optIn' or 'optOut' based on your "
                        "choice. Will re-use the previous opt status for this event_id for now")
         if event['event_descriptor']['event_id'] in self.events:
@@ -752,21 +753,25 @@ class OpenADRClient:
                 event_id = event['event_descriptor']['event_id']
                 event_status = event['event_descriptor']['event_status']
                 modification_number = event['event_descriptor']['modification_number']
-                if event_id in self.received_events:
-                    if self.received_events[event_id]['event_descriptor']['modification_number'] == modification_number:
+                received_event = utils.find_by(self.received_events, 'event_descriptor.event_id', event_id)
+                if received_event:
+                    if received_event['event_descriptor']['modification_number'] == modification_number:
                         # Re-submit the same opt type as we already had previously
                         result = self.responded_events[event_id]
                     else:
+                        # Replace the event with the fresh copy
+                        utils.pop_by(self.received_events, 'event_descriptor.event_id', event_id)
+                        self.received_events.append(event)
                         # Wait for the result of the on_update_event handler
-                        result = self.on_update_event(event)
+                        result = await utils.await_if_required(self.on_update_event(event))
                 else:
                     # Wait for the result of the on_event
-                    self.received_events[event_id] = event
+                    self.received_events.append(event)
                     result = self.on_event(event)
                 if asyncio.iscoroutine(result):
                     result = await result
                 results.append(result)
-                if event_status == 'completed':
+                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED):
                     self.responded_events.pop(event_id)
                 else:
                     self.responded_events[event_id] = result
@@ -806,13 +811,13 @@ class OpenADRClient:
 
     async def _event_cleanup(self):
         """
-        Periodic task that will clean up completed events in our memory.
+        Periodic task that will clean up completed and cancelled events in our memory.
         """
-        print("Checking for stale events")
-        for event in list(self.received_events):
-            if utils.determine_event_status(self.received_events[event]['active_period']) == 'completed':
-                logger.debug(f"Removing event {event} because it is completed.")
-                self.received_events.pop(event)
+        for event in self.received_events:
+            if event['event_descriptor']['event_status'] == 'cancelled' or \
+                    utils.determine_event_status(event['active_period']) == 'completed':
+                logger.info(f"Removing event {event} because it is no longer relevant.")
+                self.received_events.pop(self.received_events.index(event))
 
     async def _poll(self):
         logger.debug("Now polling for new messages")
