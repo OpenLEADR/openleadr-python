@@ -20,7 +20,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(name='openleadr',
-      version='0.5.18',
+      version='0.5.19',
       description='Python3 library for building OpenADR Clients (VENs) and Servers (VTNs)',
       long_description=long_description,
       long_description_content_type='text/markdown',

@@ -9,17 +9,31 @@ OpenLEADR is under development. The current version is |release|.
 Upcoming releases
 -----------------
 
-======= ================================== ====================
-Version Main features                      Target timeframe
-======= ================================== ====================
-0.6.0   Implement XMPP transport           January 2020
-1.0.0   Certification by OpenADR Alliance  T.B.A.
-======= ================================== ====================
+======= ==================================
+Version Main features
+======= ==================================
+0.6.0   Implement XMPP transport
+0.7.0   Implement PKI with validations
+======= ==================================
 
 .. _changelog:
 
 Changelog
 ---------
+
+openleadr 0.5.19
+~~~~~~~~~~~~~~~~
+
+Released: 28 January 2021
+
+Bug fixes:
+
+- The client now correctly communicates the modificationNumber of an event in the oadrCreatedEvent messages
+
+New features:
+
+- Added the possibility to cancel events from the VTN side. Just call server.cancel_event(ven_id, event_id), and the event is scheduled for cancellation.
+
 
 openleadr 0.5.18
 ~~~~~~~~~~~~~~~~
