@@ -404,6 +404,7 @@ def extract_pem_cert(tree):
 def find_by(dict_or_list, key, value, *args):
     """
     Find a dict inside a dict or list by key, value properties.
+    You can search for a nesting by separating the levels with a period (.).
     """
     search_params = [(key, value)]
     if args:
@@ -411,16 +412,19 @@ def find_by(dict_or_list, key, value, *args):
     if isinstance(dict_or_list, dict):
         dict_or_list = dict_or_list.values()
     for item in dict_or_list:
-        if not isinstance(item, dict):
-            _item = item.__dict__
-        else:
-            _item = item
         for key, value in search_params:
+            _item = item
+            keys = key.split(".")
+            for key in keys[:-1]:
+                if not hasmember(_item, key):
+                    break
+                _item = getmember(_item, key)
+            key = keys[-1]
             if isinstance(value, tuple):
-                if key not in _item or _item[key] not in value:
+                if not hasmember(_item, key) or getmember(_item, key) not in value:
                     break
             else:
-                if key not in _item or _item[key] != value:
+                if not hasmember(_item, key) or getmember(_item, key) != value:
                     break
         else:
             return item
@@ -578,7 +582,7 @@ def determine_event_status(active_period):
         return 'completed'
     if now >= active_period_start:
         return 'active'
-    if getmember(active_period, 'ramp_up_period', None) is not None:
+    if getmember(active_period, 'ramp_up_period', missing=None) is not None:
         ramp_up_start = active_period_start - getmember(active_period, 'ramp_up_period')
         if now >= ramp_up_start:
             return 'near'
@@ -615,24 +619,34 @@ def hasmember(obj, member):
 
 def getmember(obj, member, missing='_RAISE_'):
     """
-    Get a member from a dict or dataclass
+    Get a member from a dict or dataclass. Nesting is possible.
     """
-    if is_dataclass(obj):
-        if not missing == '_RAISE_' and not hasattr(obj, member):
-            return missing
+    def getmember_inner(obj, member, missing='_RAISE_'):
+        if is_dataclass(obj):
+            if not missing == '_RAISE_' and not hasattr(obj, member):
+                return missing
+            else:
+                return getattr(obj, member)
         else:
-            return getattr(obj, member)
-    else:
-        if missing == '_RAISE_':
-            return obj[member]
-        else:
-            return obj.get(member, missing)
+            if missing == '_RAISE_':
+                return obj[member]
+            else:
+                return obj.get(member, missing)
+
+    for m in member.split("."):
+        obj = getmember_inner(obj, m, missing=missing)
+    return obj
 
 
 def setmember(obj, member, value):
     """
     Set a member of a dict of dataclass
     """
+    if '.' in member:
+        members = member.split('.')
+        obj = getmember(obj, ".".join(members[:-1]))
+        member = members[-1]
+
     if is_dataclass(obj):
         setattr(obj, member, value)
     else:

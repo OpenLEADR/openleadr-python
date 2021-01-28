@@ -24,6 +24,9 @@ def test_getmember():
     obj = dc()
     assert utils.getmember(obj, 'a') == 2
 
+    obj = {'a': {'b': 1}}
+    assert utils.getmember(obj, 'a.b') == 1
+
 def test_setmember():
     obj = {'a': 1}
     utils.setmember(obj, 'a', 10)
@@ -255,6 +258,12 @@ def test_find_by_with_missing_member():
                    {'a': 321, 'b': 654, 'c': 1000}]
     result = utils.find_by(search_list, 'c', 1000)
     assert result == {'a': 321, 'b': 654, 'c': 1000}
+
+def test_find_by_nested_dict():
+    search_list = [{'dict1': {'a': 123, 'b': 456}},
+                   {'dict1': {'a': 321, 'b': 654, 'c': 1000}}]
+    result = utils.find_by(search_list, 'dict1.c', 1000)
+    assert result == {'dict1': {'a': 321, 'b': 654, 'c': 1000}}
 
 def test_ensure_str():
     assert utils.ensure_str("Hello") == "Hello"
