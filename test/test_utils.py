@@ -393,3 +393,26 @@ def test_order_events():
     event_1_as_dict = asdict(event_1_active_high_prio)
     ordered_events = utils.order_events(event_1_as_dict)
     assert ordered_events == [event_1_as_dict]
+
+def test_increment_modification_number():
+    now = datetime.now(timezone.utc)
+    event = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',
+                                                                   modification_number=0,
+                                                                   created_date_time=now,
+                                                                   event_status='far',
+                                                                   priority=1,
+                                                                   market_context='http://context01'),
+                                           active_period=objects.ActivePeriod(dtstart=now - timedelta(minutes=5),
+                                                                              duration=timedelta(minutes=10)),
+                                           event_signals=[objects.EventSignal(intervals=[objects.Interval(dtstart=now,
+                                                                                                          duration=timedelta(minutes=10),
+                                                                                                          signal_payload=1)],
+                                                                              signal_name='simple',
+                                                                              signal_type='level',
+                                                                              signal_id='signal001')],
+                                           targets=[{'ven_id': 'ven001'}])
+
+    utils.increment_event_modification_number(event)
+    assert utils.getmember(event, 'event_descriptor.modification_number') == 1
+    utils.increment_event_modification_number(event)
+    assert utils.getmember(event, 'event_descriptor.modification_number') == 2

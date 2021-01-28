@@ -800,3 +800,12 @@ def order_events(events, limit=None, offset=None):
     if limit and offset:
         return ordered_events[offset:offset+limit]
     return ordered_events
+
+
+def increment_event_modification_number(event):
+    """
+    Increments the modification number of the event by 1 and returns the new modification number.
+    """
+    modification_number = getmember(event, 'event_descriptor.modification_number') + 1
+    setmember(event, 'event_descriptor.modification_number', modification_number)
+    return modification_number
