@@ -762,7 +762,7 @@ def order_events(events, limit=None, offset=None):
     """
     def event_priority(event):
         # The default and lowest priority is 0, which we should interpret as a high value.
-        priority = getmember(getmember(event, 'event_descriptor'), 'priority', float('inf'))
+        priority = getmember(event, 'event_descriptor.priority', missing=float('inf'))
         if priority == 0:
             priority = float('inf')
         return priority
@@ -777,24 +777,24 @@ def order_events(events, limit=None, offset=None):
     # Update the event statuses
     for event in events:
         event_status = determine_event_status(getmember(event, 'active_period'))
-        setmember(getmember(event, 'event_descriptor'), 'event_status', event_status)
+        setmember(event, 'event_descriptor.event_status', event_status)
 
     # Short circuit if we only have one event:
     if len(events) == 1:
         return events
 
     # Get all the active events first
-    active_events = [event for event in events if getmember(getmember(event, 'event_descriptor'), 'event_status') == 'active']
-    other_events = [event for event in events if getmember(getmember(event, 'event_descriptor'), 'event_status') != 'active']
+    active_events = [event for event in events if getmember(event, 'event_descriptor.event_status') == 'active']
+    other_events = [event for event in events if getmember(event, 'event_descriptor.event_status') != 'active']
 
     # Sort the active events by priority
     active_events.sort(key=lambda e: event_priority(e))
 
     # Sort the active events by start date
-    active_events.sort(key=lambda e: getmember(getmember(e, 'active_period'), 'dtstart'))
+    active_events.sort(key=lambda e: getmember(e, 'active_period.dtstart'))
 
     # Sort the non-active events by their start date
-    other_events.sort(key=lambda e: getmember(getmember(e, 'active_period'), 'dtstart'))
+    other_events.sort(key=lambda e: getmember(e, 'active_period.dtstart'))
 
     ordered_events = active_events + other_events
     if limit and offset:
