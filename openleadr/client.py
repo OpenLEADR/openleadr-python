@@ -420,7 +420,7 @@ class OpenADRClient:
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload
 
-    async def created_event(self, request_id, event_id, opt_type, modification_number=1):
+    async def created_event(self, request_id, event_id, opt_type, modification_number=0):
         """
         Inform the VTN that we created an event.
         """
@@ -784,7 +784,7 @@ class OpenADRClient:
                             'response_description': 'OK',
                             'opt_type': results[i],
                             'request_id': message['request_id'],
-                            'modification_number': 1,
+                            'modification_number': modification_number,
                             'event_id': events[i]['event_descriptor']['event_id']}
                            for i, event in enumerate(events)
                            if event['response_required'] == 'always'
