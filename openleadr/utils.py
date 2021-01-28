@@ -653,20 +653,6 @@ def setmember(obj, member, value):
         obj[member] = value
 
 
-def get_next_event_from_deque(deque):
-    unused_elements = []
-    event = None
-    for i in range(len(deque)):
-        msg = deque.popleft()
-        if isinstance(msg, objects.Event) or (isinstance(msg, dict) and 'event_descriptor' in msg):
-            event = msg
-            break
-        else:
-            unused_elements.append(msg)
-    deque.extend(unused_elements)
-    return event
-
-
 def validate_report_request_tuples(list_of_report_requests, mode='full'):
     if len(list_of_report_requests) == 0:
         return

@@ -122,51 +122,6 @@ def test_cron_config():
                                                                                 'hour': '*',
                                                                                 'jitter': 1}
 
-def test_get_event_from_deque():
-    d = deque()
-    now = datetime.now(timezone.utc)
-    event1 = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event123',
-                                                                    event_status='far',
-                                                                    modification_number='1',
-                                                                    market_context='http://marketcontext01'),
-                           event_signals=[objects.EventSignal(signal_name='simple',
-                                                              signal_type='level',
-                                                              signal_id=utils.generate_id(),
-                                                              intervals=[objects.Interval(dtstart=now,
-                                                                                          duration=timedelta(minutes=10),
-                                                                                          signal_payload=1)])],
-                            targets=[{'ven_id': 'ven123'}])
-    msg_one = {'message': 'one'}
-    msg_two = {'message': 'two'}
-    msg_three = {'message': 'three'}
-    event2 = objects.Event(event_descriptor=objects.EventDescriptor(event_id='event123',
-                                                                    event_status='far',
-                                                                    modification_number='1',
-                                                                    market_context='http://marketcontext01'),
-                           event_signals=[objects.EventSignal(signal_name='simple',
-                                                              signal_type='level',
-                                                              signal_id=utils.generate_id(),
-                                                              intervals=[objects.Interval(dtstart=now,
-                                                                                          duration=timedelta(minutes=10),
-                                                                                          signal_payload=1)])],
-                            targets=[{'ven_id': 'ven123'}])
-
-    d.append(event1)
-    d.append(msg_one)
-    d.append(msg_two)
-    d.append(msg_three)
-    d.append(event2)
-    assert utils.get_next_event_from_deque(d) is event1
-    assert utils.get_next_event_from_deque(d) is event2
-    assert utils.get_next_event_from_deque(d) is None
-    assert utils.get_next_event_from_deque(d) is None
-    assert len(d) == 3
-    assert d.popleft() is msg_one
-    assert d.popleft() is msg_two
-    assert d.popleft() is msg_three
-    assert len(d) == 0
-    assert utils.get_next_event_from_deque(d) is None
-
 
 def test_validate_report_measurement_dict_missing_items(caplog):
     measurement = {'name': 'rainbows'}
