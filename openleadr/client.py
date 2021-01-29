@@ -18,8 +18,6 @@ import asyncio
 import inspect
 import logging
 import ssl
-import sys
-import random
 from datetime import datetime, timedelta, timezone
 from functools import partial
 from http import HTTPStatus
@@ -153,10 +151,6 @@ class OpenADRClient:
             self.scheduler.shutdown()
         if self.report_queue_task:
             self.report_queue_task.cancel()
-        if sys.version_info.minor > 8:
-            delayed_call_tasks = [task for task in asyncio.all_tasks() if task.get_name().startswith('DelayedCall')]
-            for task in delayed_call_tasks:
-                task.cancel()
         await self.client_session.close()
         await asyncio.sleep(0)
 
@@ -614,31 +608,13 @@ class OpenADRClient:
             expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
             if len(outgoing_report.intervals) == expected_len:
                 logger.info("The report is now complete with all the values. Will queue for sending.")
-                if self.allow_jitter:
-                    delay = random.uniform(0, min(30, report_interval / 2))
-                    if sys.version_info.minor >= 8:
-                        name = {'name': f'DelayedCall-OutgoingReport-{utils.generate_id()}'}
-                    else:
-                        name = {}
-                    self.loop.create_task(utils.delayed_call(func=self.pending_reports.put(outgoing_report),
-                                                             delay=delay), **name)
-                else:
-                    await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
+                await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
             else:
                 logger.debug("The report is not yet complete, will hold until it is.")
                 self.incomplete_reports[report_request_id] = outgoing_report
         else:
             logger.info("Report will be sent now.")
-            if self.allow_jitter:
-                delay = random.uniform(0, min(30, granularity.total_seconds() / 2))
-                if sys.version_info.minor >= 8:
-                    name = {'name': f'DelayedCall-OutgoingReport-{utils.generate_id()}'}
-                else:
-                    name = {}
-                self.loop.create_task(utils.delayed_call(func=self.pending_reports.put(outgoing_report),
-                                                         delay=delay), **name)
-            else:
-                await self.pending_reports.put(outgoing_report)
+            await self.pending_reports.put(outgoing_report)
 
     async def cancel_report(self, payload):
         """
@@ -649,19 +625,20 @@ class OpenADRClient:
         """
         A Queue worker that pushes out the pending reports.
         """
-
-        while True:
-            report = await self.pending_reports.get()
-            service = 'EiReport'
-            message = self._create_message('oadrUpdateReport', reports=[report])
-
-            try:
-                response_type, response_payload = await self._perform_request(service, message)
-            except Exception as err:
-                logger.error(f"Unable to send the report to the VTN. Error: {err}")
-            else:
-                if 'cancel_report' in response_payload:
-                    await self.cancel_report(response_payload['cancel_report'])
+        try:
+            while True:
+                report = await self.pending_reports.get()
+                service = 'EiReport'
+                message = self._create_message('oadrUpdateReport', reports=[report])
+                try:
+                    response_type, response_payload = await self._perform_request(service, message)
+                except Exception as err:
+                    logger.error(f"Unable to send the report to the VTN. Error: {err}")
+                else:
+                    if 'cancel_report' in response_payload:
+                        await self.cancel_report(response_payload['cancel_report'])
+        except asyncio.CancelledError:
+            return
 
     ###########################################################################
     #                                                                         #

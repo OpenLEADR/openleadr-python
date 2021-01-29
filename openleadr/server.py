@@ -26,7 +26,6 @@ import inspect
 import logging
 import ssl
 import re
-import sys
 logger = logging.getLogger('openleadr')
 
 
@@ -149,11 +148,9 @@ class OpenADRServer:
         await self.run()
 
     async def stop(self):
-        if sys.version_info.minor >= 8:
-            delayed_call_tasks = [task for task in asyncio.all_tasks()
-                                  if task.get_name().startswith('DelayedCall')]
-            for task in delayed_call_tasks:
-                task.cancel()
+        """
+        Stop the server in a graceful manner.
+        """
         await self.app_runner.cleanup()
 
     def add_event(self, ven_id, signal_name, signal_type, intervals, callback=None, event_id=None,

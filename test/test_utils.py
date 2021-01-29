@@ -44,24 +44,6 @@ def test_setmember_nested():
     utils.setmember(utils.getmember(dc_parent, 'a'), 'a', 3)
     assert dc_parent.a.a == 3
 
-@pytest.mark.asyncio
-async def test_delayed_call_with_func():
-    async def myfunc():
-        pass
-    await utils.delayed_call(myfunc, delay=0.1)
-
-@pytest.mark.asyncio
-async def test_delayed_call_with_coro():
-    async def mycoro():
-        pass
-    await utils.delayed_call(mycoro(), delay=0.1)
-
-@pytest.mark.asyncio
-async def test_delayed_call_with_coro_func():
-    async def mycoro():
-        pass
-    await utils.delayed_call(mycoro, delay=0.1)
-
 def test_determine_event_status_completed():
     active_period = {'dtstart': datetime.now(timezone.utc) - timedelta(seconds=10),
                      'duration': timedelta(seconds=5)}

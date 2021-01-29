@@ -600,21 +600,6 @@ def determine_event_status(active_period):
     return 'far'
 
 
-async def delayed_call(func, delay):
-    try:
-        if isinstance(delay, timedelta):
-            delay = delay.total_seconds()
-        await asyncio.sleep(delay)
-        if asyncio.iscoroutinefunction(func):
-            await func()
-        elif asyncio.iscoroutine(func):
-            await func
-        else:
-            func()
-    except asyncio.CancelledError:
-        pass
-
-
 def hasmember(obj, member):
     """
     Check if a dict or dataclass has the given member
