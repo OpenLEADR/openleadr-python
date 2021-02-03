@@ -173,6 +173,12 @@ class EventSignal:
     measurement: Measurement = None
 
     def __post_init__(self):
+        if self.signal_type not in enums.SIGNAL_TYPE.values:
+            raise ValueError(f"""The signal_type must be one of '{"', '".join(enums.SIGNAL_TYPE.values)}', """
+                             f"""you specified: '{self.signal_type}'.""")
+        if self.signal_name not in enums.SIGNAL_NAME.values and not self.signal_name.startswith('x-'):
+            raise ValueError(f"""The signal_name must be one of '{"', '".join(enums.SIGNAL_TYPE.values)}', """
+                             f"""or it must begin with 'x-'. You specified: '{self.signal_name}'""")
         if self.targets is None and self.targets_by_type is None:
             return
         elif self.targets_by_type is None:
@@ -180,7 +186,7 @@ class EventSignal:
             targets_by_type = utils.group_targets_by_type(list_of_targets)
             if len(targets_by_type) > 1:
                 raise ValueError("In OpenADR, the EventSignal target may only be of type endDeviceAsset. "
-                                 f"You provided types: {', '.join(targets_by_type)}")
+                                 f"You provided types: '{', '.join(targets_by_type)}'")
         elif self.targets is None:
             self.targets = [Target(**target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
         elif self.targets is not None and self.targets_by_type is not None:

@@ -199,6 +199,14 @@ class OpenADRServer:
             targets = utils.ungroup_targets_by_type(targets_by_type)
         if not isinstance(targets, list):
             targets = [targets]
+        if signal_type not in enums.SIGNAL_TYPE.values:
+            raise ValueError(f"""The signal_type must be one of '{"', '".join(enums.SIGNAL_TYPE.values)}', """
+                             f"""you specified: '{signal_type}'.""")
+        if signal_name not in enums.SIGNAL_NAME.values and not signal_name.startswith('x-'):
+            raise ValueError(f"""The signal_name must be one of '{"', '".join(enums.SIGNAL_TYPE.values)}', """
+                             f"""or it must begin with 'x-'. You specified: '{signal_name}'""")
+        if not intervals or not isinstance(intervals, (list, tuple)) or len(intervals) == 0:
+            raise ValueError(f"The intervals must be a list of intervals, you specified: {intervals}")
 
         event_descriptor = objects.EventDescriptor(event_id=event_id,
                                                    modification_number=0,

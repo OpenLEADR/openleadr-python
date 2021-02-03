@@ -1,6 +1,7 @@
 from openleadr import OpenADRClient, OpenADRServer
 from openleadr.utils import generate_id, certificate_fingerprint
-from openleadr import messaging, errors
+from openleadr import messaging, errors, objects
+from datetime import datetime, timezone, timedelta
 import pytest
 from aiohttp import web
 import os
@@ -214,6 +215,56 @@ def test_server_add_unknown_handler(caplog):
                               "'on_create_report', 'on_created_report', 'on_request_report', "
                               "'on_update_report', 'on_poll', 'on_query_registration', "
                               "'on_create_party_registration', 'on_cancel_party_registration'.")
+
+
+def test_server_add_event_with_invalid_signal_type():
+    server = OpenADRServer(vtn_id='myvtn')
+    with pytest.raises(ValueError):
+        server.add_event(ven_id='ven123',
+                         signal_name='simple',
+                         signal_type='x-LoadControlCapacity',
+                         intervals=[objects.Interval(dtstart=datetime.now(timezone.utc),
+                                             duration=timedelta(seconds=10),
+                                             signal_payload=1.0)])
+
+
+def test_server_add_event_with_invalid_signal_name():
+    server = OpenADRServer(vtn_id='myvtn')
+    with pytest.raises(ValueError):
+        server.add_event(ven_id='ven123',
+                         signal_name='invalid',
+                         signal_type='x-loadControlCapacity',
+                         intervals=[objects.Interval(dtstart=datetime.now(timezone.utc),
+                                             duration=timedelta(seconds=10),
+                                             signal_payload=1.0)])
+
+def test_server_add_event_with_custom_signal_name():
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_event(ven_id='ven123',
+                     signal_name='x-invalid',
+                     signal_type='x-loadControlCapacity',
+                     intervals=[objects.Interval(dtstart=datetime.now(timezone.utc),
+                                         duration=timedelta(seconds=10),
+                                         signal_payload=1.0)])
+    assert len(server.events['ven123']) == 1
+
+def test_server_add_event_with_no_intervals():
+    server = OpenADRServer(vtn_id='myvtn')
+    with pytest.raises(ValueError):
+        server.add_event(ven_id='ven123',
+                         signal_name='x-invalid',
+                         signal_type='x-loadControlCapacity',
+                         intervals=None)
+    with pytest.raises(ValueError):
+        server.add_event(ven_id='ven123',
+                         signal_name='x-invalid',
+                         signal_type='x-loadControlCapacity',
+                         intervals=[])
+    with pytest.raises(ValueError):
+        server.add_event(ven_id='ven123',
+                         signal_name='x-invalid',
+                         signal_type='x-loadControlCapacity',
+                         intervals={"dtstart": "2021-01-01"})
 
 
 ##########################################################################################
