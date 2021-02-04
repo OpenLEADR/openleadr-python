@@ -41,7 +41,7 @@ class OpenADRClient:
     """
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
-                 allow_jitter=True):
+                 allow_jitter=True, ven_id=None):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -58,13 +58,15 @@ class OpenADRClient:
                                      on startup. Defaults to True.
         :param str ca_file: The path to the PEM-formatted CA file for validating the VTN server's
                             certificate.
+        :param str ven_id: The ID for this VEN. If you leave this blank,
+                           a VEN_ID will be assigned by the VTN.
         """
 
         self.ven_name = ven_name
         if vtn_url.endswith("/"):
             vtn_url = vtn_url[:-1]
         self.vtn_url = vtn_url
-        self.ven_id = None
+        self.ven_id = ven_id
         self.registration_id = None
         self.poll_frequency = None
         self.vtn_fingerprint = vtn_fingerprint
@@ -115,7 +117,7 @@ class OpenADRClient:
         # if not hasattr(self, 'on_event'):
         #     raise NotImplementedError("You must implement on_event.")
         self.loop = asyncio.get_event_loop()
-        await self.create_party_registration()
+        await self.create_party_registration(ven_id=self.ven_id)
 
         if not self.ven_id:
             logger.error("No VEN ID received from the VTN, aborting.")
