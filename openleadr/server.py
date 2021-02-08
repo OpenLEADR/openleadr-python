@@ -48,7 +48,7 @@ class OpenADRServer:
     def __init__(self, vtn_id, cert=None, key=None, passphrase=None, fingerprint_lookup=None,
                  show_fingerprint=True, http_port=8080, http_host='127.0.0.1', http_cert=None,
                  http_key=None, http_key_passphrase=None, http_path_prefix='/OpenADR2/Simple/2.0b',
-                 requested_poll_freq=timedelta(seconds=10), http_ca_file=None):
+                 requested_poll_freq=timedelta(seconds=10), http_ca_file=None, ven_lookup=None):
         """
         Create a new OpenADR VTN (Server).
 
@@ -122,7 +122,18 @@ class OpenADRServer:
                 print("")
         VTNService._create_message = partial(create_message, cert=cert, key=key,
                                              passphrase=passphrase)
-        VTNService.fingerprint_lookup = staticmethod(fingerprint_lookup)
+        if fingerprint_lookup is not None:
+            logger.warning("DeprecationWarning: the argument 'fingerprint_lookup' is deprecated and "
+                           "is replaced by 'ven_lookup'. 'fingerprint_lookup' will be removed in a "
+                           "future version of OpenLEADR. Please see "
+                           "https://openleadr.org/docs/server.html#things-you-should-implement.")
+            VTNService.fingerprint_lookup = staticmethod(fingerprint_lookup)
+        if ven_lookup is None:
+            logger.warning("If you provide a 'ven_lookup' to your OpenADRServer() init, OpenLEADR can "
+                           "automatically issue ReregistrationRequests for VENs that don't exist in "
+                           "your system. Please see https://openleadr.org/docs/server.html#things-you-should-implement.")
+        else:
+            VTNService.ven_lookup = staticmethod(ven_lookup)
         self.__setattr__ = self.add_handler
 
     async def run(self):

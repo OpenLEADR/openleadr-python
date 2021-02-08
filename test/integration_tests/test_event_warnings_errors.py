@@ -138,7 +138,6 @@ async def test_client_exception_event_handler(caplog):
 
 @pytest.mark.asyncio
 async def test_client_good_event_handler(caplog):
-    caplog.clear()
     caplog.set_level(logging.WARNING)
     logger = logging.getLogger('openleadr')
     logger.setLevel(logging.DEBUG)
@@ -147,6 +146,7 @@ async def test_client_good_event_handler(caplog):
     client.add_handler('on_event', good_on_event)
     server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=timedelta(seconds=1))
     server.add_handler('on_create_party_registration', on_create_party_registration)
+    caplog.clear()
     print("Running server")
     await server.run_async()
     # await asyncio.sleep(0.1)

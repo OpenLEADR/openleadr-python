@@ -20,7 +20,6 @@ from jinja2 import Environment, PackageLoader
 from signxml import XMLSigner, XMLVerifier, methods
 from uuid import uuid4
 from lxml.etree import Element
-from asyncio import iscoroutine
 from openleadr import errors
 from datetime import datetime, timezone, timedelta
 import os
@@ -107,7 +106,7 @@ def validate_xml_signature(xml_tree, cert_fingerprint=None):
     _verify_replay_protect(xml_tree)
 
 
-async def authenticate_message(request, message_tree, message_payload, fingerprint_lookup):
+async def authenticate_message(request, message_tree, message_payload, fingerprint_lookup=None, ven_lookup=None):
     if request.secure and 'ven_id' in message_payload:
         connection_fingerprint = utils.get_cert_fingerprint_from_request(request)
         if connection_fingerprint is None:
@@ -117,9 +116,15 @@ async def authenticate_message(request, message_tree, message_payload, fingerpri
 
         try:
             ven_id = message_payload.get('ven_id')
-            expected_fingerprint = fingerprint_lookup(ven_id)
-            if iscoroutine(expected_fingerprint):
-                expected_fingerprint = await expected_fingerprint
+            if fingerprint_lookup:
+                expected_fingerprint = await utils.await_if_required(fingerprint_lookup(ven_id))
+                if not expected_fingerprint:
+                    raise ValueError
+            elif ven_lookup:
+                ven_info = await utils.await_if_required(ven_lookup(ven_id))
+                if not ven_info:
+                    raise ValueError
+                expected_fingerprint = ven_info.get('fingerprint')
         except ValueError:
             msg = (f"Your venID {ven_id} is not known to this VTN. Make sure you use the venID "
                    "that you receive from this VTN during the registration step")

@@ -271,10 +271,12 @@ You should implement the following handlers:
 
 - ``on_create_party_registration(registration_info)``
 - ``on_register_report(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval)``
+- ``ven_lookup(ven_id)``: a function that returns a dict with the `'ven_name'`, ``'ven_id'``, ``'fingerprint'`` and ``'registration_id'`` for the given ``ven_id`` (see below.). This is used to automatically reject requests from VENs that the VTN does not know, and to authenticate the VENs message signatures.
 
 Optionally:
 
 - ``on_poll(ven_id)``; only if you don't want to use the internal message queue.
+- ``ven_lookup(ven_id)``: a function or coroutine that openleadr can use to check if we know a VEN. Signature:
 
 .. _server_signing_messages:
 
@@ -289,10 +291,16 @@ Example implementation:
 
     from openleadr import OpenADRServr
 
-    def fingerprint_lookup(ven_id):
-        # Look up the certificate fingerprint that is associated with this VEN.
-        fingerprint = database.lookup('certificate_fingerprint').where(ven_id=ven_id) # Pseudo code
-        return fingerprint
+    def ven_lookup(ven_id):
+        # Look up the information about this VEN.
+        ven_info = database.lookup('vens').where(ven_id=ven_id) # Pseudo code
+        if ven_info:
+            return {'ven_id': ven_info['ven_id'],
+                    'ven_name': ven_info['ven_name'],
+                    'fingerprint': ven_info['fingerprint'],
+                    'registration_id': ven_info['registration_id']}
+        else:
+            return {}
 
     server = OpenADRServer(vtn_id='MyVTN',
                            cert='/path/to/cert.pem',

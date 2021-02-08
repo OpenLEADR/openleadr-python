@@ -91,3 +91,14 @@ class DeploymentError(ProtocolError):
         super().__init__()
         self.response_code = STATUS_CODES.DEPLOYMENT_ERROR_OR_OTHER_ERROR
         self.response_description = description
+
+
+# Flow-control based Exceptions
+class RequestReregistration(Exception):
+    def __init__(self, ven_id=None):
+        super().__init__()
+        self.ven_id = ven_id
+
+
+class SendEmptyHTTPResponse(Exception):
+    pass
