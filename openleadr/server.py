@@ -71,6 +71,8 @@ class OpenADRServer:
         :param str http_key: The path to the PEM private key for securing HTTP traffic.
         :param str http_ca_file: The path to the CA-file that client certificates are checked against.
         :param str http_key_passphrase: The passphrase for the HTTP private key.
+        :param ven_lookup: A callback that takes a ven_id and returns a dict containing the
+                           ven_id, ven_name, fingerprint and registration_id.
         """
         # Set up the message queues
 
@@ -90,6 +92,9 @@ class OpenADRServer:
             http_path_prefix = http_path_prefix[:-1]
         self.app.add_routes([web.post(f"{http_path_prefix}/{s.__service_name__}", s.handler)
                              for s in self.services.values()])
+
+        # Add a reference to the openadr VTN to the aiohttp 'app'
+        self.app['server'] = self
 
         # Configure the web server
         self.http_port = http_port
