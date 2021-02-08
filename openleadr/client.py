@@ -631,7 +631,10 @@ class OpenADRClient:
             while True:
                 report = await self.pending_reports.get()
                 service = 'EiReport'
-                message = self._create_message('oadrUpdateReport', reports=[report])
+                message = self._create_message('oadrUpdateReport',
+                                               ven_id=self.ven_id,
+                                               request_id=utils.generate_id(),
+                                               reports=[report])
                 try:
                     response_type, response_payload = await self._perform_request(service, message)
                 except Exception as err:
