@@ -823,16 +823,17 @@ class OpenADRClient:
         if response_type is None:
             return
 
-        if response_type == 'oadrResponse':
-            logger.debug("No events or reports available")
+        elif response_type == 'oadrResponse':
+            logger.debug("Received empty response from the VTN.")
             return
 
-        if response_type == 'oadrRequestReregistration':
+        elif response_type == 'oadrRequestReregistration':
             logger.info("The VTN required us to re-register. Calling the registration procedure.")
+            await self.send_response(service='eiRegisterParty')
             await self.create_party_registration()
 
-        if response_type == 'oadrDistributeEvent':
-            if len(response_payload['events']) > 0:
+        elif response_type == 'oadrDistributeEvent':
+            if 'events' in response_payload and len(response_payload['events']) > 0:
                 await self._on_event(response_payload)
 
         elif response_type == 'oadrUpdateReport':
