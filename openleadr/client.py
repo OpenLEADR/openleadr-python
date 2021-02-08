@@ -678,6 +678,22 @@ class OpenADRClient:
 
     ###########################################################################
     #                                                                         #
+    #                             EMPTY RESPONSES                             #
+    #                                                                         #
+    ###########################################################################
+
+    async def send_response(self, service, response_code=200, response_description="OK", request_id=None):
+        """
+        Send an empty oadrResponse, for instance after receiving oadrRequestReregistration.
+        """
+        msg = self._create_message('oadrResponse',
+                                   response_code=response_code,
+                                   response_description=response_description,
+                                   request_id=request_id)
+        await self._perform_request(service, msg)
+
+    ###########################################################################
+    #                                                                         #
     #                                  LOW LEVEL                              #
     #                                                                         #
     ###########################################################################
