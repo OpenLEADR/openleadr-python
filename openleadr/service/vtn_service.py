@@ -50,6 +50,7 @@ class VTNService:
                                        response_description="The Content-Type header must be application/xml; "
                                                             f"you provided {request.headers.get('content-type', '')}")
             content = await request.read()
+            hooks.call('before_parse', content)
 
             # Validate the message to the XML Schema
             message_tree = validate_xml_schema(content)
@@ -152,9 +153,11 @@ class VTNService:
             response = web.Response(text=msg,
                                     status=HTTPStatus.OK,
                                     content_type='application/xml')
+        hooks.call('before_respond', response.text)
         return response
 
     async def handle_message(self, message_type, message_payload):
+        hooks.call('before_handle', message_type, message_payload)
         if message_type in self.handlers:
             handler = self.handlers[message_type]
             result = handler(message_payload)
@@ -185,6 +188,7 @@ class VTNService:
                                                                   f"{message_type} should not be "
                                                                   "sent to this endpoint")
         logger.info(f"Responding to {message_type} with a {response_type} message: {response_payload}.")
+        hooks.call('after_handle', response_type, response_payload)
         return response_type, response_payload
 
     def error_response(self, message_type, error_code, error_description):
