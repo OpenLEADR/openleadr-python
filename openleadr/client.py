@@ -687,9 +687,9 @@ class OpenADRClient:
         Send an empty oadrResponse, for instance after receiving oadrRequestReregistration.
         """
         msg = self._create_message('oadrResponse',
-                                   response_code=response_code,
-                                   response_description=response_description,
-                                   request_id=request_id)
+                                   response={'response_code': response_code,
+                                             'response_description': response_description,
+                                             'request_id': request_id})
         await self._perform_request(service, msg)
 
     ###########################################################################
@@ -718,6 +718,8 @@ class OpenADRClient:
         except Exception as err:
             logger.error(f"Request error {err.__class__.__name__}:{err}")
             return None, {}
+        if len(content) == 0:
+            return None
         try:
             tree = validate_xml_schema(content)
             if self.vtn_fingerprint:
@@ -829,8 +831,10 @@ class OpenADRClient:
 
         elif response_type == 'oadrRequestReregistration':
             logger.info("The VTN required us to re-register. Calling the registration procedure.")
-            await self.send_response(service='eiRegisterParty')
+            await self.send_response(service='EiRegisterParty')
             await self.create_party_registration()
+            if self.reports:
+                await self.register_reports(self.reports)
 
         elif response_type == 'oadrDistributeEvent':
             if 'events' in response_payload and len(response_payload['events']) > 0:
