@@ -250,3 +250,14 @@ class ReportService(VTNService):
                        "tuples that you can then process how you see fit. You don't "
                        "need to return anything from that handler.")
         return None
+
+    @handler('oadrCreatedReport')
+    async def created_report(self, payload):
+        """
+        Handle the confirmation that a report was created.
+        """
+        if not hasattr(self, 'on_created_report'):
+            logger.info(f"""VEN {payload['ven_id']} created reports with reportRequestIDs """
+                        f"""'{"', '".join([r['request_id'] for r in payload['pending_reports']])}'.""")
+        else:
+            await utils.await_if_required(self.on_created_report(payload))
