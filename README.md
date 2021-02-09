@@ -3,7 +3,7 @@
  ![PyPI Downloads](https://img.shields.io/pypi/dm/openleadr?color=lightblue&label=PyPI%20Downloads)
  [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4317/badge)](https://bestpractices.coreinfrastructure.org/projects/4317)
 
-![OpenLEADR](logo.png)
+![OpenLEADR](https://openleadr.org/images/lf-logo.png)
 
 OpenLEADR is a Python 3 module that provides a convenient interface to OpenADR
 systems. It contains an OpenADR Client that you can use to talk to other OpenADR
@@ -16,6 +16,14 @@ It currently implements the OpenADR 2.0b specification.
 
 You can find documentation here: https://openleadr.org/docs.
 
+
+## Credits
+
+OpenLEADR would not have been possible without the support from ElaadNL Foundation and the Linux Foundation Energy. Click the logos below to learn more about them.
+
+[![ElaadNL Logo](https://openleadr.org/images/elaad-logo.png)](https://elaad.nl)
+
+[![LF Energy Logo](https://openleadr.org/images/lf-logo.png)](https://lfenergy.org)
 
 ## Contributing
 
