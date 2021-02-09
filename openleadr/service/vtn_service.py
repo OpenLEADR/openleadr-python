@@ -186,7 +186,7 @@ class VTNService:
                                                                   enums.STATUS_CODES.COMPLIANCE_ERROR,
                                                                   "A message of type "
                                                                   f"{message_type} should not be "
-                                                                  "sent to this endpoint")
+                                                                  f"sent to this endpoint ({self.__service_name__})")
         logger.info(f"Responding to {message_type} with a {response_type} message: {response_payload}.")
         hooks.call('after_handle', response_type, response_payload)
         return response_type, response_payload
