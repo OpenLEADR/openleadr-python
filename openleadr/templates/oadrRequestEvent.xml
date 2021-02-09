@@ -3,6 +3,9 @@
     <eiRequestEvent xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">
       <requestID>{{ request_id }}</requestID>
       <ei:venID>{{ ven_id }}</ei:venID>
+      {% if reply_limit is defined and reply_limit is not none %}
+      <replyLimit>{{ reply_limit }}</replyLimit>
+      {% endif %}
     </eiRequestEvent>
   </oadr:oadrRequestEvent>
 </oadr:oadrSignedObject>
