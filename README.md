@@ -23,7 +23,7 @@ OpenLEADR would not have been possible without the support from ElaadNL Foundati
 
 [![ElaadNL Logo](https://openleadr.org/images/elaad-logo.png)](https://elaad.nl)
 
-[![LF Energy Logo](https://openleadr.org/images/lf-logo.png)](https://lfenergy.org)
+[![LF Energy Logo](https://openleadr.org/images/lf-energy-logo.png)](https://lfenergy.org)
 
 ## Contributing
 
