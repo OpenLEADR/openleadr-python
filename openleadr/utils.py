@@ -376,8 +376,8 @@ def ensure_str(obj):
 
 
 def certificate_fingerprint_from_der(der_bytes):
-    hash = hashlib.sha256(der_bytes).digest().hex()
-    return ":".join([hash[i-2:i].upper() for i in range(-20, 0, 2)])
+    hash_ = hashlib.sha256(der_bytes).digest().hex()
+    return ":".join([hash_[i:i+2].upper() for i in range (44, 64, 2)])
 
 
 def certificate_fingerprint(certificate_str):
