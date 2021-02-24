@@ -103,7 +103,7 @@ For example, this XML payload:
 .. code-block:: xml
 
     <?xml version="1.0" encoding="utf-8"?>
-    <oadrPayload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://openadr.org/oadr-2.0b/2012/07" xsi:schemaLocation="http://openadr.org/oadr-2.0b/2012/07 oadr_20b.xsd">
+    <oadrPayload xmlns="http://openadr.org/oadr-2.0b/2012/07">
       <oadrSignedObject>
         <oadrResponse ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
           <ei:eiResponse>
