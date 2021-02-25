@@ -21,6 +21,29 @@ Version Main features
 Changelog
 ---------
 
+openleadr 0.5.22
+~~~~~~~~~~~~~~~~
+
+Released: 25 February 2021
+
+Bug fixes:
+- Restored fingerprint validation of VTN messages by the VEN
+
+openleadr 0.5.21
+~~~~~~~~~~~~~~~~
+
+Released: 24 February 2021
+
+Bug fixes:
+- The fingerprint calculator used to be incorrect, which is now fixed
+- Added reply_to limit in the oadrRequestEvent template
+
+New features:
+- Added support for oadrCreatedReport and on_created_report handlers
+
+Changes:
+- More explicit response descriptions from the VTN when sending messages to the wrong endpoint
+
 openleadr 0.5.20
 ~~~~~~~~~~~~~~~~
 
