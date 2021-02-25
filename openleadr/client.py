@@ -52,7 +52,8 @@ class OpenADRClient:
                          for signing messages.
         :param str key: The path to a PEM-formatted Private Key file to use
                         for signing messages.
-        :param str fingerprint: The fingerprint for the VTN's certificate to
+        :param str passphrase: The passphrase for the Private Key
+        :param str vtn_fingerprint: The fingerprint for the VTN's certificate to
                                 verify incomnig messages
         :param str show_fingerprint: Whether to print your own fingerprint
                                      on startup. Defaults to True.
@@ -723,7 +724,7 @@ class OpenADRClient:
         try:
             tree = validate_xml_schema(content)
             if self.vtn_fingerprint:
-                validate_xml_signature(tree)
+                validate_xml_signature(tree, cert_fingerprint=self.vtn_fingerprint)
             message_type, message_payload = parse_message(content)
         except XMLSyntaxError as err:
             logger.warning(f"Incoming message did not pass XML schema validation: {err}")

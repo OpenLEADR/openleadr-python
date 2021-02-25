@@ -100,8 +100,8 @@ def validate_xml_signature(xml_tree, cert_fingerprint=None):
         fingerprint = utils.certificate_fingerprint(cert)
         if fingerprint != cert_fingerprint:
             raise errors.FingerprintMismatch("The certificate fingerprint was incorrect. "
-                                             f"Expected: {cert_fingerprint};"
-                                             f"Received: {fingerprint}")
+                                             f"Expected: {cert_fingerprint}; "
+                                             f"Received: {fingerprint}. Ignoring message.")
     VERIFIER.verify(xml_tree, x509_cert=utils.ensure_bytes(cert), expect_references=2)
     _verify_replay_protect(xml_tree)
 

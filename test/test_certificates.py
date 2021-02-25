@@ -97,3 +97,37 @@ async def test_ssl_certificates_wrong_cert():
     await client.stop()
     await server.stop()
     await asyncio.sleep(0)
+
+@pytest.mark.asyncio
+async def test_ssl_certificates_wrong_fingerprint(caplog):
+    loop = asyncio.get_event_loop()
+    registration_future = loop.create_future()
+    server = OpenADRServer(vtn_id='myvtn',
+                           http_cert=VTN_CERT,
+                           http_key=VTN_KEY,
+                           http_ca_file=CA_CERT,
+                           cert=VTN_CERT,
+                           key=VTN_KEY,
+                           fingerprint_lookup=lookup_fingerprint)
+    server.add_handler('on_create_party_registration', partial(on_create_party_registration,
+                                                               future=registration_future))
+    await server.run_async()
+    #await asyncio.sleep(1)
+    # Run the client
+    client = OpenADRClient(ven_name='myven',
+                           vtn_url='https://localhost:8080/OpenADR2/Simple/2.0b',
+                           cert=VEN_CERT,
+                           key=VEN_KEY,
+                           ca_file=CA_CERT,
+                           vtn_fingerprint='00:11:22:33:44:55:66:77:88:99')
+    await client.run()
+
+    # Wait for the registration to be triggered
+    result = await asyncio.wait_for(registration_future, 1.0)
+
+    assert client.registration_id is None
+    assert ("The certificate fingerprint was incorrect. Expected: 00:11:22:33:44:55:66:77:88:99; "
+            "Received: 39:0F:7F:45:84:D6:24:49:FE:B7. Ignoring message.") in [rec.message for rec in caplog.records]
+
+    await client.stop()
+    await server.stop()
