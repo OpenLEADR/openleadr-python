@@ -21,6 +21,15 @@ Version Main features
 Changelog
 ---------
 
+openleadr 0.5.23
+~~~~~~~~~~~~~~~~
+
+Released: 22 March 2021
+
+Bug fixes:
+- Fixed a bug in the on_created_event default handler when using the external polling method.
+
+
 openleadr 0.5.22
 ~~~~~~~~~~~~~~~~
 
