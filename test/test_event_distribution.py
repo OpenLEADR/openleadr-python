@@ -336,3 +336,61 @@ async def test_cancel_event():
 
     await server.stop()
     await client.stop()
+
+
+@pytest.mark.asyncio
+async def test_event_external_polling_function():
+    async def opt_in_to_event(event, future=None):
+        if future:
+            future.set_result(True)
+        return 'optIn'
+
+    async def on_update_event(event, future=None):
+        if future:
+            future.set_result(event)
+        return 'optIn'
+
+    async def on_poll(ven_id, future=None):
+        if future and not future.done():
+            future.set_result(True)
+            return objects.Event(event_descriptor=objects.EventDescriptor(event_id='event001',
+                                                                       modification_number=0,
+                                                                       event_status='far',
+                                                                       market_context='http://marketcontext01'),
+                              event_signals=[objects.EventSignal(signal_id='signal001',
+                                                                 signal_type='level',
+                                                                 signal_name='simple',
+                                                                 intervals=[objects.Interval(dtstart=now,
+                                                                                             duration=datetime.timedelta(minutes=10),
+                                                                                             signal_payload=1)]),
+                                            objects.EventSignal(signal_id='signal002',
+                                                                signal_type='price',
+                                                                signal_name='ELECTRICITY_PRICE',
+                                                                intervals=[objects.Interval(dtstart=now,
+                                                                                            duration=datetime.timedelta(minutes=10),
+                                                                                            signal_payload=1)])],
+                              targets=[objects.Target(ven_id=ven_id)])
+        else:
+            print("Returning None")
+            return None
+
+    loop = asyncio.get_event_loop()
+    now = datetime.datetime.now(datetime.timezone.utc)
+    server = OpenADRServer(vtn_id='myvtn', requested_poll_freq=datetime.timedelta(seconds=1))
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+    poll_fut = loop.create_future()
+    server.add_handler('on_poll', partial(on_poll, future=poll_fut))
+    await server.run()
+
+    client = OpenADRClient(ven_name='ven123',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    fut = loop.create_future()
+    client.add_handler('on_event', partial(opt_in_to_event, future=fut))
+    await client.run()
+    await fut
+
+    assert len(client.responded_events) == 1
+    assert len(client.received_events) == 1
+
+    await server.stop()
+    await client.stop()

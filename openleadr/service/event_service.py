@@ -111,9 +111,12 @@ class EventService(VTNService):
                         if asyncio.iscoroutine(result):
                             result = await result
         else:
-            result = self.on_created_event(ven_id=ven_id, event_id=event_id, opt_type=opt_type)
-            if asyncio.iscoroutine(result):
-                result = await(result)
+            for event_response in payload['event_responses']:
+                event_id = event_response['event_id']
+                opt_type = event_response['opt_type']
+                result = await utils.await_if_required(self.on_created_event(ven_id=ven_id,
+                                                                             event_id=event_id,
+                                                                             opt_type=opt_type))
         return 'oadrResponse', {}
 
     def on_created_event(self, ven_id, event_id, opt_type):
