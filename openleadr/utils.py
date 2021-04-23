@@ -398,6 +398,8 @@ def extract_pem_cert(tree):
                             part of the message.
     """
     cert = tree.find('.//{http://www.w3.org/2000/09/xmldsig#}X509Certificate').text
+    if not cert.endswith("\n"):
+        cert = cert + "\n"
     return "-----BEGIN CERTIFICATE-----\n" + cert + "-----END CERTIFICATE-----\n"
 
 
