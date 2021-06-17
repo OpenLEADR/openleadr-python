@@ -108,9 +108,9 @@ Here's an example:
                           sampling_rate=timedelta(seconds=10),
                           unit='A')
 
-    async def load_data(date_from, date_to, sampling_rate):
+    async def load_data(date_from, date_to, sampling_interval):
         """
-        Function that loads data between date_from and date_to, sampled at sampling_rate.
+        Function that loads data between date_from and date_to, sampled at sampling_interval.
         """
         # Load data from a backend system
         result = await database.get("""SELECT time_bucket('15 minutes', datetime) as dt, AVG(value)
