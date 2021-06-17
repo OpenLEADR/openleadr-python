@@ -790,7 +790,7 @@ class OpenADRClient:
                             'response_description': 'OK',
                             'opt_type': results[i],
                             'request_id': message['request_id'],
-                            'modification_number': modification_number,
+                            'modification_number': events[i]['event_descriptor']['modification_number'],
                             'event_id': events[i]['event_descriptor']['event_id']}
                            for i, event in enumerate(events)
                            if event['response_required'] == 'always'
