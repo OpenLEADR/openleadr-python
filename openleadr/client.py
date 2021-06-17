@@ -669,7 +669,7 @@ class OpenADRClient:
                        "You should implement your own on_update_event handler. This handler receives "
                        "an Event dict and should return either 'optIn' or 'optOut' based on your "
                        "choice. Will re-use the previous opt status for this event_id for now")
-        if event['event_descriptor']['event_id'] in self.events:
+        if event['event_descriptor']['event_id'] in self.responded_events:
             return self.responded_events['event_id']
 
     async def on_register_report(self, report):
