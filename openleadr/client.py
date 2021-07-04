@@ -452,6 +452,9 @@ class OpenADRClient:
                    'reports': reports,
                    'report_request_id': 0}
 
+        for report in payload['reports']:
+            utils.setmember(report, 'report_request_id', 0)
+
         service = 'EiReport'
         message = self._create_message('oadrRegisterReport', **payload)
         response_type, response_payload = await self._perform_request(service, message)
