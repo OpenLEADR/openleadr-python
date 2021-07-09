@@ -132,7 +132,7 @@ def normalize_dict(ordered_dict):
         if key == "pending_reports":
             if isinstance(d[key], dict) and 'report_request_id' in d[key] \
                and isinstance(d[key]['report_request_id'], list):
-                d['pending_reports'] = [{'request_id': rrid}
+                d['pending_reports'] = [{'report_request_id': rrid}
                                         for rrid in d['pending_reports']['report_request_id']]
 
         # Group all events al a list of dicts under the key "events"
