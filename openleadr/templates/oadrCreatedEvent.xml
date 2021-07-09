@@ -4,8 +4,10 @@
       <ei:eiResponse>
         <ei:responseCode>{{ response.response_code }}</ei:responseCode>
         <ei:responseDescription>{{ response.response_description }}</ei:responseDescription>
-        {% if response.request_id is defined and response.request_id is not none %}
+        {% if (event_responses is not defined or event_responses is none) and (response.request_id is defined and response.request_id is not none) %}
         <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ response.request_id }}</requestID>
+        {% else %}
+        <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads"></requestID>
         {% endif %}
       </ei:eiResponse>
       {% if event_responses is defined and event_responses is not none %}
