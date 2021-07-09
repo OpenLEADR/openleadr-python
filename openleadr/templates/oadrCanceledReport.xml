@@ -7,7 +7,7 @@
     </ei:eiResponse>
     <oadr:oadrPendingReports>
       {% for pending_report in pending_reports %}
-      <ei:reportRequestID>{{ pending_report.request_id }}</ei:reportRequestID>
+      <ei:reportRequestID>{{ pending_report.report_request_id }}</ei:reportRequestID>
       {% endfor %}
     </oadr:oadrPendingReports>
     {% if ven_id is defined and ven_id is not none %}

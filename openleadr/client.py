@@ -462,12 +462,17 @@ class OpenADRClient:
         # Handle the subscriptions that the VTN is interested in.
         if 'report_requests' in response_payload:
             for report_request in response_payload['report_requests']:
-                await self.create_report(report_request)
+                result = await self.create_report(report_request)
 
+        # Send the oadrCreatedReport message
         message_type = 'oadrCreatedReport'
-        message_payload = {}
+        message_payload = {'pending_reports': [{'report_request_id': utils.getmember(report, 'report_request_id')} for report in self.report_requests]}
+        message = self._create_message('oadrCreatedReport', response={'response_code': 200,
+                                                                      'response_description': 'OK'},
+                                                            ven_id=self.ven_id,
+                                                            **message_payload)
+        response_type, response_payload = await self._perform_request(service, message)
 
-        return message_type, message_payload
 
     async def create_report(self, report_request):
         """

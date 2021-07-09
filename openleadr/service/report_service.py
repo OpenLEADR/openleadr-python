@@ -67,6 +67,8 @@ class ReportService(VTNService):
         super().__init__(vtn_id)
         self.report_callbacks = {}
         self.registered_reports = {}
+        self.requested_reports = {}
+        self.created_reports = {}
 
     @handler('oadrRegisterReport')
     async def register_report(self, payload):
@@ -199,6 +201,9 @@ class ReportService(VTNService):
         # Put the report requests back together
         response_type = 'oadrRegisteredReport'
         response_payload = {'report_requests': oadr_report_requests}
+
+        # Store the requested reports
+        self.requested_reports[payload['ven_id']] = oadr_report_requests
         return response_type, response_payload
 
     async def on_register_report(self, payload):
@@ -261,3 +266,23 @@ class ReportService(VTNService):
                         f"""'{"', '".join([r['request_id'] for r in payload['pending_reports']])}'.""")
         else:
             await utils.await_if_required(self.on_created_report(payload))
+
+    async def on_created_report(self, payload):
+        """
+        Implementation of the on_created_report handler, may be overwritten by the user.
+        """
+        ven_id = payload['ven_id']
+        if payload['ven_id'] not in self.created_reports:
+            self.created_reports[ven_id] = []
+
+        if payload.get('pending_reports'):
+            for pending_report in payload.get('pending_reports', []):
+                self.created_reports[ven_id].append(pending_report['report_request_id'])
+
+        # Check if all requested reports were created
+        for requested_report in self.requested_reports[ven_id]:
+            if requested_report.report_request_id not in self.created_reports[ven_id]:
+                logger.warning(f"The requested report with id {requested_report.report_request_id} "
+                                "was not created by the VEN. Yoy may want to contact the VEN to "
+                                "determine the problem. The requested reports was: \n"
+                                f"{requested_report}")
