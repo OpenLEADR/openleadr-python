@@ -685,6 +685,25 @@ class OpenADRClient:
         Placeholder for the on_register_report handler.
         """
 
+    async def on_cancel_party_registration(self, message):
+        # Update/Delete all the registration and reports information
+        self.registration_id = None
+        self.report_requests = None
+        self.reports = None
+        self.report_callbacks = None            
+        self.report_requests = None          
+        self.incomplete_reports = None     
+        self.pending_reports = None
+
+        response = {'response_code': 200,
+                        'response_description': 'OK',
+                        'request_id': message['request_id']}
+        message = self._create_message('oadrCanceledPartyRegistration',
+                                        response=response)
+        service = 'EiRegisterParty'
+        response_type, response_payload = await self._perform_request(service, message)
+        logger.info(response_type, response_payload)
+
     ###########################################################################
     #                                                                         #
     #                             EMPTY RESPONSES                             #
@@ -862,6 +881,10 @@ class OpenADRClient:
                 for report in response_payload['reports']:
                     await self.register_report(report)
 
+        elif response_type == 'oadrCancelPartyRegistration':
+            logger.info("The VTN required us to cancel the registration. Calling the cancel partyn registration procedure.")
+            await self.on_cancel_party_registration(response_payload)
+            
         else:
             logger.warning(f"No handler implemented for incoming message "
                            f"of type {response_type}, ignoring.")
