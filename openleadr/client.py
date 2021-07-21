@@ -694,6 +694,7 @@ class OpenADRClient:
         self.report_requests = None          
         self.incomplete_reports = None     
         self.pending_reports = None
+        self.scheduler.remove_all_jobs()
 
         response = {'response_code': 200,
                         'response_description': 'OK',
