@@ -1,0 +1,10 @@
+<xcal:available>
+    <xcal:properties>
+        <xcal:dtstart>
+            <xcal:date-time>{{ava.properties.dtstart|datetimeformat}}</xcal:date-time>
+        </xcal:dtstart>
+        <xcal:duration>
+            <xcal:duration>{{ava.properties.duration|timedeltaformat}}</xcal:duration>
+        </xcal:duration>
+    </xcal:properties>
+</xcal:available>
