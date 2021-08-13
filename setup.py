@@ -28,7 +28,7 @@ setup(name='openleadr',
       project_urls={'GitHub': 'https://github.com/openleadr/openleadr-python',
                     'Documentation': 'https://openleadr.org/docs'},
       packages=['openleadr', 'openleadr.service'],
-      python_requires='>=3.7.0',
+      python_requires='<=3.8.0',
       include_package_data=True,
       install_requires=['xmltodict', 'aiohttp', 'apscheduler', 'jinja2', 'signxml-openadr==2.9.1'],
       entry_points={'console_scripts': ['fingerprint = openleadr.fingerprint:show_fingerprint']})
