@@ -1,59 +1,62 @@
 <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" xmlns:pyld="http://docs.oasis-open.org/ns/energyinterop/201110/payloads" xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06" oadr:Id="oadrSignedObject">
-  <oadr:oadrUpdateReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+ <oadr:oadrUpdateReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <pyld:requestID>{{ request_id }}</pyld:requestID>
-    {% if reports %}
-    {% for report in reports %}
-    <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
-      {% if report.dtstart is defined and report.dtstart is not none %}
-      <xcal:dtstart>
-        <xcal:date-time>{{ report.dtstart|datetimeformat }}</xcal:date-time>
-      </xcal:dtstart>
-      {% endif %}
+   {% if reports %}
+   {% for report in reports %}
+   <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
+     {% if report.dtstart is defined and report.dtstart is not none %}
+     <xcal:dtstart>
+       <xcal:date-time>{{ report.dtstart|datetimeformat }}</xcal:date-time>
+     </xcal:dtstart>
+     {% endif %}
 
-      {% if report.intervals %}
-      <strm:intervals xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
-        {% for interval in report.intervals %}
-        <ei:interval>
-          <xcal:dtstart>
-            <xcal:date-time>{{ interval.dtstart|datetimeformat }}</xcal:date-time>
-          </xcal:dtstart>
-          <oadr:oadrReportPayload>
-            <ei:rID>{{ interval.report_payload.r_id }}</ei:rID>
-            {% if interval.report_payload.confidence is defined and interval.report_payload.confidence is not none %}
-            <ei:confidence>{{ interval.report_payload.confidence }}</ei:confidence>
-            {% endif %}
-            {% if interval.report_payload.accuracy is defined and interval.report_payload.accuracy is not none %}
-            <ei:accuracy>{{ interval.report_payload.accuracy }}</ei:accuracy>
-            {% endif %}
-            <ei:payloadFloat>
-              <ei:value>{{ interval.report_payload.value }}</ei:value>
-            </ei:payloadFloat>
-            {% if interval.report_payload.data_quality is defined and interval.report_payload.data_quality is not none %}
-            <oadr:oadrDataQuality>{{ interval.report_payload.data_quality }}</oadr:oadrDataQuality>
-            {% endif %}
-          </oadr:oadrReportPayload>
-        </ei:interval>
-        {% endfor %}
-      </strm:intervals>
-      {% endif %}
+     {% if report.intervals %}
+     <strm:intervals xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+       {% for interval in report.intervals %}
+       <ei:interval>
+         <xcal:dtstart>
+           <xcal:date-time>{{ interval.dtstart|datetimeformat }}</xcal:date-time>
+         </xcal:dtstart>
+         <xcal:duration>
+                            <xcal:duration>{{ interval.duration|timedeltaformat }}</xcal:duration>
+                    </xcal:duration>
+         <oadr:oadrReportPayload>
+           <ei:rID>{{ interval.report_payload.r_id }}</ei:rID>
+           {% if interval.report_payload.confidence is defined and interval.report_payload.confidence is not none %}
+           <ei:confidence>{{ interval.report_payload.confidence }}</ei:confidence>
+           {% endif %}
+           {% if interval.report_payload.accuracy is defined and interval.report_payload.accuracy is not none %}
+           <ei:accuracy>{{ interval.report_payload.accuracy }}</ei:accuracy>
+           {% endif %}
+           <ei:payloadFloat>
+             <ei:value>{{ interval.report_payload.value }}</ei:value>
+           </ei:payloadFloat>
+           {% if interval.report_payload.data_quality is defined and interval.report_payload.data_quality is not none %}
+           <oadr:oadrDataQuality>{{ interval.report_payload.data_quality }}</oadr:oadrDataQuality>
+           {% endif %}
+         </oadr:oadrReportPayload>
+       </ei:interval>
+       {% endfor %}
+     </strm:intervals>
+     {% endif %}
 
-      <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
-      {% if report.report_descriptions %}
-      {% for report_description in report.report_descriptions %}
-      {% include 'parts/oadrReportDescription.xml' %}
-      {% endfor %}
-      {% endif %}
-      <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
-      <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>
-      {% if report.report_name %}
-      <ei:reportName>{{ report.report_name }}</ei:reportName>
-      {% endif %}
-      <ei:createdDateTime>{{ report.created_date_time|datetimeformat }}</ei:createdDateTime>
-    </oadr:oadrReport>
-    {% endfor %}
-    {% endif %}
-    {% if ven_id is defined and ven_id is not none %}
-    <ei:venID>{{ ven_id }}</ei:venID>
-    {% endif %}
-  </oadr:oadrUpdateReport>
+     <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
+     {% if report.report_descriptions %}
+     {% for report_description in report.report_descriptions %}
+     {% include 'parts/oadrReportDescription.xml' %}
+     {% endfor %}
+     {% endif %}
+     <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
+     <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>
+     {% if report.report_name %}
+     <ei:reportName>{{ report.report_name }}</ei:reportName>
+     {% endif %}
+     <ei:createdDateTime>{{ report.created_date_time|datetimeformat }}</ei:createdDateTime>
+   </oadr:oadrReport>
+   {% endfor %}
+   {% endif %}
+   {% if ven_id is defined and ven_id is not none %}
+   <ei:venID>{{ ven_id }}</ei:venID>
+   {% endif %}
+ </oadr:oadrUpdateReport>
 </oadr:oadrSignedObject>
