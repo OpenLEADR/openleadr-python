@@ -241,8 +241,8 @@ def normalize_dict(ordered_dict):
             d[key] = d[key]["date_time"]
 
         # Promote 'properties' item, discard the unused? 'components' item
-        elif isinstance(d[key], dict) and "properties" in d[key] and len(d[key]) <= 2:
-            d[key] = d[key]["properties"]
+        # elif isinstance(d[key], dict) and "properties" in d[key] and len(d[key]) <= 2:
+        #     d[key] = d[key]["properties"]
 
         # Remove all empty dicts
         elif isinstance(d[key], dict) and len(d[key]) == 0:
@@ -586,17 +586,17 @@ def get_active_period_from_intervals(intervals, as_dict=True):
 
 def determine_event_status(active_period):
     now = datetime.now(timezone.utc)
-    active_period_start = getmember(active_period, 'dtstart')
+    active_period_start = getmember(active_period['properties'], 'dtstart')
     if active_period_start.tzinfo is None:
         active_period_start = active_period_start.astimezone(timezone.utc)
-        setmember(active_period, 'dtstart', active_period_start)
-    active_period_end = active_period_start + getmember(active_period, 'duration')
+        setmember(active_period['properties'], 'dtstart', active_period_start)
+    active_period_end = active_period_start + getmember(active_period['properties'], 'duration')
     if now >= active_period_end:
         return 'completed'
     if now >= active_period_start:
         return 'active'
-    if getmember(active_period, 'ramp_up_period', missing=None) is not None:
-        ramp_up_start = active_period_start - getmember(active_period, 'ramp_up_period')
+    if getmember(active_period['properties'], 'ramp_up_period', missing=None) is not None:
+        ramp_up_start = active_period_start - getmember(active_period['properties'], 'ramp_up_period')
         if now >= ramp_up_start:
             return 'near'
     return 'far'
@@ -810,3 +810,18 @@ def increment_event_modification_number(event):
     modification_number = getmember(event, 'event_descriptor.modification_number') + 1
     setmember(event, 'event_descriptor.modification_number', modification_number)
     return modification_number
+
+def has_supported_signals(event):
+    supported_signals = [
+                            'SIMPLE', 'ELECTRICITY_PRICE', 'ENERGY_PRICE', 'DEMAND_CHARGE', 'BID_PRICE',
+                            'BID_LOAD', 'BID_ENERGY', 'CHARGE_STATE', 'LOAD_DISPATCH', 'LOAD_CONTROL'
+                        ]   
+    if isinstance(event['event_signals'], dict) and 'event_signals' in event['event_signals']:
+        event = event['event_signals']
+    for signal in event['event_signals']:
+        if signal['signal_name'] not in supported_signals:
+            return False
+    return True
+
+def report_callback(date_from=None, date_to=None, sampling_interval=None):
+    return [(datetime.utcnow(), 3.1415926)]
