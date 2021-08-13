@@ -276,6 +276,7 @@ class Report:
     report_request_id: str = None       # Usually empty
     report_descriptions: List[ReportDescription] = None
     created_date_time: datetime = None
+    report_back_duration: timedelta = None
 
     dtstart: datetime = None                # For delivering values
     duration: timedelta = None              # For delivering values
