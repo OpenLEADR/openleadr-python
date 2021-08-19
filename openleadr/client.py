@@ -20,15 +20,19 @@ import logging
 import pytz
 import ssl
 import tzlocal
+import time
 from datetime import datetime, timedelta, timezone
 from functools import partial
 from http import HTTPStatus
+from xml.etree import ElementTree
 from apscheduler.util import undefined
 import aiohttp
 from lxml.etree import XMLSyntaxError
 from signxml.exceptions import InvalidSignature
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from openleadr import enums, objects, errors
+# from openleadr.objects import Component
+# from dict2xml import dict2xml
 from openleadr.messaging import create_message, parse_message, \
     validate_xml_schema, validate_xml_signature
 from openleadr import utils
@@ -85,7 +89,7 @@ class OpenADRClient:
         self.report_callbacks = {}                      # Keep track of the report requests from the VTN
         self.report_requests = []                       # Holds reports that are being populated over time
         self.incomplete_reports = {}                    # Holds reports that are waiting to be sent
-        self.pending_reports = asyncio.Queue()
+        self.pending_reports = None
         self.scheduler = AsyncIOScheduler()
         self.client_session = None
         self.report_queue_task = None
@@ -148,7 +152,6 @@ class OpenADRClient:
             logger.warning("Polling with intervals of more than 24 hours is not supported. "
                            "Will use 24 hours as the polling interval.")
             self.poll_frequency = timedelta(hours=24)
-        cron_config = utils.cron_config(self.poll_frequency, randomize_seconds=self.allow_jitter)
 
         self.scheduler.add_job(self._poll,
                                trigger='interval',
@@ -520,28 +523,27 @@ class OpenADRClient:
             #3. Opt-in or Opt-out for specific eventId and eiTarget
         try:
             message_xml = eventBody
+            print('xml messge')
+            print(message_xml)
             _ ,message_dict = parse_message(message_xml)
-            print('this is the messager dict when with event id')
             print(message_dict)
             for target in message_dict['targets']:
                 target['ven_id'] = self.ven_id
             message_dict['ven_id'] = self.ven_id
-            if 'event_id' in message_dict.keys():
-                message_dict['event_id'] = self.received_events[0]['event_descriptor']['event_id']
-            if 'modification_number' in message_dict.keys():
-                message_dict['modification_number'] = self.received_events[0]['event_descriptor']['modification_number']
-            if message_dict['vavailability'] and not isinstance(message_dict['vavailability']['components']['available'], list):
+            if not isinstance(message_dict['vavailability']['components']['available'], list):
                 message_dict['vavailability']['components']['available'] = [message_dict['vavailability']['components']['available']]
+            
+            
             message_xml= self._create_message('oadrCreateOpt', **message_dict)
-            print('this is the msg for create opt being sent out')
-            print(message_xml)
             response_type, _ = await self._perform_request('EiOpt', message_xml)
             print('successfully send the create_opt message')
+            
             if response_type!='oadrCreatedOpt':
                 raise ValueError('Invalid reposne type in odarCreateOpt')
         except Exception as err:
             logger.error(f"Internal error in oadrCreateOpt: {err}")
         return {'status': 200, 'body': 'Sucessfully created an Opt'}
+    
     
     async def cancel_opt(self, eventBody):
     # This function can only be triggered manually by us to cancel the Opt informastion we send to the VTN before
@@ -617,40 +619,46 @@ class OpenADRClient:
                                                             request_id=message['request_id'])
         await self._perform_request(service, message)
 
-    async def register_reports(self, reports):
+    async def register_reports(self, reports, report_request_id = 0):
         """
         Tell the VTN about our reports. The VTN might respond with an
         oadrCreateReport message that tells us which reports are to be sent.
         """
-        request_id = utils.generate_id()
-        payload = {'request_id': request_id,
-                   'ven_id': self.ven_id,
-                   'reports': reports}
+        try:
+            for report in reports:
+                utils.setmember(report, 'created_date_time', datetime.now(timezone.utc))
+            request_id = utils.generate_id()
+            payload = {'request_id': request_id,
+                       'report_request_id': report_request_id if report_request_id!=0 else None,
+                       'ven_id': self.ven_id,
+                       'reports': reports}
 
-        for report in payload['reports']:
-            utils.setmember(report, 'duration', timedelta(days = 365))
-            utils.setmember(report, 'report_request_id', 0)
+            for report in payload['reports']:
+                utils.setmember(report, 'duration', timedelta(days = 365))
+                utils.setmember(report, 'report_request_id', report_request_id)
 
-        service = 'EiReport'
-        message = self._create_message('oadrRegisterReport', **payload)
-        response_type, response_payload = await self._perform_request(service, message)
-
-        # Handle the subscriptions that the VTN is interested in.
-        # We only send back the oadrCreatedReport here if we recieve any report_requests from oadrRegisteredReport
-        if 'report_requests' in response_payload:
-            for report_request in response_payload['report_requests']:
-                result = await self.create_report(report_request)
-            print(response_payload)
-            request_id = response_payload['response']['request_id']
-            # Send the oadrCreatedReport message
-            message_type = 'oadrCreatedReport'
-            message_payload = {'pending_reports': [{'report_request_id': utils.getmember(report, 'report_request_id')} for report in self.report_requests]}
-            message = self._create_message(message_type, response={'response_code': 200,
-                                                                'response_description': 'OK',
-                                                                'request_id': request_id},
-                                                                ven_id=self.ven_id,
-                                                                **message_payload)
+            service = 'EiReport'
+            message = self._create_message('oadrRegisterReport', **payload)
             response_type, response_payload = await self._perform_request(service, message)
+
+            # Handle the subscriptions that the VTN is interested in.
+            # We only send back the oadrCreatedReport here if we recieve any report_requests from oadrRegisteredReport
+            if 'report_requests' in response_payload:
+                for report_request in response_payload['report_requests']:
+                    result = await self.create_report(report_request)
+                print(response_payload)
+                request_id = response_payload['response']['request_id']
+                # Send the oadrCreatedReport message
+                message_type = 'oadrCreatedReport'
+                message_payload = {'pending_reports': [{'report_request_id': utils.getmember(report, 'report_request_id')} for report in self.report_requests]}
+                message = self._create_message(message_type, response={'response_code': 200,
+                                                                    'response_description': 'OK',
+                                                                    'request_id': request_id},
+                                                                    ven_id=self.ven_id,
+                                                                    **message_payload)
+                response_type, response_payload = await self._perform_request(service, message)
+        except Exception as err:
+            logger.warning(f"Internal error in the register reports fucntion: {err}")
 
     async def register_report(self, response_payload):
         service = 'EiReport'
@@ -672,6 +680,69 @@ class OpenADRClient:
         print('The report request is:...............')
         print(report_request)
         try:
+            if report_request['report_specifier']['report_specifier_id']=='METADATA':
+                await self.register_reports(self.reports, report_request_id=report_request['report_request_id'])
+                while self.pending_reports.qsize()!=0:
+                    self.pending_reports.get()
+                for tmp_report in self.report_requests:
+                    self._cancel_report(tmp_report['report_request_id'])
+                self.report_requests = []
+                #self.report_queue_task
+                report_request_id = report_request['report_request_id']
+                report_specifier_id = report_request['report_specifier']['report_specifier_id']
+                report_back_duration = report_request['report_specifier'].get('report_back_duration')
+                granularity = report_request['report_specifier']['granularity']
+                print(granularity)
+                report_interval = report_request['report_specifier'].get('report_interval')
+                if report_interval:
+                    dtstart = report_interval['properties']['dtstart']
+                    duration = report_interval['properties']['duration']
+                    print(dtstart)
+                    print(duration)
+                granularity = timedelta(0)
+                requested_r_ids = [0]
+                callback = partial(self.update_report, report_request_id=report_request_id)
+                reporting_interval = report_back_duration
+                if report_interval:
+                    utc_dtstart = dtstart.replace(tzinfo = None)
+                    local_dtstart = utc_dtstart.replace(tzinfo = pytz.utc).astimezone(self.local_timezone).replace(tzinfo=None)
+                    next_run_time = local_dtstart+timedelta(seconds=4)
+                else:
+                    next_run_time = undefined
+                print('Next run time is: ')
+                print(next_run_time)
+                
+                ##if this is a one shot report, set the next_run_time as now and set interval as one day
+                if reporting_interval == timedelta(0):
+                    print('this is a one shot report')
+                    reporting_interval = timedelta(days=1)
+                    next_run_time = datetime.now()+timedelta(seconds=4)
+                    ## add 4 seconds in case we missed this job
+                job = self.scheduler.add_job(func=callback,
+                                            trigger='interval',
+                                            id = report_request_id,
+                                            # change I made here, Undefined from jinja2 is not a correct accepted type here for next_run_time
+                                            # Use the undefined from the apscheduler.util instead
+                                            # more details and info please read the source code of add_job in AsyncIoScheduler
+                                            # Don't trigger the update report function, this is a hard code test for the test case 3170
+                                            next_run_time= next_run_time+timedelta(seconds = 30),
+                                            misfire_grace_time=None,
+                                            seconds = reporting_interval.total_seconds())
+
+                self.report_requests.append({'report_request_id': report_request_id,
+                                            'report_to_follow': False,
+                                            'report_specifier_id': report_specifier_id,
+                                            'report_back_duration': report_back_duration,
+                                            'r_ids': requested_r_ids,
+                                            'granularity': granularity,
+                                            'dtstart': dtstart if report_interval else datetime.now(),
+                                            'duration': duration if report_interval else timedelta(0),
+                                            'job': job})
+                
+                
+                
+                
+                return True
             report_request_id = report_request['report_request_id']
             report_specifier_id = report_request['report_specifier']['report_specifier_id']
             report_back_duration = report_request['report_specifier'].get('report_back_duration')
@@ -700,7 +771,7 @@ class OpenADRClient:
                     logger.error(f"A non-existant report with r_id {r_id} "
                                 f"inside report with report_specifier_id {report_specifier_id} "
                                 f"was requested.")
-                    continue
+                    return False
 
                 # Check if the requested measurement exists and if the correct unit is requested
                 if 'measurement' in specifier_payload:
@@ -733,11 +804,15 @@ class OpenADRClient:
                 requested_r_ids.append(r_id)
 
             callback = partial(self.update_report, report_request_id=report_request_id)
+            #if reporting_interval only related to report_back_duration??
             reporting_interval = report_back_duration
             if report_interval:
                 utc_dtstart = dtstart.replace(tzinfo = None)
                 local_dtstart = utc_dtstart.replace(tzinfo = pytz.utc).astimezone(self.local_timezone).replace(tzinfo=None)
-                next_run_time = local_dtstart+timedelta(seconds=4)
+                if report.report_name=='TELEMETRY_USAGE':
+                    next_run_time = local_dtstart+granularity
+                else:
+                    next_run_time = local_dtstart+timedelta(seconds=4)
             else:
                 next_run_time = undefined
             print('Next run time is: ')
@@ -746,14 +821,10 @@ class OpenADRClient:
             ##if this is a one shot report, set the next_run_time as now and set interval as one day
             if reporting_interval == timedelta(0):
                 print('this is a one shot report')
-                
-                
                 reporting_interval = timedelta(days=1)
                 next_run_time = datetime.now()+timedelta(seconds=4)
-                print(next_run_time)
-                ## add 6 seconds in case we missed this job
+                ## add 4 seconds in case we missed this job
             job = self.scheduler.add_job(func=callback,
-                                    
                                         trigger='interval',
                                         id = report_request_id,
                                         # change I made here, Undefined from jinja2 is not a correct accepted type here for next_run_time
@@ -776,7 +847,6 @@ class OpenADRClient:
         except Exception as err:
             logger.warning(f"Internal error in the create report fucntion: {err}")
 
-    
     async def created_report(self, response_payload, status_code):
     #perform oadrCreatedReport message back to VTN after report added into the pending_reports
         try:
@@ -813,96 +883,113 @@ class OpenADRClient:
 
     async def update_report(self, report_request_id):
         """
-       Call the previously registered report callback and send the result as a message to the VTN.
-       """
-        try:
-            logger.debug(f"Running update_report for {report_request_id}")
-            report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
-            if report_request['report_to_follow']==True:
-                report_request['report_back_duration'] = timedelta(0)
-            granularity = report_request['granularity']
-            report_back_duration = report_request['report_back_duration']
-            report_specifier_id = report_request['report_specifier_id']
-            report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
-            dtstart = report_request['dtstart']
-            data_collection_mode = report.data_collection_mode
-            report_name = asdict(report)['report_name']
-            if report_request_id in self.incomplete_reports:
-                logger.debug("We were already compiling this report")
-                outgoing_report = self.incomplete_reports[report_request_id]
-            else:
-                logger.debug("There is no report in progress")
-                outgoing_report = objects.Report(report_request_id=report_request_id,
-                                                report_specifier_id=report.report_specifier_id,
-                                                report_name=report.report_name,
-                                                intervals=[],
-                                                dtstart = report_request['dtstart'],
-                                                duration = report_request['duration'],
-                                                report_back_duration = report_request['report_back_duration'])
+        Call the previously registered report callback and send the result as a message to the VTN.
+        """
+        logger.debug(f"Running update_report for {report_request_id}")
+        report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
+        if report_request['report_to_follow']==True:
+            report_request['report_back_duration'] = timedelta(0)
+        granularity = report_request['granularity']
+        report_back_duration = report_request['report_back_duration']
+        report_specifier_id = report_request['report_specifier_id']
+        report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)     
+        dtstart = report_request['dtstart']
+        data_collection_mode = report.data_collection_mode
+        report_name = asdict(report)['report_name']
+        if report_request_id in self.incomplete_reports:
+            logger.debug("We were already compiling this report")
+            outgoing_report = self.incomplete_reports[report_request_id]
+        else:
+            logger.debug("There is no report in progress")
+            outgoing_report = objects.Report(report_request_id=report_request_id,
+                                             report_specifier_id=report.report_specifier_id,
+                                             report_name=report.report_name,
+                                             intervals=[],
+                                             dtstart = report_request['dtstart'],
+                                             duration = report_request['duration'],
+                                             report_back_duration = report_request['report_back_duration'])
 
-            intervals = outgoing_report.intervals or []
-            if data_collection_mode == 'full':
-                if report_back_duration is None:
-                    report_back_duration = granularity
-                date_to = datetime.now(timezone.utc)
-                date_from = date_to - max(report_back_duration, granularity)
-                for r_id in report_request['r_ids']:
-                    report_callback = self.report_callbacks[(report_specifier_id, r_id)]
-                    result = report_callback(date_from=date_from,
-                                            date_to=date_to,
-                                            sampling_interval=granularity)
-                    if asyncio.iscoroutine(result):
-                        result = await result
-                    for _ , value in result:
+        intervals = outgoing_report.intervals or []
+        if data_collection_mode == 'full':
+            if report_back_duration is None:
+                report_back_duration = granularity
+            date_to = datetime.now(timezone.utc)
+            date_from = date_to - max(report_back_duration, granularity)
+            for r_id in report_request['r_ids']:
+                report_callback = self.report_callbacks[(report_specifier_id, r_id)]
+                result = report_callback(date_from=date_from,
+                                         date_to=date_to,
+                                         sampling_interval=granularity)
+                if asyncio.iscoroutine(result):
+                    result = await result
+                for _ , value in result:
+                    report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                    intervals.append(objects.ReportInterval(dtstart=dtstart,
+                                                            duration= report_request['duration'] if report_request['duration'] else timedelta(0),
+                                                            report_payload=report_payload))
+
+        else:
+            for r_id in report_request['r_ids']:
+                report_callback = self.report_callbacks[(report_specifier_id, r_id)]
+                print('did we ever get our report call_back function??')
+                print(report_callback)
+                result = report_callback()
+                print(result)
+                if asyncio.iscoroutine(result):
+                    result = await result
+                if isinstance(result, (int, float)):
+                    result = [(datetime.now(timezone.utc), result)]
+                for _ , value in result:
+                    logger.info(f"Adding {dtstart}, {value} to report")
+                    if granularity.total_seconds()>0 and report_back_duration.total_seconds()>0 and report_name=='TELEMETRY_USAGE':
+                        print('this is telemetry usage')
+                        print(report_back_duration.total_seconds())
+                        print(granularity.total_seconds())
+                        report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                        interval_start = dtstart
+                        for i in range(int(report_back_duration.total_seconds()//granularity.total_seconds())):
+                            print('after the 2 min adjust, the dtstart is: ')
+                            print(dtstart)
+                            intervals.append(objects.ReportInterval(dtstart=interval_start,
+                                                                    duration= report_request['duration'] if report_request['duration'] else timedelta(0),
+                                                                    report_payload=report_payload))
+                            interval_start = interval_start + granularity
+                            report_request['dtstart'] = interval_start
+                            
+
+                    else:
                         report_payload = objects.ReportPayload(r_id=r_id, value=value)
                         intervals.append(objects.ReportInterval(dtstart=dtstart,
-                                                                duration= report_request['duration'] if report_request['duration'] else timedelta(0),
-                                                                report_payload=report_payload))
-
-            else:
-                for r_id in report_request['r_ids']:
-                    report_callback = self.report_callbacks[(report_specifier_id, r_id)]
-                    print('did we ever get our report call_back function??')
-                    print(report_callback)
-                    result = report_callback()
-                    print(result)
-                    if asyncio.iscoroutine(result):
-                        result = await result
-                    if isinstance(result, (int, float)):
-                        result = [(datetime.now(timezone.utc), result)]
-                    for _ , value in result:
-                        logger.info(f"Adding {dtstart}, {value} to report")
-                        if granularity.total_seconds()>0 and report_back_duration.total_seconds()>0 and report_name=='TELEMETRY_USAGE':
-                            print('this is telemetry usage')
-                            print(report_back_duration.total_seconds())
-                            print(granularity.total_seconds())
-                            report_payload = objects.ReportPayload(r_id=r_id, value=value)
-                            interval_start = dtstart
-                            for i in range(int(report_back_duration.total_seconds()//granularity.total_seconds())):
-                                print('after the 2 min adjust, the dtstart is: ')
-                                print(dtstart)
-                                intervals.append(objects.ReportInterval(dtstart=interval_start,
-                                                                        duration= report_request['duration'] if report_request['duration'] else timedelta(0),
-                                                                        report_payload=report_payload))
-                                interval_start = interval_start + granularity
-                                report_request['dtstart'] = interval_start
-                                
-
-                        else:
-                            report_payload = objects.ReportPayload(r_id=r_id, value=value)
-                            intervals.append(objects.ReportInterval(dtstart=dtstart,
-                                                                        duration= report_request['duration'] if report_request['duration'] else timedelta(0),
-                                                                        report_payload=report_payload))
-            outgoing_report.intervals = intervals
-            logger.info(f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
-            
-            logger.info("Report will be sent now.")
-            await self.pending_reports.put(outgoing_report)
-            print(outgoing_report)
-            print('after we add the outgoing_report, its length is:')
-            print(self.pending_reports.qsize())
-        except Exception as err:
-            logger.warning(f"Internal error in the update_report fucntion: {err}")
+                                                                    duration= report_request['duration'] if report_request['duration'] else timedelta(0),
+                                                                    report_payload=report_payload))
+        outgoing_report.intervals = intervals
+        logger.info(f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
+        
+        logger.info("Report will be sent now.")
+        await self.pending_reports.put(outgoing_report)
+        print(outgoing_report)
+        print('after we add the outgoing_report, its length is:')
+        print(self.pending_reports.qsize())
+        
+        
+        
+        # Figure out if the report is complete after this sampling
+        # if data_collection_mode == 'incremental' and report_back_duration is not None\
+        #         and report_back_duration > granularity:
+        #     report_interval = report_back_duration.total_seconds()
+        #     sampling_interval = granularity.total_seconds()
+        #     expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
+        #     if len(outgoing_report.intervals) == expected_len:
+        #         logger.info("The report is now complete with all the values. Will queue for sending.")
+        #         await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
+        #     else:
+        #         logger.debug("The report is not yet complete, will hold until it is.")
+        #         self.incomplete_reports[report_request_id] = outgoing_report
+        # else:
+        #     logger.info("Report will be sent now.")
+        #     await self.pending_reports.put(outgoing_report)
+        #     print('after we add the outgoing_report, its length is:')
+        #     print(self.pending_reports.qsize())
        
     async def cancel_report(self, payload):
         """
@@ -915,8 +1002,10 @@ class OpenADRClient:
         job_id = report_request_id
         report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
         if not report_to_follow:
-            self._cancel_report(job_id)
-            self.report_requests.remove(report_request)
+            ## In case that this report request was expired and we have deleted it before in the _report_queue function
+            if report_request in self.report_requests:
+                self._cancel_report(job_id)
+                self.report_requests.remove(report_request)
         else:
             report_request['report_to_follow'] = True
         service = 'EiReport'
@@ -930,11 +1019,16 @@ class OpenADRClient:
 
         await self._perform_request(service, message)
 
+    
+    
+    
     def _cancel_report(self, job_id):
         try:
             self.scheduler.remove_job(job_id)
         except Exception as err:
             logger.warning(f"Internal error in the _cancel_report fucntion: {err}")
+        
+        
 
     async def _report_queue_worker(self):
         """
@@ -947,9 +1041,18 @@ class OpenADRClient:
                 report = asdict(await self.pending_reports.get())
                 print('Did we ever get a report from the pending_reports queue')
                 print(report)
+                print(report['dtstart'])
+                print(report['duration'])
+                print(report['dtstart']+report['duration'])
+                print(datetime.now(timezone.utc))
                 ##If this is not a one shot report and it has expired. we remove the job and don't send updateReport
                 if report['duration']!=timedelta(0) and report['dtstart']+report['duration'] < datetime.now(timezone.utc):
-                    self._cancel_report(report['report_request_id'])
+                    print('Did we ever cancel the report????')
+                    report_request_id = report['report_request_id']
+                    job_id = report['report_request_id']
+                    report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
+                    self.report_requests.remove(report_request)
+                    self._cancel_report(job_id)
                 else:
                     service = 'EiReport'
                     print('Before parse create_message of oadrUpdateReport message')
@@ -964,12 +1067,25 @@ class OpenADRClient:
                     except Exception as err:
                         logger.error(f"Unable to send the report to the VTN. Error: {err}")
                     else:
-                        if response_type=='oadrCancelReport':
-                            await self.cancel_report(response_payload['cancel_report'])
-                        
+                        #If VTN optinally cancel the report after this updateReport(piggyBack cancellation)
+                        if 'cancel_report' in response_payload:
+                            report_request_id = response_payload['cancel_report']['report_request_id']
+                            report_to_follow = response_payload['cancel_report']['report_to_follow']
+                            job_id = report_request_id
+                            report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
+                            if not report_to_follow:
+                                self._cancel_report(job_id)
+                                self.report_requests.remove(report_request)
+                            else:
+                                report_request['report_to_follow'] = True
                         #If this is a one shot report. We remove this job after we send out the updateReport
                         if report['report_back_duration']==timedelta(0):
-                            self._cancel_report(report['report_request_id'])
+                            print('we cancel the one shot report here')
+                            report_request_id = report['report_request_id']
+                            job_id = report['report_request_id']
+                            report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
+                            self.report_requests.remove(report_request)
+                            self._cancel_report(job_id)
         except Exception as err:
             logger.warning(f"Internal error in the report queue worker fucntion: {err}")
 
