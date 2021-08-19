@@ -36,12 +36,16 @@ async def query_registration():
     await client.query_registration()
     return {'status': 200, 'body': 'return from the query registration'}
 
-
 @app.route('/cancel_party_registration', methods=['POST'])
 async def cancel_party_registration():
     await client.cancel_party_registration()
     return {'status': 200, 'body': 'return from the cancel registration'}
 
+@app.route('/register_reports')
+async def register_reports():
+    if client.reports:
+        await client.register_reports(client.reports)
+    return {'status': 200, 'body': 'The VEN has sent register report with metadata.'}
 
 @app.route('/request_event', methods=['POST'])
 async def request_event():
@@ -55,7 +59,6 @@ async def request_event():
 @app.route('/create_opt', methods =['POST'])
 async def create_opt():
    return await client.create_opt(request.data)
-
 
 @app.route('/cancel_opt', methods = ['POST'])
 async def cancel_opt():

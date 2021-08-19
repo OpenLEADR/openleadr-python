@@ -1,38 +1,38 @@
 <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
   <oadr:oadrCreateOpt ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110" xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:emix="http://docs.oasis-open.org/ns/emix/2011/06" xmlns:power="http://docs.oasis-open.org/ns/emix/2011/06/power">
       <ei:optID>{{ opt_id }}</ei:optID>
-    <ei:optType>{{ opt_type }}</ei:optType>
-    <ei:optReason>{{ opt_reason }}</ei:optReason>
-    {% if market_context is defined and market_context is not none %}
-    <emix:marketContext>{{ market_context }}</emix:marketContext>
-    {% endif %}
-    <ei:venID>{{ ven_id }}</ei:venID>
-    {% if vavailability is defined and vavailability is not none %}
-    <xcal:vavailability>
-    <xcal:components>
-      {% for ava in vavailability.components.available %}
-        {% include 'parts/xcalAvailable.xml' %}
+      <ei:optType>{{ opt_type }}</ei:optType>
+      <ei:optReason>{{ opt_reason }}</ei:optReason>
+      {% if market_context is defined and market_context is not none %}
+      <emix:marketContext>{{ market_context }}</emix:marketContext>
+      {% endif %}
+      <ei:venID>{{ ven_id }}</ei:venID>
+      {% if vavailability is defined and vavailability is not none %}
+      <xcal:vavailability>
+      <xcal:components>
+        {% for ava in vavailability.components.available %}
+          {% include 'parts/xcalAvailable.xml' %}
+        {% endfor %}
+      </xcal:components>
+      </xcal:vavailability>
+      {% endif %}
+      <ei:createdDateTime>{{ created_date_time|datetimeformat}}</ei:createdDateTime>
+      <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
+      {% if event_id is defined and event_id is not none %}
+      <ei:qualifiedEventID>
+        <ei:eventID>{{ event_id }}</ei:eventID>
+        <ei:modificationNumber>{{ modification_number }}</ei:modificationNumber>
+      </ei:qualifiedEventID>
+      {% endif %}
+      {% for target in targets %}
+      {% include 'parts/eiTarget.xml' %}
       {% endfor %}
-    </xcal:components>
-    </xcal:vavailability>
-    {% endif %}
-    <ei:createdDateTime>{{ created_date_time|datetimeformat}}</ei:createdDateTime>
-    <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
-    {% if event_id is defined and event_id is not none %}
-    <ei:qualifiedEventID>
-      <ei:eventID>{{ event_id }}</ei:eventID>
-      <ei:modificationNumber>{{ modification_number }}</ei:modificationNumber>
-    </ei:qualifiedEventID>
-    {% endif %}
-    {% for target in targets %}
-    {% include 'parts/eiTarget.xml' %}
-    {% endfor %}
-    {% if device_class is defined and device_class is not none %}
-    <oadr:oadrDeviceClass>
-                  <power:endDeviceAsset>
-                      <power:mrid>{{ device_class.end_device_asset.mrid }}</power:mrid>
-                  </power:endDeviceAsset>
-              </oadr:oadrDeviceClass>
-    {% endif %}
-  </oadr:oadrCreateOpt>
+      {% if device_class is defined and device_class is not none %}
+      <oadr:oadrDeviceClass>
+          <power:endDeviceAsset>
+              <power:mrid>{{ device_class.end_device_asset.mrid }}</power:mrid>
+          </power:endDeviceAsset>
+      </oadr:oadrDeviceClass>
+      {% endif %}
+    </oadr:oadrCreateOpt>
 </oadr:oadrSignedObject>

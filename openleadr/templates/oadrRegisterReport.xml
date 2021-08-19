@@ -1,39 +1,43 @@
 <oadr:oadrSignedObject xmlns:oadr="http://openadr.org/oadr-2.0b/2012/07" oadr:Id="oadrSignedObject">
- <oadr:oadrRegisterReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
+  <oadr:oadrRegisterReport ei:schemaVersion="2.0b" xmlns:ei="http://docs.oasis-open.org/ns/energyinterop/201110">
     <requestID xmlns="http://docs.oasis-open.org/ns/energyinterop/201110/payloads">{{ request_id }}</requestID>
+
 {% for report in reports %}
-   <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
-     {% if report.dtstart is defined and report.dtstart is not none and ('METADATA' is not in report.report_name) %}
-     <xcal:dtstart>
-       <xcal:date-time>{{ report.dtstart|datetimeformat }}</xcal:date-time>
-     </xcal:dtstart>
-     {% endif %}
-     {% if report.duration is defined and report.duration is not none %}
-     <xcal:duration>
-       <xcal:duration>{{ report.duration|timedeltaformat }}</xcal:duration>
-     </xcal:duration>
-     {% endif %}
-     {% if report.report_id is defined and report.report_id is not none %}
-     <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
-     {% endif %}
- {% for report_description in report.report_descriptions %}
-     {% include 'parts/oadrReportDescription.xml' %}
- {% endfor %}
-     {% if report.report_request_id is defined and report.report_request_id is not none %}
-     <ei:reportRequestID>{{ report.report_request_id }}</ei:reportRequestID>
-     {% else %}
-     <ei:reportRequestID></ei:reportRequestID>
-     {% endif %}
-     <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>
-     <ei:reportName>{{ report.report_name }}</ei:reportName>
-     <ei:createdDateTime>{{ report.created_date_time|datetimeformat }}</ei:createdDateTime>
-   </oadr:oadrReport>
+    <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+      {% if report.dtstart is defined and report.dtstart is not none and ('METADATA' is not in report.report_name) %}
+      <xcal:dtstart>
+        <xcal:date-time>{{ report.dtstart|datetimeformat }}</xcal:date-time>
+      </xcal:dtstart>
+      {% endif %}
+      {% if report.duration is defined and report.duration is not none %}
+      <xcal:duration>
+        <xcal:duration>{{ report.duration|timedeltaformat }}</xcal:duration>
+      </xcal:duration>
+      {% endif %}
+      {% if report.report_id is defined and report.report_id is not none %}
+      <ei:eiReportID>{{ report.report_id }}</ei:eiReportID>
+      {% endif %}
+    
+  {% for report_description in report.report_descriptions %}
+      {% include 'parts/oadrReportDescription.xml' %}
+  {% endfor %}
+      {% if report.report_request_id is defined and report.report_request_id is not none %}
+      <ei:reportRequestID>0</ei:reportRequestID>
+      {% else %}
+      <ei:reportRequestID></ei:reportRequestID>
+      {% endif %}
+      <ei:reportSpecifierID>{{ report.report_specifier_id }}</ei:reportSpecifierID>
+      <ei:reportName>{{ report.report_name }}</ei:reportName>
+      <ei:createdDateTime>{{ report.created_date_time|datetimeformat }}</ei:createdDateTime>
+    </oadr:oadrReport>
+    
 {% endfor %}
-   {% if ven_id is defined and ven_id is not none %}
-   <ei:venID>{{ ven_id }}</ei:venID>
-   {% endif %}
-   {% if report_request_id is defined and report_request_id is not none %}
-   <ei:reportRequestID>{{ report_request_id }}</ei:reportRequestID>
-   {% endif %}
- </oadr:oadrRegisterReport>
+
+    {% if ven_id is defined and ven_id is not none %}
+    <ei:venID>{{ ven_id }}</ei:venID>
+    {% endif %}
+    {% if report_request_id is defined and report_request_id is not none %}
+    <ei:reportRequestID>{{ report_request_id }}</ei:reportRequestID>
+    {% endif %}
+  </oadr:oadrRegisterReport>
 </oadr:oadrSignedObject>
