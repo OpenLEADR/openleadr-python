@@ -18,6 +18,8 @@ from datetime import datetime, timedelta, timezone
 from dataclasses import is_dataclass, asdict
 from collections import OrderedDict
 from openleadr import enums, objects
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from time import sleep
 import asyncio
 import re
 import ssl
@@ -592,12 +594,14 @@ def determine_event_status(active_period):
         setmember(active_period['properties'], 'dtstart', active_period_start)
     active_period_end = active_period_start + getmember(active_period['properties'], 'duration')
     if now >= active_period_end:
+        logger.info('The event has completed')
         return 'completed'
     if now >= active_period_start:
+        logger.info('The event is active')
         return 'active'
     if getmember(active_period['properties'], 'ramp_up_period', missing=None) is not None:
         ramp_up_start = active_period_start - getmember(active_period['properties'], 'ramp_up_period')
-        if now >= ramp_up_start:
+        if now >= ramp_up_start: 
             return 'near'
     return 'far'
 
@@ -813,7 +817,7 @@ def increment_event_modification_number(event):
 
 def has_supported_signals(event):
     supported_signals = [
-                            'SIMPLE', 'ELECTRICITY_PRICE', 'ENERGY_PRICE', 'DEMAND_CHARGE', 'BID_PRICE',
+                            'SIMPLE', 'simple', 'ELECTRICITY_PRICE', 'ENERGY_PRICE', 'DEMAND_CHARGE', 'BID_PRICE',
                             'BID_LOAD', 'BID_ENERGY', 'CHARGE_STATE', 'LOAD_DISPATCH', 'LOAD_CONTROL'
                         ]   
     if isinstance(event['event_signals'], dict) and 'event_signals' in event['event_signals']:
@@ -822,6 +826,28 @@ def has_supported_signals(event):
         if signal['signal_name'] not in supported_signals:
             return False
     return True
+
+def has_correct_ids(event, ven_id):
+    for resource in event['targets']:
+        if 'ven_id' in resource and resource['ven_id'] != ven_id:
+            return False
+    return True
+        
+def has_incorrect_market_context(event):
+    print(event)
+    marketContext = event['event_descriptor']['market_context']
+    if re.match(r'^(http|https)://', marketContext):
+        return False
+    else:
+        return True
+
+async def event_indicator(event_id, event_status, dtstart, duration):
+    print(f'An event with event id: {event_id} was received. The event status is {event_status}. The event will start at {dtstart}. The current time is {datetime.now(timezone.utc)}')
+    now = datetime.now(timezone.utc)
+    await asyncio.sleep((dtstart - now).total_seconds())
+    print(f'The event with event id: {event_id} is active now. The current time is {datetime.now(timezone.utc)}')
+    await asyncio.sleep(duration.total_seconds())
+    print(f'The event with event id: {event_id} is completed now. The current time is {datetime.now(timezone.utc)}')
 
 def report_callback(date_from=None, date_to=None, sampling_interval=None):
     return [(datetime.utcnow(), 3.1415926)]

@@ -26,6 +26,11 @@ async def create_party_registration():
     await client.create_party_registration(ven_id = client.ven_id, registration_id=client.registration_id)
     return {'status': 200, 'body': 'return from the create party registration'}
 
+@app.route('/create_party_registration_while_registered', methods=['POST', 'GET'])
+async def create_party_registration_while_registered():
+    await client.create_party_registration_while_registered()
+    return {'status': 200, 'body': 'return from the create party registration'}
+
 @app.route('/query_registration', methods=['POST'])
 async def query_registration():
     await client.query_registration()
@@ -44,7 +49,7 @@ async def request_event():
     if response_type == 'oadrDistributeEvent':
         if 'events' in response_payload and len(response_payload['events']) > 0:
                 await client._on_event(response_payload)
-                return {'status': 200, 'body': 'return from the request event'}
+    return {'status': 200, 'body': 'return from the request event'}
 
 
 @app.route('/create_opt', methods =['POST'])

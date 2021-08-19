@@ -35,7 +35,7 @@ from openleadr import utils
 from threading import Lock
 from dataclasses import asdict
 
-logging.basicConfig(level = logging.DEBUG)
+logging.basicConfig(level = logging.ERROR)
 logger = logging.getLogger('openleadr')
 
 
@@ -46,7 +46,7 @@ class OpenADRClient:
     you can always choose to call them manually.
     """
 
-    def __init__(self, ven_name, vtn_url, debug=True, cert='/Users/abhishekgupta/Development/openleadr-python/openleadr/cert.pem', key='/Users/abhishekgupta/Development/openleadr-python/openleadr/privkey.pem',
+    def __init__(self, ven_name, vtn_url, debug=True, cert=None, key=None,
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
                  allow_jitter=True, ven_id=None, registration_id=None):
         """
@@ -77,6 +77,7 @@ class OpenADRClient:
         self.ven_id = ven_id
         self.registration_id = registration_id
         self.poll_frequency = None
+        self.vtn_id = None
         self.vtn_fingerprint = vtn_fingerprint
         self.debug = debug
 
@@ -156,7 +157,6 @@ class OpenADRClient:
         self.scheduler.add_job(self._event_cleanup,
                                trigger='interval',
                                seconds=300)
-        print('did we ever start our scheduler??')
         self.scheduler.start()
 
     async def stop(self):
@@ -412,11 +412,67 @@ class OpenADRClient:
             return
         self.ven_id = response_payload['ven_id']
         self.registration_id = response_payload['registration_id']
-        self.poll_frequency = response_payload.get('requested_oadr_poll_freq',
-                                                   timedelta(seconds=10))
+        self.vtn_id = response_payload['vtn_id']
+        self.poll_frequency = response_payload.get('requested_oadr_poll_freq', timedelta(seconds=10))
         logger.info(f"VEN is now registered with ID {self.ven_id}")
         logger.info(f"The polling frequency is {self.poll_frequency}")
         return response_type, response_payload
+
+    async def create_party_registration_while_registered(self, http_pull_model=True, xml_signature=False,
+                                            report_only=False, profile_name='2.0b',
+                                            transport_name='simpleHttp', transport_address=None,
+                                            ven_id=None, registration_id=None):
+            """
+            Take the neccessary steps to register this client with the server.
+
+            :param bool http_pull_model: Whether to use the 'pull' model for HTTP.
+            :param bool xml_signature: Whether to sign each XML message.
+            :param bool report_only: Whether or not this is a reporting-only client
+                                    which does not deal with Events.
+            :param str profile_name: Which OpenADR profile to use.
+            :param str transport_name: The transport name to use. Either 'simpleHttp' or 'xmpp'.
+            :param str transport_address: Which public-facing address the server should use
+                                        to communicate.
+            :param str ven_id: The ID for this VEN. If you leave this blank,
+                            a VEN_ID will be assigned by the VTN.
+            """
+            request_id = utils.generate_id()
+            service = 'EiRegisterParty'
+            payload = { 'ven_name': self.ven_name,
+                        'ven_id': self.ven_id,
+                        'http_pull_model': http_pull_model,
+                        'xml_signature': xml_signature,
+                        'report_only': report_only,
+                        'profile_name': profile_name,
+                        'transport_name': transport_name,
+                        'transport_address': transport_address }
+            # ven_id and registration_id should be present during re-registration requests coming from the VTN
+            message = self._create_message('oadrCreatePartyRegistration',
+                                        request_id=request_id,
+                                        **payload)
+            response_type, response_payload = await self._perform_request(service, message)
+            if response_type is None:
+                return
+            if response_payload['response']['response_code'] != 200:
+                status_code = response_payload['response']['response_code']
+                status_description = response_payload['response']['response_description']
+                logger.error(f"Got error on Create Party Registration: "
+                            f"{status_code} {status_description}")
+                return
+
+            self.ven_id = response_payload['ven_id']
+            self.registration_id = response_payload['registration_id']
+            self.vtn_id = response_payload['vtn_id']
+            self.poll_frequency = response_payload.get('requested_oadr_poll_freq', timedelta(seconds=10))
+            logger.info(f"VEN is now registered with ID {self.ven_id}")
+            logger.info(f"The polling frequency is {self.poll_frequency}")
+
+            if self.reports:
+                for report in self.reports:
+                    utils.setmember(report, 'created_date_time', datetime.now(timezone.utc))
+                await self.register_reports(self.reports)
+                self.report_queue_task = self.loop.create_task(self._report_queue_worker())
+            return response_type, response_payload
 
     async def cancel_party_registration(self):
         """
@@ -1055,24 +1111,50 @@ class OpenADRClient:
     async def _on_event(self, message):
         logger.debug("The VEN received an event")
         events = message['events']
-        print('this is the msg')
-        print(message)
+        incorrect_modification_number = False
+        has_completed_initial_event_status = False 
         try:
             results = []
             for event in message['events']:
+                print('this is the event')
+                print(event)
                 event_id = event['event_descriptor']['event_id']
                 event_status = event['event_descriptor']['event_status']
                 modification_number = event['event_descriptor']['modification_number']
-                received_event = utils.find_by(
-                    self.received_events, 'event_descriptor.event_id', event_id)
+                received_event = utils.find_by(self.received_events, 'event_descriptor.event_id', event_id)
+                dtstart = event['active_period']['properties']['dtstart']
+                duration = event['active_period']['properties']['duration']
+                # implement event indicator over here using a util function
+                asyncio.create_task(utils.event_indicator(event_id, event_status, dtstart, duration))
                 if received_event:
+                    if modification_number < received_event['event_descriptor']['modification_number']:
+                        incorrect_modification_number = True
+                        event_responses = [{'response_code': 462,
+                                            'opt_type': 'optOut',
+                                            'request_id': message['request_id'],
+                                            'modification_number': events[i]['event_descriptor']['modification_number'],
+                                            'event_id': events[i]['event_descriptor']['event_id']} 
+                                            for i, event in enumerate(events)]
+                        if len(event_responses) > 0 and event_responses[0] != "no_response_required":
+                            response = {'response_code': 200,
+                                        'response_description': 'OK',
+                                        'request_id': message['request_id']}
+                            message = self._create_message('oadrCreatedEvent',
+                                                            response=response,
+                                                            event_responses=event_responses,
+                                                            ven_id=self.ven_id)
+                            service = 'EiEvent'
+                            response_type, response_payload = await self._perform_request(service, message)
+                            logger.info(response_type, response_payload)
+                        else:
+                            logger.info(
+                                "Not sending any event responses, because a response was not required/allowed by the VTN.")
                     if received_event['event_descriptor']['modification_number'] == modification_number:
                         # Re-submit the same opt type as we already had previously
                         result = self.responded_events[event_id]
                     else:
                         # Replace the event with the fresh copy
-                        utils.pop_by(self.received_events,
-                                     'event_descriptor.event_id', event_id)
+                        utils.pop_by(self.received_events, 'event_descriptor.event_id', event_id)
                         self.received_events.append(event)
                         # Wait for the result of the on_update_event handler
                         result = await utils.await_if_required(self.on_update_event(event))
@@ -1083,8 +1165,10 @@ class OpenADRClient:
                 if asyncio.iscoroutine(result):
                     result = await result
                 results.append(result)
-                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED):
+                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED) and event_id in self.responded_events.keys():
                     self.responded_events.pop(event_id)
+                elif event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED) and event_id not in self.responded_events.keys():
+                    has_completed_initial_event_status = True
                 else:
                     self.responded_events[event_id] = result
             for i, result in enumerate(results):
@@ -1099,17 +1183,27 @@ class OpenADRClient:
                             'request_id': message['request_id'],
                             'modification_number': events[i]['event_descriptor']['modification_number'],
                             'event_id': events[i]['event_descriptor']['event_id']}
-                           if event['response_required'] == 'always' and not utils.determine_event_status(event['active_period']) == 'completed' and utils.has_supported_signals(events[i])
-                           else
-                           {'response_code': 460,
+                            if event['response_required'] == 'always' and utils.has_supported_signals(events[i]) and (not utils.determine_event_status(event['active_period']) == 'completed' or has_completed_initial_event_status) 
+                            and utils.has_correct_ids(events[i], self.ven_id) and not utils.has_incorrect_market_context(events[i])
+                            else
+                            {'response_code': 460,
                             'response_description': 'Not OK',
                             'opt_type': results[i],
                             'request_id': message['request_id'],
                             'modification_number': events[i]['event_descriptor']['modification_number'],
                             'event_id': events[i]['event_descriptor']['event_id']} 
+                            if not utils.has_supported_signals(events[i])
+                            else
+                            {'response_code': 462,
+                            'opt_type': 'optOut',
+                            'request_id': message['request_id'],
+                            'modification_number': events[i]['event_descriptor']['modification_number'],
+                            'event_id': events[i]['event_descriptor']['event_id']} 
+                            if not utils.has_correct_ids(events[i], self.ven_id) or utils.has_incorrect_market_context(events[i])
+                            else "no_response_required"
                             for i, event in enumerate(events)]
 
-            if len(event_responses) > 0:
+            if len(event_responses) > 0 and event_responses[0] != "no_response_required" and not incorrect_modification_number:
                 response = {'response_code': 200,
                             'response_description': 'OK',
                             'request_id': message['request_id']}
@@ -1118,8 +1212,6 @@ class OpenADRClient:
                                             event_responses=event_responses,
                                             ven_id=self.ven_id)
                 service = 'EiEvent'
-                print('this is the msg being sent')
-                print(message)
                 response_type, response_payload = await self._perform_request(service, message)
                 logger.info(response_type, response_payload)
             else:
@@ -1158,7 +1250,16 @@ class OpenADRClient:
             await self.create_party_registration(ven_id=self.ven_id, registration_id=self.registration_id)
 
         elif response_type == 'oadrDistributeEvent':
-            if 'events' in response_payload and len(response_payload['events']) > 0:
+            incorrect_vtn_id = False
+            if response_payload['vtn_id'] != self.vtn_id:
+                incorrect_vtn_id = True
+                service = 'EiEvent'
+                response = {'response_code': 452,
+                            'request_id': response_payload['request_id']
+                            }
+                msg = self._create_message('oadrCreatedEvent', response=response, ven_id=self.ven_id)
+                await self._perform_request(service, msg)
+            if 'events' in response_payload and len(response_payload['events']) > 0 and not incorrect_vtn_id:
                 await self._on_event(response_payload)
 
         elif response_type == 'oadrUpdateReport':
