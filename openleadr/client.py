@@ -31,8 +31,6 @@ from lxml.etree import XMLSyntaxError
 from signxml.exceptions import InvalidSignature
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from openleadr import enums, objects, errors
-# from openleadr.objects import Component
-# from dict2xml import dict2xml
 from openleadr.messaging import create_message, parse_message, \
     validate_xml_schema, validate_xml_signature
 from openleadr import utils
@@ -50,7 +48,7 @@ class OpenADRClient:
     you can always choose to call them manually.
     """
 
-    def __init__(self, ven_name, vtn_url, debug=True, cert=None, key=None,
+    def __init__(self, ven_name, vtn_url, debug=True, cert='/Users/abhishekgupta/Development/openleadr-python/openleadr/validCerts/cert.pem', key='/Users/abhishekgupta/Development/openleadr-python/openleadr/validCerts/privkey.pem',
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
                  allow_jitter=True, ven_id=None, registration_id=None):
         """
@@ -523,26 +521,24 @@ class OpenADRClient:
             #3. Opt-in or Opt-out for specific eventId and eiTarget
         try:
             message_xml = eventBody
-            print('xml messge')
-            print(message_xml)
             _ ,message_dict = parse_message(message_xml)
-            print(message_dict)
             for target in message_dict['targets']:
                 target['ven_id'] = self.ven_id
             message_dict['ven_id'] = self.ven_id
-            if not isinstance(message_dict['vavailability']['components']['available'], list):
+            if 'event_id' in message_dict.keys():
+                message_dict['event_id'] = self.received_events[0]['event_descriptor']['event_id']
+            if 'modification_number' in message_dict.keys():
+                message_dict['modification_number'] = self.received_events[0]['event_descriptor']['modification_number']
+            if message_dict['vavailability'] and not isinstance(message_dict['vavailability']['components']['available'], list):
                 message_dict['vavailability']['components']['available'] = [message_dict['vavailability']['components']['available']]
-            
-            
             message_xml= self._create_message('oadrCreateOpt', **message_dict)
             response_type, _ = await self._perform_request('EiOpt', message_xml)
-            print('successfully send the create_opt message')
-            
             if response_type!='oadrCreatedOpt':
                 raise ValueError('Invalid reposne type in odarCreateOpt')
         except Exception as err:
             logger.error(f"Internal error in oadrCreateOpt: {err}")
         return {'status': 200, 'body': 'Sucessfully created an Opt'}
+
     
     
     async def cancel_opt(self, eventBody):
@@ -551,18 +547,15 @@ class OpenADRClient:
     # No need to save the opt_id in the DB currently, because we trigger this function manually
         try:
             message_xml = eventBody
-            print(message_xml)
             _ ,message_dict = parse_message(message_xml)
             message_dict['request_id'] = utils.generate_id()
             message_dict['ven_id'] = self.ven_id
-            print(message_dict)
             message_xml= self._create_message('oadrCancelOpt', **message_dict)
             service = 'EiOpt'
             response_type, _ = await self._perform_request(service, message_xml)
             
             if response_type!='oadrCanceledOpt':
                 raise ValueError('Invalid reposne type in odarCancelOpt')
-            print("Successfully send out the cancel opt message")
         except Exception as err:
             logger.error(f"Internal error in oadrCancelOpt: {err}")
         
@@ -752,8 +745,6 @@ class OpenADRClient:
             if report_interval:
                 dtstart = report_interval['properties']['dtstart']
                 duration = report_interval['properties']['duration']
-                print(dtstart)
-                print(duration)
             # Check if this report actually exists
             report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
             if not report:
@@ -815,8 +806,6 @@ class OpenADRClient:
                     next_run_time = local_dtstart+timedelta(seconds=4)
             else:
                 next_run_time = undefined
-            print('Next run time is: ')
-            print(next_run_time)
             
             ##if this is a one shot report, set the next_run_time as now and set interval as one day
             if reporting_interval == timedelta(0):
@@ -860,7 +849,6 @@ class OpenADRClient:
                 await self._perform_request(service, msg)
             else:
                 service = 'EiReport'
-                print(response_payload)
                 request_id = response_payload['request_id']
                 # Send the oadrCreatedReport message
                 message_type = 'oadrCreatedReport'
@@ -931,10 +919,7 @@ class OpenADRClient:
         else:
             for r_id in report_request['r_ids']:
                 report_callback = self.report_callbacks[(report_specifier_id, r_id)]
-                print('did we ever get our report call_back function??')
-                print(report_callback)
                 result = report_callback()
-                print(result)
                 if asyncio.iscoroutine(result):
                     result = await result
                 if isinstance(result, (int, float)):
@@ -948,8 +933,6 @@ class OpenADRClient:
                         report_payload = objects.ReportPayload(r_id=r_id, value=value)
                         interval_start = dtstart
                         for i in range(int(report_back_duration.total_seconds()//granularity.total_seconds())):
-                            print('after the 2 min adjust, the dtstart is: ')
-                            print(dtstart)
                             intervals.append(objects.ReportInterval(dtstart=interval_start,
                                                                     duration= report_request['duration'] if report_request['duration'] else timedelta(0),
                                                                     report_payload=report_payload))
@@ -970,26 +953,7 @@ class OpenADRClient:
         print(outgoing_report)
         print('after we add the outgoing_report, its length is:')
         print(self.pending_reports.qsize())
-        
-        
-        
-        # Figure out if the report is complete after this sampling
-        # if data_collection_mode == 'incremental' and report_back_duration is not None\
-        #         and report_back_duration > granularity:
-        #     report_interval = report_back_duration.total_seconds()
-        #     sampling_interval = granularity.total_seconds()
-        #     expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
-        #     if len(outgoing_report.intervals) == expected_len:
-        #         logger.info("The report is now complete with all the values. Will queue for sending.")
-        #         await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
-        #     else:
-        #         logger.debug("The report is not yet complete, will hold until it is.")
-        #         self.incomplete_reports[report_request_id] = outgoing_report
-        # else:
-        #     logger.info("Report will be sent now.")
-        #     await self.pending_reports.put(outgoing_report)
-        #     print('after we add the outgoing_report, its length is:')
-        #     print(self.pending_reports.qsize())
+
        
     async def cancel_report(self, payload):
         """
@@ -1016,10 +980,7 @@ class OpenADRClient:
                                                                'request_id':request_id},
                                                             ven_id=self.ven_id,
                                                             **message_payload)
-
         await self._perform_request(service, message)
-
-    
     
     
     def _cancel_report(self, job_id):
@@ -1027,7 +988,6 @@ class OpenADRClient:
             self.scheduler.remove_job(job_id)
         except Exception as err:
             logger.warning(f"Internal error in the _cancel_report fucntion: {err}")
-        
         
 
     async def _report_queue_worker(self):
@@ -1232,8 +1192,6 @@ class OpenADRClient:
         try:
             results = []
             for event in message['events']:
-                print('this is the event')
-                print(event)
                 event_id = event['event_descriptor']['event_id']
                 event_status = event['event_descriptor']['event_status']
                 modification_number = event['event_descriptor']['modification_number']
