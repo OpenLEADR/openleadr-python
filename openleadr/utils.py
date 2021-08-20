@@ -834,7 +834,6 @@ def has_correct_ids(event, ven_id):
     return True
         
 def has_incorrect_market_context(event):
-    print(event)
     marketContext = event['event_descriptor']['market_context']
     if re.match(r'^(http|https)://', marketContext):
         return False
@@ -842,12 +841,23 @@ def has_incorrect_market_context(event):
         return True
 
 async def event_indicator(event_id, event_status, dtstart, duration):
-    print(f'An event with event id: {event_id} was received. The event status is {event_status}. The event will start at {dtstart}. The current time is {datetime.now(timezone.utc)}')
-    now = datetime.now(timezone.utc)
-    await asyncio.sleep((dtstart - now).total_seconds())
-    print(f'The event with event id: {event_id} is active now. The current time is {datetime.now(timezone.utc)}')
+    print(f'An event with event id: {event_id} was received. The event status is {event_status}.')
+    if event_status == 'far' or event_status == 'near':
+        print(f'The event will start at {dtstart}. The current time is {datetime.now(timezone.utc)}')
+        if duration.total_seconds() == 0.0:
+            #A buffer of 20 seconds added to prevent the event from instantly reporting complete after it is active
+            await asyncio.sleep((dtstart - datetime.now(timezone.utc)).total_seconds() - 20.0)
+            print(f'The event with event id: {event_id} is active now. The current time is {datetime.now(timezone.utc)}')
+            print(f'The event with event id: {event_id} will complete in {duration.total_seconds()} seconds, if not cancelled before that. The current time is {datetime.now(timezone.utc)}')
+        else:
+            await asyncio.sleep((dtstart - datetime.now(timezone.utc)).total_seconds())
+            print(f'The event with event id: {event_id} is active now. The current time is {datetime.now(timezone.utc)}')
+            print(f'The event with event id: {event_id} will complete in {duration.total_seconds()} seconds, if not cancelled before that. The current time is {datetime.now(timezone.utc)}')
+    else:
+        print(f'The event with event id: {event_id} was {event_status}. The current time is {datetime.now(timezone.utc)}')
+        return 
     await asyncio.sleep(duration.total_seconds())
-    print(f'The event with event id: {event_id} is completed now. The current time is {datetime.now(timezone.utc)}')
+    print(f'The event with event id: {event_id} was completed, if not cancelled before that. The current time is {datetime.now(timezone.utc)}')
 
 def report_callback(date_from=None, date_to=None, sampling_interval=None):
     return [(datetime.utcnow(), 3.1415926)]
