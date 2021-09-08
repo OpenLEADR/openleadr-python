@@ -11,6 +11,8 @@ from openleadr.utils import report_callback
 from openleadr.enums import MEASUREMENTS
 nest_asyncio.apply()
 client = OpenADRClient(ven_name='myven', vtn_url='http://127.0.0.1:8080/OpenADR2/Simple/2.0b')
+#client = OpenADRClient(ven_name = 'myven', vtn_url='http://docker.for.mac.localhost:8080/OpenADR2/Simple/2.0b')
+## Remeber to change the localhost address accordingly when using docker
 client.add_report(report_callback, client.ven_id, report_name = 'TELEMETRY_STATUS')
 client.add_report(report_callback, client.ven_id, report_name = 'TELEMETRY_USAGE', measurement= MEASUREMENTS.POWER_REAL)
 app = Flask(__name__)
