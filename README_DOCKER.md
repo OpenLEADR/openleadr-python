@@ -1,5 +1,7 @@
 # To run our project in a docker
 
+# First thing is remeber to change the localhost address in the main.py(line 14)
+
 # step1.
 
 open the terminal and cwd to current folder openleader-python
