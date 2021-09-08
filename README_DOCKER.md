@@ -1,6 +1,6 @@
 # To run our project in a docker
 
-# First thing is remeber to change the localhost address in the main.py(line 14)
+# First thing is remember to change the localhost address in the main.py(line 14)
 
 # step1.
 
@@ -17,6 +17,8 @@ usr$ sudo docker run -it -p 5000:5000 openleader-python
 # ====================================================================================================
 
 ## if you don't want to run it in a docker
+
+# open the terminal and cwd to current folder openleader-python
 
 # First install the virtualenv packages
 
