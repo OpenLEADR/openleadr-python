@@ -48,7 +48,7 @@ class OpenADRClient:
     you can always choose to call them manually.
     """
 
-    def __init__(self, ven_name, vtn_url, debug=True, cert='/Users/abhishekgupta/Development/openleadr-python/openleadr/validCerts/cert.pem', key='/Users/abhishekgupta/Development/openleadr-python/openleadr/validCerts/privkey.pem',
+    def __init__(self, ven_name, vtn_url, debug=True, cert='./openleadr/validCerts/cert.pem', key='./openleadr/validCerts/privkey.pem',
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
                  allow_jitter=True, ven_id=None, registration_id=None):
         """

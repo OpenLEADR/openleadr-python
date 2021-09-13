@@ -12,7 +12,7 @@ usr$ sudo docker build -t openleader-python .
 
 # step3.(if test on a local host)
 
-usr$ sudo docker run -it -p 5000:5000 openleader-python
+usr$ sudo docker run -it openleader-python
 
 # ====================================================================================================
 
