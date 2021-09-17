@@ -37,7 +37,7 @@ from openleadr import utils
 from threading import Lock
 from dataclasses import asdict
 
-logging.basicConfig(level = logging.ERROR)
+logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger('openleadr')
 
 
