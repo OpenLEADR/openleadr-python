@@ -65,7 +65,7 @@ def client_run():
     loop.run_forever()
 
 if __name__ == "__main__":
-    t1 = threading.Thread(target=app.run)
+    t1 = threading.Thread(target=app.run, kwargs={'host':'0.0.0.0'})
     t2 = threading.Thread(target=client_run)
     t1.start()
     t2.start()
