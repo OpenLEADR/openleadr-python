@@ -1,5 +1,6 @@
 from logging import debug, exception
 from flask import Flask, request
+import os
 import asyncio
 import threading
 import ssl
@@ -9,17 +10,12 @@ import json
 from openleadr.client import OpenADRClient
 from openleadr.utils import report_callback
 from openleadr.enums import MEASUREMENTS
+
 nest_asyncio.apply()
-client = OpenADRClient(ven_name='myven', vtn_url='https://host.docker.internal:8080/OpenADR2/Simple/2.0b')
+client = OpenADRClient(ven_name='myven', vtn_url=os.environ.get('VTN_URL'))
 client.add_report(report_callback, client.ven_id, report_name = 'TELEMETRY_STATUS')
 client.add_report(report_callback, client.ven_id, report_name = 'TELEMETRY_USAGE', measurement= MEASUREMENTS.POWER_REAL)
 app = Flask(__name__)
-
-
-@app.route('/home')
-def home():
-    return "Hello from the flask!"
-
 
 @app.route('/create_party_registration', methods=['POST', 'GET'])
 async def create_party_registration():
@@ -55,7 +51,6 @@ async def request_event():
                 await client._on_event(response_payload)
     return {'status': 200, 'body': 'return from the request event'}
 
-
 @app.route('/create_opt', methods =['POST'])
 async def create_opt():
    return await client.create_opt(request.data)
@@ -64,13 +59,10 @@ async def create_opt():
 async def cancel_opt():
    return await client.cancel_opt(request.data)
 
-
-
 def client_run():
     loop = asyncio.new_event_loop()
     loop.create_task(client.run())
     loop.run_forever()
-
 
 if __name__ == "__main__":
     t1 = threading.Thread(target=app.run)
