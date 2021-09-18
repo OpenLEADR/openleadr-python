@@ -48,7 +48,7 @@ class OpenADRClient:
     you can always choose to call them manually.
     """
 
-    def __init__(self, ven_name, vtn_url, debug=True, cert='./openleadr/validCerts/cert.pem', key='./openleadr/validCerts/privkey.pem',
+    def __init__(self, ven_name, vtn_url, debug=True, cert='./openleadr/expCerts/cert.pem', key='./openleadr/expCerts/privkey.pem',
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
                  allow_jitter=True, ven_id=None, registration_id=None):
         """
@@ -441,6 +441,7 @@ class OpenADRClient:
             service = 'EiRegisterParty'
             payload = { 'ven_name': self.ven_name,
                         'ven_id': self.ven_id,
+                        'registration_id': self.registration_id,
                         'http_pull_model': http_pull_model,
                         'xml_signature': xml_signature,
                         'report_only': report_only,
