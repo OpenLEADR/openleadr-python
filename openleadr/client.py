@@ -441,6 +441,7 @@ class OpenADRClient:
             service = 'EiRegisterParty'
             payload = { 'ven_name': self.ven_name,
                         'ven_id': self.ven_id,
+                        'registration_id': self.registration_id,
                         'http_pull_model': http_pull_model,
                         'xml_signature': xml_signature,
                         'report_only': report_only,
