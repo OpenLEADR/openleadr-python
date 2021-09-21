@@ -1033,6 +1033,8 @@ class OpenADRClient:
         logger.warning("You should implement your own on_event handler. This handler receives "
                        "an Event dict and should return either 'optIn' or 'optOut' based on your "
                        "choice. Will opt out of the event for now.")
+        # Event indicator to inicate the status when an event is received
+        asyncio.create_task(utils.event_indicator(event))
         return 'optIn'
 
     async def on_update_event(self, event):
@@ -1044,6 +1046,8 @@ class OpenADRClient:
                        "an Event dict and should return either 'optIn' or 'optOut' based on your "
                        "choice. Will re-use the previous opt status for this event_id for now")
         event_id = event['event_descriptor']['event_id']
+        # Event indicator to inicate the status of updated events
+        asyncio.create_task(utils.event_indicator(event))
         if event_id in self.responded_events:
             return self.responded_events[event_id]
 
@@ -1167,10 +1171,6 @@ class OpenADRClient:
                 event_status = event['event_descriptor']['event_status']
                 modification_number = event['event_descriptor']['modification_number']
                 received_event = utils.find_by(self.received_events, 'event_descriptor.event_id', event_id)
-                dtstart = event['active_period']['properties']['dtstart']
-                duration = event['active_period']['properties']['duration']
-                # implement event indicator over here using a util function
-                asyncio.create_task(utils.event_indicator(event_id, event_status, dtstart, duration))
                 if received_event:
                     if modification_number < received_event['event_descriptor']['modification_number']:
                         incorrect_modification_number = True
