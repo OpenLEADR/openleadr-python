@@ -838,7 +838,15 @@ def has_incorrect_market_context(event):
     else:
         return True
 
+<<<<<<< HEAD
 async def event_indicator(event_id, event_status, dtstart, duration):
+=======
+async def event_indicator(event):
+    event_id = event['event_descriptor']['event_id']
+    event_status = event['event_descriptor']['event_status']
+    dtstart = event['active_period']['properties']['dtstart']
+    duration = event['active_period']['properties']['duration']
+>>>>>>> origin/feat/updating_event_indicator_call
     logger.info(f'An event with event id: {event_id} was received. The event status is {event_status}.')
     if event_status == 'far' or event_status == 'near':
         logger.info(f'The event will start at {dtstart}. The current time is {datetime.now(timezone.utc)}')
