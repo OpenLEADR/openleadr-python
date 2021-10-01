@@ -78,3 +78,24 @@ To run the test suite, you can use the following command:
 ./python_env/bin/python3 -m pytest -v test/
 ```
 
+## Contributing Documentation
+
+### Building the documentation
+
+Static documentation can be found in the docs directory. Edit or create new .rst files to add new content using 
+the [Restructured Text](http://docutils.sourceforge.net/docs/user/rst/quickref.html) format. To see the results of your changes,
+the documentation can be built locally through the command line using the following instructions:
+
+```bash
+# Ensure that you follow the development setup in the Developing section above before running the following commands
+# After running this these commands, you should see a new directory `docs/_build`, which contains the HTML documentation. 
+# For more details, see https://www.sphinx-doc.org/en/master/tutorial/first-steps.html  
+cd docs
+make html
+```
+
+Then, open your browser to the created local files:
+
+```
+file:///home/<USER>/openleadr-python/docs/_build/html/index.html
+```

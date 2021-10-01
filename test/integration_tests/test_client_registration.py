@@ -82,16 +82,16 @@ def fingerprint_lookup(ven_id):
     return certificate_fingerprint(cert)
 
 @pytest.mark.asyncio
-async def test_create_party_registration_with_signatures(start_server_with_signatures):
+@pytest.mark.parametrize("disable_signature", [False, True])
+async def test_create_party_registration_with_signatures(start_server_with_signatures, disable_signature):
     with open(CERTFILE) as file:
         cert = file.read()
     client = OpenADRClient(ven_name=VEN_NAME,
                            vtn_url=f"http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b",
-                           cert=CERTFILE, key=KEYFILE, vtn_fingerprint=certificate_fingerprint(cert))
+                           cert=CERTFILE, key=KEYFILE, vtn_fingerprint=certificate_fingerprint(cert),
+                           disable_signature=disable_signature)
 
     response_type, response_payload = await client.create_party_registration()
     assert response_type == 'oadrCreatedPartyRegistration'
     assert response_payload['ven_id'] == VEN_ID
     await client.stop()
-
-
