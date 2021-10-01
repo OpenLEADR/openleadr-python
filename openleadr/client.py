@@ -41,7 +41,7 @@ class OpenADRClient:
     """
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
-                 allow_jitter=True, ven_id=None):
+                 allow_jitter=True, ven_id=None, disable_signature=False):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -61,6 +61,7 @@ class OpenADRClient:
                             certificate.
         :param str ven_id: The ID for this VEN. If you leave this blank,
                            a VEN_ID will be assigned by the VTN.
+        :param bool disable_signature: Whether or not to sign outgoing messages using a public-private key pair in PEM format.
         """
 
         self.ven_name = ven_name
@@ -109,7 +110,8 @@ class OpenADRClient:
         self._create_message = partial(create_message,
                                        cert=cert,
                                        key=key,
-                                       passphrase=passphrase)
+                                       passphrase=passphrase,
+                                       disable_signature=disable_signature)
 
     async def run(self):
         """
