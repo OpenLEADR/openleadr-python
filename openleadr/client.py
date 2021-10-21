@@ -32,6 +32,7 @@ from openleadr.messaging import create_message, parse_message, \
 from openleadr import utils
 
 logger = logging.getLogger('openleadr')
+logger.setLevel(logging.INFO)
 
 
 class OpenADRClient:
@@ -782,7 +783,7 @@ class OpenADRClient:
                 if asyncio.iscoroutine(result):
                     result = await result
                 results.append(result)
-                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED):
+                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED) and event_id in self.responded_events:
                     self.responded_events.pop(event_id)
                 else:
                     self.responded_events[event_id] = result
@@ -807,6 +808,7 @@ class OpenADRClient:
                            and not utils.determine_event_status(event['active_period']) == 'completed']
 
         if len(event_responses) > 0:
+            logger.info(f"Total event_responses: {len(event_responses)}")
             response = {'response_code': 200,
                         'response_description': 'OK',
                         'request_id': message['request_id']}
@@ -849,6 +851,7 @@ class OpenADRClient:
 
         elif response_type == 'oadrDistributeEvent':
             if 'events' in response_payload and len(response_payload['events']) > 0:
+                logger.info(f"The payload tyupe {type(response_payload)}")
                 await self._on_event(response_payload)
 
         elif response_type == 'oadrUpdateReport':
