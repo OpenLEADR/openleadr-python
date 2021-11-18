@@ -199,6 +199,7 @@ If you want to add a "raw" event directly, you can use this example as a guid:
         print(f"VEN {ven_id} responded {opt_status} to event {event_id}")
 
     server = OpenADRServer(vtn_id='myvtn')
+    now = datetime.now()
     event = Event(event_descriptor=EventDescriptor(event_id='event001',
                                                    modification_number=0,
                                                    event_status='far',
@@ -207,15 +208,15 @@ If you want to add a "raw" event directly, you can use this example as a guid:
                                              signal_type='level',
                                              signal_name='simple',
                                              intervals=[Interval(dtstart=now,
-                                                                 duration=datetime.timedelta(minutes=10),
+                                                                 duration=timedelta(minutes=10),
                                                                  signal_payload=1)]),
                                  EventSignal(signal_id='signal002',
                                              signal_type='price',
                                              signal_name='ELECTRICITY_PRICE',
                                              intervals=[Interval(dtstart=now,
-                                                                 duration=datetime.timedelta(minutes=10),
+                                                                 duration=timedelta(minutes=10),
                                                                  signal_payload=1)])],
-                  targets=[objects.Target(ven_id='ven123')])
+                  targets=[Target(ven_id='ven123')])
 
     server.add_raw_event(ven_id='ven123', event=event, callback=event_callback)
 
