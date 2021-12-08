@@ -16,7 +16,7 @@
 
 
 from openleadr.utils import generate_id, certificate_fingerprint, ensure_bytes
-from openleadr.messaging import create_message, parse_message, validate_xml_signature, validate_xml_schema
+from openleadr.messaging import create_message, parse_message, validate_xml_signature, validate_xml_schema, validate_xml_signature_none
 from hashlib import sha256
 from base64 import b64encode
 from datetime import datetime, timedelta, timezone
@@ -35,6 +35,14 @@ def test_message_validation():
     validate_xml_signature(tree)
     parsed_type, parsed_message = parse_message(msg)
     assert parsed_type == 'oadrPoll'
+
+def test_message_validation_disable_signature():
+    msg = create_message('oadrPoll', ven_id='123', cert=TEST_CERT, key=TEST_KEY, disable_signature=True)
+    tree = etree.fromstring(msg.encode('utf-8'))
+    validate_xml_signature_none(tree)
+    parsed_type, parsed_message = parse_message(msg)
+    assert parsed_type == 'oadrPoll'
+
 
 def test_message_validation_complex():
     now = datetime.now(timezone.utc)

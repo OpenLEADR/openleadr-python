@@ -10,3 +10,4 @@ dist/
 .pytest_cache/
 .ipynb_checkpoints/
 static/
+.idea/

@@ -32,6 +32,7 @@ from openleadr.messaging import create_message, parse_message, \
 from openleadr import utils
 
 logger = logging.getLogger('openleadr')
+logger.setLevel(logging.INFO)
 
 
 class OpenADRClient:
@@ -41,7 +42,7 @@ class OpenADRClient:
     """
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
-                 allow_jitter=True, ven_id=None):
+                 allow_jitter=True, ven_id=None, disable_signature=False):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -61,6 +62,7 @@ class OpenADRClient:
                             certificate.
         :param str ven_id: The ID for this VEN. If you leave this blank,
                            a VEN_ID will be assigned by the VTN.
+        :param bool disable_signature: Whether or not to sign outgoing messages using a public-private key pair in PEM format.
         """
 
         self.ven_name = ven_name
@@ -109,7 +111,8 @@ class OpenADRClient:
         self._create_message = partial(create_message,
                                        cert=cert,
                                        key=key,
-                                       passphrase=passphrase)
+                                       passphrase=passphrase,
+                                       disable_signature=disable_signature)
 
     async def run(self):
         """
@@ -780,7 +783,7 @@ class OpenADRClient:
                 if asyncio.iscoroutine(result):
                     result = await result
                 results.append(result)
-                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED):
+                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED) and event_id in self.responded_events:
                     self.responded_events.pop(event_id)
                 else:
                     self.responded_events[event_id] = result
@@ -805,6 +808,7 @@ class OpenADRClient:
                            and not utils.determine_event_status(event['active_period']) == 'completed']
 
         if len(event_responses) > 0:
+            logger.info(f"Total event_responses: {len(event_responses)}")
             response = {'response_code': 200,
                         'response_description': 'OK',
                         'request_id': message['request_id']}
@@ -847,6 +851,7 @@ class OpenADRClient:
 
         elif response_type == 'oadrDistributeEvent':
             if 'events' in response_payload and len(response_payload['events']) > 0:
+                logger.info(f"The payload tyupe {type(response_payload)}")
                 await self._on_event(response_payload)
 
         elif response_type == 'oadrUpdateReport':

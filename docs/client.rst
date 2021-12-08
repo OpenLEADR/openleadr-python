@@ -146,7 +146,7 @@ Signing outgoing messages
 
 You can sign your outgoing messages using a public-private key pair in PEM format. This allows the receiving party to verify that the messages are actually coming from you.
 
-If you want you client to automatically sign your outgoing messages, use the following configuration:
+If you want your client to automatically sign your outgoing messages, use the following configuration:
 
 .. code-block:: python3
 
@@ -156,6 +156,22 @@ If you want you client to automatically sign your outgoing messages, use the fol
                                cert='/path/to/cert.pem',
                                key='/path/to/key.pem',
                                passphrase='my-key-password')
+        ...
+
+
+In some odd cases in which the VTN that you are connecting to does not support signatures
+(e.g. legacy VTN's that have not been updated to the latest OpenADR protocol),
+you can disable the automatic signing of outgoing message with the following configuration:
+
+.. code-block:: python3
+
+    async def main():
+        client = OpenADRClient(ven_name='MyVEN',
+                               vtn_url='https://localhost:8080/',
+                               cert='/path/to/cert.pem',
+                               key='/path/to/key.pem',
+                               passphrase='my-key-password',
+                               disable_signature=True)
         ...
 
 .. _client_validating_messages:

@@ -33,7 +33,8 @@ async def on_create_party_registration(payload, future):
         return 'ven1234', 'reg5678'
 
 @pytest.mark.asyncio
-async def test_ssl_certificates():
+@pytest.mark.parametrize("disable_signature", [False, True])
+async def test_ssl_certificates(disable_signature):
     loop = asyncio.get_event_loop()
     registration_future = loop.create_future()
     server = OpenADRServer(vtn_id='myvtn',
@@ -53,7 +54,7 @@ async def test_ssl_certificates():
                            cert=VEN_CERT,
                            key=VEN_KEY,
                            ca_file=CA_CERT,
-                           vtn_fingerprint=vtn_fingerprint)
+                           vtn_fingerprint=vtn_fingerprint, disable_signature=disable_signature)
     await client.run()
 
     # Wait for the registration to be triggered

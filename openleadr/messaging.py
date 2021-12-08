@@ -55,7 +55,7 @@ def parse_message(data):
     return message_type, message_payload
 
 
-def create_message(message_type, cert=None, key=None, passphrase=None, **message_payload):
+def create_message(message_type, cert=None, key=None, passphrase=None, disable_signature=False, **message_payload):
     """
     Create and optionally sign an OpenADR message. Returns an XML string.
     """
@@ -63,7 +63,7 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
     template = TEMPLATES.get_template(f'{message_type}.xml')
     signed_object = utils.flatten_xml(template.render(**message_payload))
     envelope = TEMPLATES.get_template('oadrPayload.xml')
-    if cert and key:
+    if cert and key and not disable_signature:
         tree = etree.fromstring(signed_object)
         signature_tree = SIGNER.sign(tree,
                                      key=key,
@@ -74,7 +74,6 @@ def create_message(message_type, cert=None, key=None, passphrase=None, **message
         signature = etree.tostring(signature_tree).decode('utf-8')
     else:
         signature = None
-
     msg = envelope.render(template=f'{message_type}',
                           signature=signature,
                           signed_object=signed_object)
@@ -104,6 +103,10 @@ def validate_xml_signature(xml_tree, cert_fingerprint=None):
                                              f"Received: {fingerprint}. Ignoring message.")
     VERIFIER.verify(xml_tree, x509_cert=utils.ensure_bytes(cert), expect_references=2)
     _verify_replay_protect(xml_tree)
+
+
+def validate_xml_signature_none(xml_tree):
+    assert xml_tree.find('.//{http://www.w3.org/2000/09/xmldsig#}X509Certificate') is None
 
 
 async def authenticate_message(request, message_tree, message_payload, fingerprint_lookup=None, ven_lookup=None):
