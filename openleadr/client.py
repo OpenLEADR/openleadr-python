@@ -465,17 +465,19 @@ class OpenADRClient:
         # Handle the subscriptions that the VTN is interested in.
         if 'report_requests' in response_payload:
             for report_request in response_payload['report_requests']:
-                result = await self.create_report(report_request)
+                await self.create_report(report_request)
 
         # Send the oadrCreatedReport message
         message_type = 'oadrCreatedReport'
-        message_payload = {'pending_reports': [{'report_request_id': utils.getmember(report, 'report_request_id')} for report in self.report_requests]}
-        message = self._create_message('oadrCreatedReport', response={'response_code': 200,
-                                                                      'response_description': 'OK'},
-                                                            ven_id=self.ven_id,
-                                                            **message_payload)
+        message_payload = {'pending_reports':
+                           [{'report_request_id': utils.getmember(report, 'report_request_id')}
+                            for report in self.report_requests]}
+        message = self._create_message(message_type,
+                                       response={'response_code': 200,
+                                                 'response_description': 'OK'},
+                                       ven_id=self.ven_id,
+                                       **message_payload)
         response_type, response_payload = await self._perform_request(service, message)
-
 
     async def create_report(self, report_request):
         """
@@ -693,17 +695,16 @@ class OpenADRClient:
         self.registration_id = None
         self.report_requests = None
         self.reports = None
-        self.report_callbacks = None            
-        self.report_requests = None          
-        self.incomplete_reports = None     
+        self.report_callbacks = None
+        self.report_requests = None
+        self.incomplete_reports = None
         self.pending_reports = None
         self.scheduler.remove_all_jobs()
 
         response = {'response_code': 200,
-                        'response_description': 'OK',
-                        'request_id': message['request_id']}
-        message = self._create_message('oadrCanceledPartyRegistration',
-                                        response=response)
+                    'response_description': 'OK',
+                    'request_id': message['request_id']}
+        message = self._create_message('oadrCanceledPartyRegistration', response=response)
         service = 'EiRegisterParty'
         response_type, response_payload = await self._perform_request(service, message)
         logger.info(response_type, response_payload)
@@ -803,7 +804,8 @@ class OpenADRClient:
                 if asyncio.iscoroutine(result):
                     result = await result
                 results.append(result)
-                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED) and event_id in self.responded_events:
+                if event_status in (enums.EVENT_STATUS.COMPLETED, enums.EVENT_STATUS.CANCELLED) \
+                        and event_id in self.responded_events:
                     self.responded_events.pop(event_id)
                 else:
                     self.responded_events[event_id] = result
@@ -890,7 +892,7 @@ class OpenADRClient:
         elif response_type == 'oadrCancelPartyRegistration':
             logger.info("The VTN required us to cancel the registration. Calling the cancel partyn registration procedure.")
             await self.on_cancel_party_registration(response_payload)
-            
+
         else:
             logger.warning(f"No handler implemented for incoming message "
                            f"of type {response_type}, ignoring.")

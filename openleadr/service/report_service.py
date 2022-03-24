@@ -283,6 +283,6 @@ class ReportService(VTNService):
         for requested_report in self.requested_reports[ven_id]:
             if requested_report.report_request_id not in self.created_reports[ven_id]:
                 logger.warning(f"The requested report with id {requested_report.report_request_id} "
-                                "was not created by the VEN. Yoy may want to contact the VEN to "
-                                "determine the problem. The requested reports was: \n"
-                                f"{requested_report}")
+                               "was not created by the VEN. Yoy may want to contact the VEN to "
+                               "determine the problem. The requested reports was: \n"
+                               f"{requested_report}")
