@@ -178,7 +178,8 @@ class OpenADRClient:
                    report_name=enums.REPORT_NAME.TELEMETRY_USAGE,
                    reading_type=enums.READING_TYPE.DIRECT_READ,
                    report_type=enums.REPORT_TYPE.READING,
-                   report_duration=None, sampling_rate=None, data_source=None,
+                   report_duration=None, report_dtstart=None,
+                   sampling_rate=None, data_source=None,
                    scale="none", unit=None, power_ac=True, power_hertz=50, power_voltage=230,
                    market_context=None, end_device_asset_mrid=None, report_data_source=None):
         """
@@ -207,6 +208,8 @@ class OpenADRClient:
         :param str report_name: An OpenADR name for this report (one of openleadr.enums.REPORT_NAME)
         :param str reading_type: An OpenADR reading type (found in openleadr.enums.READING_TYPE)
         :param str report_type: An OpenADR report type (found in openleadr.enums.REPORT_TYPE)
+        :param datetime.timedelta report_duration: The time span that can be provided in this report.
+        :param datetime.datetime report_dtstart: The earliest available data for this report (defaults to now).
         :param datetime.timedelta sampling_rate: The sampling rate for the measurement.
         :param str unit: The unit for this measurement.
         :param boolean power_ac: Whether the power is AC (True) or DC (False).
@@ -244,6 +247,8 @@ class OpenADRClient:
                            "or may not be appropriate for your use case.")
             report_duration = timedelta(seconds=3600)
 
+        if report_dtstart is None:
+            report_dtstart = datetime.now(timezone.utc)
 
         if sampling_rate is None:
             sampling_rate = objects.SamplingRate(min_period=timedelta(seconds=10),
@@ -313,7 +318,8 @@ class OpenADRClient:
                                     report_name=report_name,
                                     report_specifier_id=report_specifier_id,
                                     data_collection_mode=data_collection_mode,
-                                    duration=report_duration)
+                                    duration=report_duration,
+                                    dtstart=report_dtstart)
             self.reports.append(report)
 
         # Add the new report description to the report

@@ -5,7 +5,7 @@
     <oadr:oadrReport xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0" xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
       {% if report.dtstart is defined and report.dtstart is not none %}
       <xcal:dtstart>
-        <xcal:date-time>{{ report.duration|timedeltaformat }}</xcal:date-time>
+        <xcal:date-time>{{ report.dtstart|datetimeformat }}</xcal:date-time>
       </xcal:dtstart>
       {% endif %}
       {% if report.duration is defined and report.duration is not none %}
