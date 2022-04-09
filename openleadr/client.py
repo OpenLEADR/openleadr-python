@@ -750,7 +750,6 @@ class OpenADRClient:
 
     async def _perform_request(self, service, message):
         await self._ensure_client_session()
-        logger.debug(f"Client is sending {message}")
         url = f"{self.vtn_url}/{service}"
         try:
             async with self.client_session.post(url, data=message) as req:
@@ -759,7 +758,6 @@ class OpenADRClient:
                     logger.warning(f"Non-OK status {req.status} when performing a request to {url} "
                                    f"with data {message}: {req.status} {content.decode('utf-8')}")
                     return None, {}
-                logger.debug(content.decode('utf-8'))
         except aiohttp.client_exceptions.ClientConnectorError as err:
             # Could not connect to server
             logger.error(f"Could not connect to server with URL {self.vtn_url}:")

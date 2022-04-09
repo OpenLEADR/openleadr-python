@@ -49,6 +49,13 @@ def parse_message(data):
 
     Returns a message type (str) and a message payload (dict)
     """
+    try:
+        if isinstance(data, bytes):
+            logger.debug(f"Parsing message: {data.decode('utf-8')}")
+        else:
+            logger.debug(f"Parsing message: {data}")
+    except UnicodeDecodeError:
+        logger.warning(f"Could not decode incoming message as UTF-8: {str(data)}")
     message_dict = xmltodict.parse(data, process_namespaces=True, namespaces=NAMESPACES)
     message_type, message_payload = message_dict['oadrPayload']['oadrSignedObject'].popitem()
     message_payload = utils.normalize_dict(message_payload)
@@ -77,6 +84,7 @@ def create_message(message_type, cert=None, key=None, passphrase=None, disable_s
     msg = envelope.render(template=f'{message_type}',
                           signature=signature,
                           signed_object=signed_object)
+    logger.debug(f"Created message: {msg}")
     return msg
 
 
