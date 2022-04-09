@@ -224,6 +224,9 @@ def normalize_dict(ordered_dict):
             elif 'payload_int' in d[key] and 'value' in d[key]['payload_int']:
                 v = d[key].pop('payload_float')
                 d[key]['value'] = int(v['value'])
+            elif 'payload_resource_status' in d[key]:
+                v = d[key].pop('payload_resource_status')
+                d[key]['resource_status'] = v
 
         # All values other than 'false' must be interpreted as True for testEvent (rule 006)
         elif key == 'test_event' and not isinstance(d[key], bool):

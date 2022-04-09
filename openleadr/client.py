@@ -637,16 +637,55 @@ class OpenADRClient:
         else:
             for r_id in report_request['r_ids']:
                 report_callback = self.report_callbacks[(report_specifier_id, r_id)]
-                result = report_callback()
-                if asyncio.iscoroutine(result):
-                    result = await result
-                if isinstance(result, (int, float)):
-                    result = [(datetime.now(timezone.utc), result)]
-                for dt, value in result:
-                    logger.info(f"Adding {dt}, {value} to report")
-                    report_payload = objects.ReportPayload(r_id=r_id, value=value)
-                    intervals.append(objects.ReportInterval(dtstart=dt,
+                result = await utils.await_if_required(report_callback())
+                if report.report_name == enums.REPORT_NAME.TELEMETRY_STATUS:
+                    # Verify that the callback returned a tuple
+                    if not isinstance(result, (tuple, list)):
+                        logger.error("The report callback for the TELEMETRY_STATUS report "
+                                     "should return a 2-tuple or 3-tuple containing either "
+                                     "(bool, bool) for (oadrOnline, oadrManualOverride) or "
+                                     "(bool, bool, dict) for oadrOnline, oadrManualOverride, "
+                                     "oadrLoadControlStatus. This sample will be ignored.")
+                        continue
+
+                    # Attach a datetime to the tuple if not present
+                    if not isinstance(result[0], datetime):
+                        result = (datetime.now(timezone.utc), *result)
+
+                    # Validations for the tuple contents
+                    if not isinstance(result[1], bool) \
+                            or not isinstance(result[2], bool) \
+                            or not 3 <= len(result) <= 4 \
+                            or (len(result) == 4 and not isinstance(result[3], dict)):
+                        logger.error("The report callback for the TELEMETRY_STATUS report "
+                                     "should return a 2-tuple or 3-tuple containing either "
+                                     "(bool, bool) for (oadrOnline, oadrManualOverride) or "
+                                     "(bool, bool, dict) for oadrOnline, oadrManualOverride, "
+                                     "oadrLoadControlStatus. This sample will be ignored.")
+                        continue
+
+                    # Unpack the data
+                    if len(result) == 3:
+                        dtstart, online, manual_override = result
+                        load_control_state = None
+                    else:
+                        dtstart, online, manual_override, load_control_state = result
+
+                    # Add interval to the report
+                    report_payload = objects.ReportPayload(r_id=r_id,
+                                                           resource_status={'online': online,
+                                                                            'manual_override': manual_override,
+                                                                            'load_control_state': load_control_state})
+                    intervals.append(objects.ReportInterval(dtstart=dtstart,
                                                             report_payload=report_payload))
+                else:
+                    if isinstance(result, (int, float)):
+                        result = [(datetime.now(timezone.utc), result)]
+                    for dt, value in result:
+                        logger.info(f"Adding {dt}, {value} to report")
+                        report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                        intervals.append(objects.ReportInterval(dtstart=dt,
+                                                                report_payload=report_payload))
         outgoing_report.intervals = intervals
         logger.info(f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
 

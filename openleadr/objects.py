@@ -253,14 +253,29 @@ class ReportDescription:
     sampling_rate: SamplingRate
     measurement: Measurement = None
 
+@dataclass
+class LoadControlState:
+    min: (int, float) = None
+    max: (int, float) = None
+    current: (int, float) = None
+    normal: (int, float) = None
+
+@dataclass
+class ResourceStatus:
+    online: bool
+    manual_override: bool
+    capacity: List[LoadControlState] = None
+    level_offset: List[LoadControlState] = None
+    percent_offset: List[LoadControlState] = None
+    set_point: List[LoadControlState] = None
 
 @dataclass
 class ReportPayload:
     r_id: str
-    value: float
+    value: float = None
     confidence: int = None
     accuracy: int = None
-
+    resource_status: ResourceStatus = None
 
 @dataclass
 class ReportInterval:

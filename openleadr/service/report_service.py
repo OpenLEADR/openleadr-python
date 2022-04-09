@@ -94,7 +94,6 @@ class ReportService(VTNService):
             report_copy = report.copy()
             report_copy['report_name'] = report_copy['report_name'][9:]
             self.registered_reports[payload['ven_id']].append(report_copy)
-
             if report['report_name'] == 'METADATA_TELEMETRY_STATUS':
                 if mode == 'compact':
                     results = [self.on_register_report(ven_id=payload['ven_id'],
@@ -234,15 +233,15 @@ class ReportService(VTNService):
                 if iscoroutine(result):
                     result = await result
                 continue
-            for r_id, values in utils.group_by(report['intervals'], 'report_payload.r_id').items():
-                # Find the callback that was registered.
+
+            for r_id, intervals in utils.group_by(report['intervals'], 'report_payload.r_id').items():
                 if (report_request_id, r_id) in self.report_callbacks:
-                    # Collect the values
-                    values = [(ri['dtstart'], ri['report_payload']['value']) for ri in values]
-                    # Call the callback function to deliver the values
-                    result = self.report_callbacks[(report_request_id, r_id)](values)
+                    for interval in intervals:
+                        interval.update(interval.pop('report_payload'))
+                        interval.pop('r_id')
+                    result = self.report_callbacks[(report_request_id, r_id)](intervals)
                     if iscoroutine(result):
-                        result = await result
+                        await result
 
         response_type = 'oadrUpdatedReport'
         response_payload = {}

@@ -25,9 +25,88 @@
             {% if interval.report_payload.accuracy is defined and interval.report_payload.accuracy is not none %}
             <ei:accuracy>{{ interval.report_payload.accuracy }}</ei:accuracy>
             {% endif %}
+            {% if interval.report_payload.value is defined and interval.report_payload.value is not none %}
             <ei:payloadFloat>
               <ei:value>{{ interval.report_payload.value }}</ei:value>
             </ei:payloadFloat>
+            {% endif %}
+            {% if interval.report_payload.resource_status is defined and interval.report_payload.resource_status is not none %}
+            <oadr:oadrPayloadResourceStatus>
+              <oadr:oadrOnline>{{ interval.report_payload.resource_status.online|booleanformat }}</oadr:oadrOnline>
+              <oadr:oadrManualOverride>{{ interval.report_payload.resource_status.manual_override|booleanformat }}</oadr:oadrManualOverride>
+              {% if interval.report_payload.resource_status.load_control_state is defined and interval.report_payload.resource_status.load_control_state is not none %}
+              <oadr:oadrLoadControlState>
+                {% if interval.report_payload.resource_status.load_control_state.capacity is defined and interval.report_payload.resource_status.load_control_state.capacity is not none %}
+                <oadr:oadrCapacity>
+                  {% if interval.report_payload.resource_status.load_control_state.capacity.min is defined and interval.report_payload.resource_status.load_control_state.capacity.min is not none %}
+                  <oadr:oadrMin>{{ interval.report_payload.resource_status.load_control_state.capacity.min }}</oadr:oadrMin>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.capacity.max is defined and interval.report_payload.resource_status.load_control_state.capacity.max is not none %}
+                  <oadr:oadrMax>{{ interval.report_payload.resource_status.load_control_state.capacity.max }}</oadr:oadrMax>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.capacity.current is defined and interval.report_payload.resource_status.load_control_state.capacity.current is not none %}
+                  <oadr:oadrCurrent>{{ interval.report_payload.resource_status.load_control_state.capacity.current }}</oadr:oadrCurrent>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.capacity.normal is defined and interval.report_payload.resource_status.load_control_state.capacity.normal is not none %}
+                  <oadr:oadrNormal>{{ interval.report_payload.resource_status.load_control_state.capacity.normal }}</oadr:oadrNormal>
+                  {% endif %}
+                </oadr:oadrCapacity>
+                {% endif %}
+
+                {% if interval.report_payload.resource_status.load_control_state.level_offset is defined and interval.report_payload.resource_status.load_control_state.level_offset is not none %}
+                <oadr:oadrLevelOffset>
+                  {% if interval.report_payload.resource_status.load_control_state.level_offset.min is defined and interval.report_payload.resource_status.load_control_state.level_offset.min is not none %}
+                  <oadr:oadrMin>{{ interval.report_payload.resource_status.load_control_state.level_offset.min }}</oadr:oadrMin>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.level_offset.max is defined and interval.report_payload.resource_status.load_control_state.level_offset.max is not none %}
+                  <oadr:oadrMax>{{ interval.report_payload.resource_status.load_control_state.level_offset.max }}</oadr:oadrMax>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.level_offset.current is defined and interval.report_payload.resource_status.load_control_state.level_offset.current is not none %}
+                  <oadr:oadrCurrent>{{ interval.report_payload.resource_status.load_control_state.level_offset.current }}</oadr:oadrCurrent>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.level_offset.normal is defined and interval.report_payload.resource_status.load_control_state.level_offset.normal is not none %}
+                  <oadr:oadrNormal>{{ interval.report_payload.resource_status.load_control_state.level_offset.normal }}</oadr:oadrNormal>
+                  {% endif %}
+                </oadr:oadrLevelOffset>
+                {% endif %}
+
+                {% if interval.report_payload.resource_status.load_control_state.percent_offset is defined and interval.report_payload.resource_status.load_control_state.percent_offset is not none %}
+                <oadr:oadrPercentOffset>
+                  {% if interval.report_payload.resource_status.load_control_state.percent_offset.min is defined and interval.report_payload.resource_status.load_control_state.percent_offset.min is not none %}
+                  <oadr:oadrMin>{{ interval.report_payload.resource_status.load_control_state.percent_offset.min }}</oadr:oadrMin>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.percent_offset.max is defined and interval.report_payload.resource_status.load_control_state.percent_offset.max is not none %}
+                  <oadr:oadrMax>{{ interval.report_payload.resource_status.load_control_state.percent_offset.max }}</oadr:oadrMax>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.percent_offset.current is defined and interval.report_payload.resource_status.load_control_state.percent_offset.current is not none %}
+                  <oadr:oadrCurrent>{{ interval.report_payload.resource_status.load_control_state.percent_offset.current }}</oadr:oadrCurrent>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.percent_offset.normal is defined and interval.report_payload.resource_status.load_control_state.percent_offset.normal is not none %}
+                  <oadr:oadrNormal>{{ interval.report_payload.resource_status.load_control_state.percent_offset.normal }}</oadr:oadrNormal>
+                  {% endif %}
+                </oadr:oadrPercentOffset>
+                {% endif %}
+
+                {% if interval.report_payload.resource_status.load_control_state.set_point is defined and interval.report_payload.resource_status.load_control_state.set_point is not none %}
+                <oadr:oadrSetPoint>
+                  {% if interval.report_payload.resource_status.load_control_state.set_point.min is defined and interval.report_payload.resource_status.load_control_state.set_point.min is not none %}
+                  <oadr:oadrMin>{{ interval.report_payload.resource_status.load_control_state.set_point.min }}</oadr:oadrMin>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.set_point.max is defined and interval.report_payload.resource_status.load_control_state.set_point.max is not none %}
+                  <oadr:oadrMax>{{ interval.report_payload.resource_status.load_control_state.set_point.max }}</oadr:oadrMax>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.set_point.current is defined and interval.report_payload.resource_status.load_control_state.set_point.current is not none %}
+                  <oadr:oadrCurrent>{{ interval.report_payload.resource_status.load_control_state.set_point.current }}</oadr:oadrCurrent>
+                  {% endif %}
+                  {% if interval.report_payload.resource_status.load_control_state.set_point.normal is defined and interval.report_payload.resource_status.load_control_state.set_point.normal is not none %}
+                  <oadr:oadrNormal>{{ interval.report_payload.resource_status.load_control_state.set_point.normal }}</oadr:oadrNormal>
+                  {% endif %}
+                </oadr:oadrSetPoint>
+                {% endif %}
+              </oadr:oadrLoadControlState>
+              {% endif %}
+            </oadr:oadrPayloadResourceStatus>
+            {% endif %}
             {% if interval.report_payload.data_quality is defined and interval.report_payload.data_quality is not none %}
             <oadr:oadrDataQuality>{{ interval.report_payload.data_quality }}</oadr:oadrDataQuality>
             {% endif %}

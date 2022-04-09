@@ -1,4 +1,4 @@
-from openleadr import OpenADRClient, OpenADRServer, enable_default_logging
+from openleadr import OpenADRClient, OpenADRServer, enable_default_logging, enums
 import asyncio
 import pytest
 import aiohttp
@@ -318,10 +318,10 @@ async def test_update_reports():
     await asyncio.gather(receive_report_future_1, receive_report_future_2, receive_report_future_3, receive_report_future_4)
     print("Done gathering")
 
-    assert receive_report_future_1.result()[0][1] == future_1.result()
-    assert receive_report_future_2.result()[0][1] == future_2.result()
-    assert receive_report_future_3.result()[0][1] == future_3.result()
-    assert receive_report_future_4.result()[0][1] == future_4.result()
+    assert receive_report_future_1.result()[0]['value'] == future_1.result()
+    assert receive_report_future_2.result()[0]['value'] == future_2.result()
+    assert receive_report_future_3.result()[0]['value'] == future_3.result()
+    assert receive_report_future_4.result()[0]['value'] == future_4.result()
 
     await client.stop()
     await server.stop()
@@ -844,3 +844,80 @@ async def test_register_report_handler_returns_none():
 
     await client.stop()
     await server.stop()
+
+
+async def on_register_status_report_compact(ven_id, resource_id, measurement, unit, scale, min_sampling_interval, max_sampling_interval, future_1, future_2, receive_future_1, receive_future_2):
+    if resource_id == 'Device001':
+        future_1.set_result(True)
+        return partial(on_receive_status, future=receive_future_1), min_sampling_interval
+    else:
+        future_2.set_result(True)
+        return partial(on_receive_status_full, future=receive_future_2), min_sampling_interval
+
+
+def on_receive_status(report, future):
+    if future:
+        future.set_result(report)
+
+def on_receive_status_full(report, future):
+    if future:
+        future.set_result(report)
+
+def report_status():
+    return True, False
+
+def report_status_full():
+    return True, False, {'capacity': {'min': 0, 'max': 10, 'current': 5, 'normal': 8}}
+
+@pytest.mark.asyncio
+async def test_telemetry_status_report_compact():
+    loop = asyncio.get_event_loop()
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+
+    future_1 = loop.create_future()
+    future_2 = loop.create_future()
+    receive_future_1 = loop.create_future()
+    receive_future_2 = loop.create_future()
+    server.add_handler('on_register_report', partial(on_register_status_report_compact,
+                                                     future_1=future_1, future_2=future_2,
+                                                     receive_future_1=receive_future_1,
+                                                     receive_future_2=receive_future_2))
+
+    client = OpenADRClient(ven_name='myven',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+
+    client.add_report(callback=report_status,
+                      report_specifier_id='StatusReport1',
+                      resource_id='Device001',
+                      sampling_rate=timedelta(seconds=1),
+                      report_name=enums.REPORT_NAME.TELEMETRY_STATUS)
+
+    client.add_report(callback=report_status_full,
+                      report_specifier_id='StatusReport2',
+                      resource_id='Device002',
+                      sampling_rate=timedelta(seconds=1),
+                      report_name=enums.REPORT_NAME.TELEMETRY_STATUS)
+
+    await server.run_async()
+    await client.run()
+
+    registration_1 = await future_1
+    registration_2 = await future_2
+
+    assert len(client.report_requests) == 2
+    assert len(server.services['report_service'].requested_reports['ven123']) == 2
+
+    report_1 = await receive_future_1
+    report_2 = await receive_future_2
+
+    assert report_1[0]['resource_status'] == {'online': True, 'manual_override': False}
+    assert report_2[0]['resource_status'] == {'online': True, 'manual_override': False,
+                                              'load_control_state': {'capacity': {'min': 0,
+                                                                                  'max': 10,
+                                                                                  'current': 5,
+                                                                                  'normal': 8}}}
+
+    await client.stop()
+    await server.stop()
+
