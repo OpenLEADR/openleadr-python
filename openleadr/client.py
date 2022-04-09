@@ -885,8 +885,6 @@ class OpenADRClient:
             logger.info("The VTN required us to re-register. Calling the registration procedure.")
             await self.send_response(service='EiRegisterParty')
             await self.create_party_registration()
-            if self.reports:
-                await self.register_reports(self.reports)
 
         elif response_type == 'oadrDistributeEvent':
             if 'events' in response_payload and len(response_payload['events']) > 0:
