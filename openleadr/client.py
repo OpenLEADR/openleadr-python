@@ -177,7 +177,8 @@ class OpenADRClient:
                    report_specifier_id=None, r_id=None,
                    report_name=enums.REPORT_NAME.TELEMETRY_USAGE,
                    reading_type=enums.READING_TYPE.DIRECT_READ,
-                   report_type=enums.REPORT_TYPE.READING, sampling_rate=None, data_source=None,
+                   report_type=enums.REPORT_TYPE.READING,
+                   report_duration=None, sampling_rate=None, data_source=None,
                    scale="none", unit=None, power_ac=True, power_hertz=50, power_voltage=230,
                    market_context=None, end_device_asset_mrid=None, report_data_source=None):
         """
@@ -235,6 +236,14 @@ class OpenADRClient:
         if scale not in enums.SI_SCALE_CODE.values:
             raise ValueError(f"{scale} is not a valid scale. Valid options are "
                              f"{', '.join(enums.SI_SCALE_CODE.values)}")
+
+        if report_duration is None:
+            logger.warning("You did not provide a 'report_duration' parameter to 'add_report'. "
+                           "This parameter should indicate the size of the data buffer that "
+                           "can be built up. It will now default to 3600 seconds, which may "
+                           "or may not be appropriate for your use case.")
+            report_duration = timedelta(seconds=3600)
+
 
         if sampling_rate is None:
             sampling_rate = objects.SamplingRate(min_period=timedelta(seconds=10),
@@ -303,7 +312,8 @@ class OpenADRClient:
             report = objects.Report(created_date_time=datetime.now(),
                                     report_name=report_name,
                                     report_specifier_id=report_specifier_id,
-                                    data_collection_mode=data_collection_mode)
+                                    data_collection_mode=data_collection_mode,
+                                    duration=report_duration)
             self.reports.append(report)
 
         # Add the new report description to the report
