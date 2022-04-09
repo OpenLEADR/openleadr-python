@@ -22,6 +22,7 @@ from datetime import datetime, timezone, timedelta
 import asyncio
 import sqlite3
 import pytest
+import pytest_asyncio
 from aiohttp import web
 
 import os
@@ -39,7 +40,7 @@ async def _on_create_party_registration(payload):
     registration_id = generate_id()
     return VEN_ID, registration_id
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def start_server():
     server = OpenADRServer(vtn_id=VTN_ID, http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
@@ -47,7 +48,7 @@ async def start_server():
     yield
     await server.stop()
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def start_server_with_signatures():
     server = OpenADRServer(vtn_id=VTN_ID, cert=CERTFILE, key=KEYFILE, fingerprint_lookup=fingerprint_lookup, http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
