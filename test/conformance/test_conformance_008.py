@@ -68,7 +68,7 @@ async def test_conformance_008_autocorrect(caplog):
                          vtn_id=generate_id(),
                          events=[event])
 
-    assert caplog.record_tuples == [("openleadr", logging.WARNING, f"The active_period duration for event {event_id} (0:05:00) differs from the sum of the interval's durations (0:30:00). The active_period duration has been adjusted to (0:30:00).")]
+    assert ("openleadr", logging.WARNING, f"The active_period duration for event {event_id} (0:05:00) differs from the sum of the interval's durations (0:30:00). The active_period duration has been adjusted to (0:30:00).") in caplog.record_tuples
 
     parsed_type, parsed_msg = parse_message(msg)
     assert parsed_type == 'oadrDistributeEvent'

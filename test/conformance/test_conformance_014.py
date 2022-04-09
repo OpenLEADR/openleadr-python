@@ -67,5 +67,5 @@ async def test_conformance_014_warn(caplog):
                          vtn_id=generate_id(),
                          events=[event])
 
-    assert caplog.record_tuples == [("openleadr", logging.WARNING, "The current_value for a SIMPLE event that is not yet active must be 0. This will be corrected.")]
+    assert ("openleadr", logging.WARNING, "The current_value for a SIMPLE event that is not yet active must be 0. This will be corrected.") in caplog.record_tuples
 
