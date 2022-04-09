@@ -123,8 +123,8 @@ class OpenADRClient:
         self.loop = asyncio.get_event_loop()
         await self.create_party_registration(ven_id=self.ven_id)
 
-        if not self.ven_id:
-            logger.error("No VEN ID received from the VTN, aborting.")
+        if not self.registration_id:
+            logger.error("No RegistrationID received from the VTN, aborting.")
             await self.stop()
             return
 
@@ -365,20 +365,18 @@ class OpenADRClient:
         :param str transport_name: The transport name to use. Either 'simpleHttp' or 'xmpp'.
         :param str transport_address: Which public-facing address the server should use
                                       to communicate.
-        :param str ven_id: The ID for this VEN. If you leave this blank,
-                           a VEN_ID will be assigned by the VTN.
         """
         request_id = utils.generate_id()
         service = 'EiRegisterParty'
         payload = {'ven_name': self.ven_name,
+                   'ven_id': self.ven_id,
                    'http_pull_model': http_pull_model,
                    'xml_signature': xml_signature,
                    'report_only': report_only,
                    'profile_name': profile_name,
                    'transport_name': transport_name,
                    'transport_address': transport_address}
-        if ven_id:
-            payload['ven_id'] = ven_id
+
         message = self._create_message('oadrCreatePartyRegistration',
                                        request_id=request_id,
                                        **payload)
@@ -391,12 +389,31 @@ class OpenADRClient:
             logger.error(f"Got error on Create Party Registration: "
                          f"{status_code} {status_description}")
             return
-        self.ven_id = response_payload['ven_id']
-        self.registration_id = response_payload['registration_id']
-        self.poll_frequency = response_payload.get('requested_oadr_poll_freq',
-                                                   timedelta(seconds=10))
-        logger.info(f"VEN is now registered with ID {self.ven_id}")
-        logger.info(f"The polling frequency is {self.poll_frequency}")
+
+        if response_payload.get('registration_id'):
+            self.registration_id = response_payload['registration_id']
+        else:
+            logger.error("No registration ID received from the VTN during registration. "
+                         "Will assume that we are not or no longer registered.")
+            self.registration_id = None
+
+        if response_payload.get('ven_id'):
+            if self.ven_id and response_payload['ven_id'] != self.ven_id:
+                logger.warning(f"The venID that was received from the VTN {response_payload['ven_id']} "
+                               "did not match the venID the venID that was previously configured in the "
+                               f"OpenLEADR client ({self.ven_id}). Will update the venId in the OpenLEADR "
+                               "client to the value supplied by the VEN.")
+            self.ven_id = response_payload['ven_id']
+        else:
+            logger.error("No venID received from the VTN during registration. "
+                         "Will assume that we are not or no longer registered.")
+
+
+        if self.registration_id:
+            self.poll_frequency = response_payload.get('requested_oadr_poll_freq',
+                                                       timedelta(seconds=10))
+            logger.info(f"VEN is now registered with registration ID {self.registration_id} and venID {self.ven_id}.")
+            logger.info(f"The polling frequency is {self.poll_frequency}")
         return response_type, response_payload
 
     async def cancel_party_registration(self):

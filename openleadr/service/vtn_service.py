@@ -173,7 +173,7 @@ class VTNService:
                 response_type, response_payload = 'oadrResponse', {}
 
             response_payload['vtn_id'] = self.vtn_id
-            if 'ven_id' in message_payload:
+            if 'ven_id' in message_payload and not response_payload.get('ven_id'):
                 response_payload['ven_id'] = message_payload['ven_id']
 
             response_payload['response'] = {'request_id': message_payload.get('request_id', None),
