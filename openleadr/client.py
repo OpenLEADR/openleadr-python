@@ -426,7 +426,6 @@ class OpenADRClient:
             logger.error("No venID received from the VTN during registration. "
                          "Will assume that we are not or no longer registered.")
 
-
         if self.registration_id:
             self.poll_frequency = response_payload.get('requested_oadr_poll_freq',
                                                        timedelta(seconds=10))
