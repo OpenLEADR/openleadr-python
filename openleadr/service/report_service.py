@@ -88,6 +88,13 @@ class ReportService(VTNService):
             return
 
         for report in payload['reports']:
+            if payload['ven_id'] not in self.registered_reports:
+                self.registered_reports[payload['ven_id']] = []
+
+            report_copy = report.copy()
+            report_copy['report_name'] = report_copy['report_name'][9:]
+            self.registered_reports[payload['ven_id']].append(report_copy)
+
             if report['report_name'] == 'METADATA_TELEMETRY_STATUS':
                 if mode == 'compact':
                     results = [self.on_register_report(ven_id=payload['ven_id'],
@@ -115,10 +122,6 @@ class ReportService(VTNService):
                 elif mode == 'full':
                     results = await utils.await_if_required(self.on_register_report(report))
             elif report['report_name'] in ('METADATA_HISTORY_USAGE', 'METADATA_HISTORY_GREENBUTTON'):
-                if payload['ven_id'] not in self.registered_reports:
-                    self.registered_reports[payload['ven_id']] = []
-                report['report_name'] = report['report_name'][9:]
-                self.registered_reports[payload['ven_id']].append(report)
                 report_requests.append(None)
                 continue
             else:
