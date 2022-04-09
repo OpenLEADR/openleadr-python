@@ -776,7 +776,9 @@ def order_events(events, limit=None, offset=None):
     for event in events:
         if getmember(event, 'event_descriptor.event_status') != enums.EVENT_STATUS.CANCELLED:
             event_status = determine_event_status(getmember(event, 'active_period'))
-            setmember(event, 'event_descriptor.event_status', event_status)
+            if getmember(event, 'event_descriptor.event_status') != event_status:
+                setmember(event, 'event_descriptor.event_status', event_status)
+                setmember(event, 'event_descriptor.created_date_time', datetime.now(timezone.utc))
 
     # Short circuit if we only have one event:
     if len(events) == 1:
