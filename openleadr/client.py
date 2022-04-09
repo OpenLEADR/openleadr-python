@@ -651,6 +651,10 @@ class OpenADRClient:
         outgoing_report.intervals = intervals
         logger.info(f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
 
+        # Always set the dtstart of the report to the earliest datetime of any of the intervals
+        if outgoing_report.intervals:
+            outgoing_report.dtstart = min(interval.dtstart for interval in outgoing_report.intervals)
+
         # Figure out if the report is complete after this sampling
         if data_collection_mode == 'incremental' and report_back_duration is not None\
                 and report_back_duration > granularity:
