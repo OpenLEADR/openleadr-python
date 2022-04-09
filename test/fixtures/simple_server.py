@@ -22,6 +22,7 @@ from datetime import datetime, timezone, timedelta
 import asyncio
 import sqlite3
 import pytest
+import pytest_asyncio
 from aiohttp import web
 import json
 
@@ -104,7 +105,7 @@ server = OpenADRServer(vtn_id=VTN_ID, http_port=SERVER_PORT)
 server.add_handler('on_create_party_registration', _on_create_party_registration)
 server.add_handler('on_poll', _on_poll)
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def start_server():
     await server.run_async()
     yield

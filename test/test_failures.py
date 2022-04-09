@@ -3,6 +3,7 @@ from openleadr.utils import generate_id, certificate_fingerprint
 from openleadr import messaging, errors, objects
 from datetime import datetime, timezone, timedelta
 import pytest
+import pytest_asyncio
 from aiohttp import web
 import os
 import logging
@@ -307,7 +308,7 @@ async def _client_on_report(report):
 def fingerprint_lookup(ven_id):
     return VEN_FINGERPRINT
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def start_server():
     server = OpenADRServer(vtn_id=VTN_ID, http_port=SERVER_PORT)
     server.add_handler('on_create_party_registration', _on_create_party_registration)
@@ -315,7 +316,7 @@ async def start_server():
     yield
     await server.stop()
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def start_server_with_signatures():
     server = OpenADRServer(vtn_id=VTN_ID,
                            cert=VTN_CERT,
