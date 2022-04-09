@@ -73,8 +73,8 @@ async def on_register_report_full(report, futures=None):
 async def on_create_party_registration(ven_name, future=None):
     if future:
         future.set_result(True)
-    ven_id = '1234'
-    registration_id = 'abcd'
+    ven_id = 'ven123'
+    registration_id = 'reg123'
     return ven_id, registration_id
 
 @pytest.mark.asyncio
@@ -807,5 +807,40 @@ async def test_register_historic_report():
     await server.run()
     await client.run()
     assert len(server.registered_reports) == 1
+    await client.stop()
+    await server.stop()
+
+
+async def on_register_report_none(report):
+    return None
+
+
+@pytest.mark.asyncio
+async def test_register_report_handler_returns_none():
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+    server.add_handler('on_register_report', on_register_report_none)
+
+    client = OpenADRClient(ven_name='myven',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+
+    client.add_report(callback=collect_data,
+                      report_specifier_id='CurrentReport',
+                      resource_id='Device001',
+                      measurement='current',
+                      unit='A')
+
+    await server.run_async()
+    await client.run()
+
+    # Check that the report was offered to the VTN
+    assert len(server.services['report_service'].registered_reports.get('ven123', [])) == 1
+
+    # Check that the VTN did not request the report for which the handler returned None
+    assert len(server.services['report_service'].requested_reports.get('ven123', [])) == 0
+
+    # Client-side check that the report was not requested by the VTN
+    assert len(client.report_requests) == 0
+
     await client.stop()
     await server.stop()
