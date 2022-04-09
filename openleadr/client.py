@@ -31,6 +31,8 @@ from openleadr.messaging import create_message, parse_message, \
                                 validate_xml_schema, validate_xml_signature
 from openleadr import utils
 
+import tzlocal
+
 logger = logging.getLogger('openleadr')
 logger.setLevel(logging.INFO)
 
@@ -80,7 +82,7 @@ class OpenADRClient:
         self.report_requests = []               # Keep track of the report requests from the VTN
         self.incomplete_reports = {}            # Holds reports that are being populated over time
         self.pending_reports = asyncio.Queue()  # Holds reports that are waiting to be sent
-        self.scheduler = AsyncIOScheduler()
+        self.scheduler = AsyncIOScheduler(timezone=str(tzlocal.get_localzone()))
         self.client_session = None
         self.report_queue_task = None
 
