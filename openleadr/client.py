@@ -925,7 +925,7 @@ class OpenADRClient:
                     await self.register_report(report)
 
         elif response_type == 'oadrCancelPartyRegistration':
-            logger.info("The VTN required us to cancel the registration. Calling the cancel partyn registration procedure.")
+            logger.info("The VTN required us to cancel the registration. Calling the cancel party registration procedure.")
             await self.on_cancel_party_registration(response_payload)
 
         else:
