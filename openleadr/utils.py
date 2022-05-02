@@ -130,10 +130,22 @@ def normalize_dict(ordered_dict):
 
         # Group all reports as a list of dicts under the key "pending_reports"
         if key == "pending_reports":
-            if isinstance(d[key], dict) and 'report_request_id' in d[key] \
-               and isinstance(d[key]['report_request_id'], list):
-                d['pending_reports'] = [{'report_request_id': rrid}
-                                        for rrid in d['pending_reports']['report_request_id']]
+            # If there are pending reports, turn them into a list of dicts,
+            # each with a single 'report_request_id' key.
+            if isinstance(d[key], dict) and 'report_request_id' in d[key]:
+
+                # If there is only one report_request_id, make sure it is
+                # turned into a list before further processing.
+                if not isinstance(d[key]['report_request_id'], list):
+                    d[key]['report_request_id'] = [d[key]['report_request_id']]
+
+                d[key] = [{'report_request_id': rrid}
+                          for rrid in d[key]['report_request_id']]
+
+            # If there are no pending reports, make sure we get an empty list back
+            # so any iteration can proceed as normal.
+            elif d[key] is None:
+                d[key] = []
 
         # Group all events al a list of dicts under the key "events"
         elif key == "event" and isinstance(d[key], list):
