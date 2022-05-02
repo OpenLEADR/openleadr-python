@@ -19,6 +19,7 @@ from dataclasses import is_dataclass, asdict
 from collections import OrderedDict
 from openleadr import enums, objects
 import asyncio
+import glom
 import re
 import ssl
 import hashlib
@@ -130,10 +131,42 @@ def normalize_dict(ordered_dict):
 
         # Group all reports as a list of dicts under the key "pending_reports"
         if key == "pending_reports":
-            if isinstance(d[key], dict) and 'report_request_id' in d[key] \
-               and isinstance(d[key]['report_request_id'], list):
-                d['pending_reports'] = [{'report_request_id': rrid}
-                                        for rrid in d['pending_reports']['report_request_id']]
+            # List of dicts: This is the desired form, do nothing.
+            # d[key] == [{'report_request_id': '123-456'}]}
+            if glom.Match([{'report_request_id': str}]).matches(d[key]):
+                pass
+
+            # No pending reports: turn that into an empty list
+            # Caused by no <ei:reportRequestID> items
+            elif d[key] is None:
+                d[key] = []
+
+            # Dict with a None in it: make that an empty list
+            # Caused by an empty <ei:reportRequestID> item
+            # old d[key] == {'report_request_id': None}
+            # new d[key] == []
+            elif glom.Match({'report_request_id': None}).matches(d[key]):
+                d[key] = []
+
+            # Dict with a string in it: make that a list of dict
+            # Caused by a single <ei:reportRequestID> item
+            # old d[key] == {'report_request_id': '123-456'}
+            # new d[key] == [{'report_request_id': '123-456'}]
+            elif glom.Match({'report_request_id': str}).matches(d[key]):
+                d[key] = [d[key]]
+
+            # Dict with a list in it: make that a list of dicts
+            # Caused by multiple <ei:reportRequestID> items
+            # old d[key] == {'report_request_id': ['123-456']}
+            # new d[key] == [{'report_request_id': '123-456'}]
+            elif glom.Match({'report_request_id': [str]}).matches(d[key]):
+                d[key] = [
+                    {'report_request_id': rrid}
+                    for rrid in d[key]['report_request_id']
+                ]
+
+            # Guarantee that we create the correct structure
+            assert glom.Match([{'report_request_id': str}]).matches(d[key])
 
         # Group all events al a list of dicts under the key "events"
         elif key == "event" and isinstance(d[key], list):
