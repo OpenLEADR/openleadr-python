@@ -139,8 +139,11 @@ def normalize_dict(ordered_dict):
                 if not isinstance(d[key]['report_request_id'], list):
                     d[key]['report_request_id'] = [d[key]['report_request_id']]
 
-                d[key] = [{'report_request_id': rrid}
-                          for rrid in d[key]['report_request_id']]
+                # When collecting the report_request_ids, make sure even numeric
+                # ids get turned into strings.
+                d[key] = [{'report_request_id': str(rrid)}
+                          for rrid in d[key]['report_request_id']
+                          if d[key]['report_request_id'] is not None]
 
             # If there are no pending reports, make sure we get an empty list back
             # so any iteration can proceed as normal.

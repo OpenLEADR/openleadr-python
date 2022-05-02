@@ -111,6 +111,8 @@ testcases = [
                                                   {'response_code': 200, 'response_description': 'OK', 'request_id': generate_id(), 'event_id': generate_id(), 'modification_number': 1, 'opt_type': 'optIn'}],
                                  ven_id='123ABC')),
 ('oadrCreatedReport', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, pending_reports=[{'report_request_id': generate_id()}], ven_id='123ABC')),
+('oadrCreatedReport', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, pending_reports=[], ven_id='123ABC')),
+('oadrCreatedReport', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, pending_reports=[{'report_request_id': '123'}], ven_id='123ABC')),
 ('oadrCreatedReport', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': generate_id()}, pending_reports=[{'report_request_id': generate_id()}, {'report_request_id': generate_id()}], ven_id='123ABC')),
 ('oadrCreatedEvent', dict(response={'response_code': 200, 'response_description': 'OK', 'request_id': None},
                                  event_responses=[{'response_code': 200, 'response_description': 'OK', 'request_id': generate_id(),
