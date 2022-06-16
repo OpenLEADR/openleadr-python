@@ -44,7 +44,7 @@ class OpenADRClient:
     """
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
-                 allow_jitter=True, ven_id=None, disable_signature=False):
+                 allow_jitter=True, ven_id=None, disable_signature=False, check_hostname=True):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -76,6 +76,7 @@ class OpenADRClient:
         self.poll_frequency = None
         self.vtn_fingerprint = vtn_fingerprint
         self.debug = debug
+        self.check_hostname = check_hostname
 
         self.reports = []
         self.report_callbacks = {}              # Holds the callbacks for each specific report
@@ -938,10 +939,10 @@ class OpenADRClient:
         if not self.client_session:
             headers = {'content-type': 'application/xml'}
             if self.cert_path:
-                ssl_context = ssl.create_default_context(cafile=self.ca_file,
-                                                         purpose=ssl.Purpose.CLIENT_AUTH)
+                ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                ssl_context.load_verify_locations(self.ca_file)
                 ssl_context.load_cert_chain(self.cert_path, self.key_path, self.passphrase)
-                ssl_context.check_hostname = False
+                ssl_context.check_hostname = self.check_hostname
                 connector = aiohttp.TCPConnector(ssl=ssl_context)
                 self.client_session = aiohttp.ClientSession(connector=connector, headers=headers)
             else:

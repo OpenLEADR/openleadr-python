@@ -102,9 +102,9 @@ class OpenADRServer:
         self.http_path_prefix = http_path_prefix
 
         # Create SSL context for running the server
-        if http_cert and http_key:
-            self.ssl_context = ssl.create_default_context(cafile=http_ca_file,
-                                                          purpose=ssl.Purpose.CLIENT_AUTH)
+        if http_cert and http_key and http_ca_file:
+            self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            self.ssl_context.load_verify_locations(http_ca_file)
             self.ssl_context.verify_mode = ssl.CERT_REQUIRED
             self.ssl_context.load_cert_chain(http_cert, http_key, http_key_passphrase)
         else:
