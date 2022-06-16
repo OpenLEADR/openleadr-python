@@ -128,7 +128,7 @@ async def test_ssl_certificates_wrong_fingerprint(caplog):
 
     assert client.registration_id is None
     assert ("The certificate fingerprint was incorrect. Expected: 00:11:22:33:44:55:66:77:88:99; "
-            "Received: 39:0F:7F:45:84:D6:24:49:FE:B7. Ignoring message.") in [rec.message for rec in caplog.records]
+            "Received: E6:0C:FE:2F:56:53:64:EA:EC:35. Ignoring message.") in [rec.message for rec in caplog.records]
 
     await client.stop()
     await server.stop()

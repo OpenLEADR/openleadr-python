@@ -69,6 +69,7 @@ async def test_invalid_signature_error(start_server_with_signatures, caplog):
                            vtn_url=f'https://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b',
                            cert=VEN_CERT,
                            key=VEN_KEY,
+                           ca_file=CA_FILE,
                            vtn_fingerprint=VTN_FINGERPRINT)
     message = client._create_message('oadrPoll', ven_id='ven123')
     fake_sig = b64encode("HelloThere".encode('utf-8')).decode('utf-8')
@@ -129,6 +130,7 @@ async def test_invalid_signature_error(start_server_with_signatures, caplog):
                            vtn_url=f'https://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b',
                            cert=VEN_CERT,
                            key=VEN_KEY,
+                           ca_file=CA_FILE,
                            vtn_fingerprint=VTN_FINGERPRINT)
     message = client._create_message('oadrPoll', ven_id='ven123')
     fake_sig = b64encode("HelloThere".encode('utf-8')).decode('utf-8')
@@ -149,6 +151,7 @@ def test_replay_protect_message_too_old(caplog):
                            vtn_url=f'https://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b',
                            cert=VEN_CERT,
                            key=VEN_KEY,
+                           ca_file=CA_FILE,
                            vtn_fingerprint=VTN_FINGERPRINT)
     _temp = messaging.REPLAY_PROTECT_MAX_TIME_DELTA
     messaging.REPLAY_PROTECT_MAX_TIME_DELTA = timedelta(seconds=0)
@@ -164,6 +167,7 @@ def test_replay_protect_repeated_message(caplog):
                            vtn_url=f'https://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b',
                            cert=VEN_CERT,
                            key=VEN_KEY,
+                           ca_file=CA_FILE,
                            vtn_fingerprint=VTN_FINGERPRINT)
     message = client._create_message('oadrPoll', ven_id='ven123')
     tree = etree.fromstring(message.encode('utf-8'))
@@ -178,6 +182,7 @@ def test_replay_protect_missing_nonce(caplog):
                            vtn_url=f'https://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b',
                            cert=VEN_CERT,
                            key=VEN_KEY,
+                           ca_file=CA_FILE,
                            vtn_fingerprint=VTN_FINGERPRINT)
     message = client._create_message('oadrPoll', ven_id='ven123')
     message = re.sub('<dsp:nonce>.*?</dsp:nonce>', '', message)
@@ -192,6 +197,7 @@ def test_replay_protect_malformed_nonce(caplog):
                            vtn_url=f'https://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b',
                            cert=VEN_CERT,
                            key=VEN_KEY,
+                           ca_file=CA_FILE,
                            vtn_fingerprint=VTN_FINGERPRINT)
     message = client._create_message('oadrPoll', ven_id='ven123')
     message = re.sub('<dsp:timestamp>.*?</dsp:timestamp>', '', message)

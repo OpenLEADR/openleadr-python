@@ -34,7 +34,7 @@ VTN_ID = "TestVTN"
 
 CERTFILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'certificates', 'dummy_ven.crt')
 KEYFILE =  os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'certificates', 'dummy_ven.key')
-
+CAFILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'certificates', 'dummy_ca.crt')
 
 async def _on_create_party_registration(payload):
     registration_id = generate_id()
@@ -89,7 +89,7 @@ async def test_create_party_registration_with_signatures(start_server_with_signa
         cert = file.read()
     client = OpenADRClient(ven_name=VEN_NAME,
                            vtn_url=f"http://localhost:{SERVER_PORT}/OpenADR2/Simple/2.0b",
-                           cert=CERTFILE, key=KEYFILE, vtn_fingerprint=certificate_fingerprint(cert),
+                           cert=CERTFILE, key=KEYFILE, ca_file=CAFILE, vtn_fingerprint=certificate_fingerprint(cert),
                            disable_signature=disable_signature)
 
     response_type, response_payload = await client.create_party_registration()

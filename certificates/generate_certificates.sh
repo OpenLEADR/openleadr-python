@@ -12,7 +12,7 @@ echo "Generating the VTN key"
 openssl genrsa -out dummy_vtn.key 2048
 
 echo "Generating the VTN Certificate Signing Request"
-openssl req -new -sha256 -key dummy_vtn.key -subj "/C=NL/ST=Other/O=OpenLEADR Dummy VTN/CN=dummy-vtn.openleadr.org" -out dummy_vtn.csr
+openssl req -new -sha256 -key dummy_vtn.key -subj "/C=NL/ST=Other/O=OpenLEADR Dummy VTN/CN=localhost" -out dummy_vtn.csr
 
 echo "Signing the VTN CSR, generating the VTN certificate"
 openssl x509 -req -in dummy_vtn.csr -CA dummy_ca.crt -CAkey dummy_ca.key -CAcreateserial -out dummy_vtn.crt -days 3650 -sha256
