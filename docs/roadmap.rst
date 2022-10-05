@@ -21,6 +21,48 @@ Version Main features
 Changelog
 ---------
 
+openleadr 0.5.26
+~~~~~~~~~~~~~~~~
+
+Released: 2 May 2022
+
+This release fixes a problem where the VTN would not parse a
+single pending report correctly.
+
+Bug fixes:
+- VTN ability to parse a single report
+
+openleadr 0.5.25
+~~~~~~~~~~~~~~~~
+
+Released: 9 April 2022
+
+This version contains many fixes that were suggested by community
+members. Thank you so much for taking the time to find these and
+for reporting them.
+
+Bug fixes:
+- Implemented Registration Cancellations
+- The VEN will now stop if the VTN did not accept the registration
+- The XML messages will now be logged more consistently if debugging is enabled
+- Fixed a deprecation warning from tzlocal (from apscheduler)
+- The VEN will now not re-send its report registrations after it was re-registered itself
+- VEN: Added duration to metadata reports
+- VEN: Removed eiReportID from metadata reports
+- VEN: Added dtStart to outgoing reports
+- VTN: Update the created_date_time anytime the Event's status changes
+
+openleadr 0.5.24
+~~~~~~~~~~~~~~~~
+
+Released: 17 June 2021
+
+Bug Fixes:
+- Modification Numbers could be incorrect when responding to multiple Events
+- Correction to an example in the documentation on reporting
+- Fixed an error in the default on_updated_event handler
+- Added support for PEM certificates that don't contain a newline at the end
+
 openleadr 0.5.23
 ~~~~~~~~~~~~~~~~
 
@@ -28,7 +70,6 @@ Released: 22 March 2021
 
 Bug fixes:
 - Fixed a bug in the on_created_event default handler when using the external polling method.
-
 
 openleadr 0.5.22
 ~~~~~~~~~~~~~~~~

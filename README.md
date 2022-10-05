@@ -17,13 +17,34 @@ It currently implements the OpenADR 2.0b specification.
 You can find documentation here: https://openleadr.org/docs.
 
 
-## Credits
+## Getting started
 
-OpenLEADR would not have been possible without the support from ElaadNL Foundation and the Linux Foundation Energy. Click the logos below to learn more about them.
+We have cool 1-minute starting examples for both [VEN](https://openleadr.org/docs/client.html#example-ven) and [VTN](https://openleadr.org/docs/server.html#minute-vtn-example). Please check them out and take a look at the rest of the documentation.
 
-[![ElaadNL Logo](https://openleadr.org/images/elaad-logo.png)](https://elaad.nl)
 
-[![LF Energy Logo](https://openleadr.org/images/lf-energy-logo.png)](https://lfenergy.org)
+## Feature Completeness
+
+At the moment, you can do basic Registration, Telemetry Reports and Events over a secured connection using signed messages. This covers many use-cases that allow for demand response to be coordinated. Below is a more extensive list of OpenADR features and their current implementation status in OpenLEADR:
+
+The following is an overview of OpenADR 2.0b features that are implemented in OpenADR:
+
+| Feature                | Implemented | Remarks                                          |
+|------------------------|-------------|--------------------------------------------------|
+| **Transport**                                                                           |
+| HTTP Pull Method       | ✔️          | Most-used method, allows VEN to be behind NAT    |
+| HTTP Push Method       | ❌          |                                                  |
+| XMPP Transport         | ❌          |                                                  |
+| Message Signing        | ✔️          | Official OpenADR Alliance Root Cert not included |
+| **Registration**                                                                        |
+| Registration procedure | ✔️          |                                                  |
+| **Reporting**                                                                           |
+| Telemetry Reports      | ✔️          |                                                  |
+| Status Reports         | ❌          | Work is in progress, see #108                    |
+| History Reports        | ❌          |                                                  |
+| **Events**                                                                              |
+| Events                 | ✔️          |                                                  |
+| EiOpt                  | ❌          |                                                  |
+
 
 ## Contributing
 
