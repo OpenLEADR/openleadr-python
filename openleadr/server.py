@@ -88,8 +88,7 @@ class OpenADRServer:
         self.services['poll_service'].report_service = self.services['report_service']
 
         # Set up the HTTP handlers for the services
-        if http_path_prefix[-1] == "/":
-            http_path_prefix = http_path_prefix[:-1]
+        http_path_prefix = http_path_prefix.rstrip("/")
         self.app.add_routes([web.post(f"{http_path_prefix}/{s.__service_name__}", s.handler)
                              for s in self.services.values()])
 

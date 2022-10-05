@@ -68,9 +68,7 @@ class OpenADRClient:
         """
 
         self.ven_name = ven_name
-        if vtn_url.endswith("/"):
-            vtn_url = vtn_url[:-1]
-        self.vtn_url = vtn_url
+        self.vtn_url = vtn_url.rstrip("/")
         self.ven_id = ven_id
         self.registration_id = None
         self.poll_frequency = None
