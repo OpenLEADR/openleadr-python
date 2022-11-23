@@ -84,8 +84,9 @@ class ReportService(VTNService):
         else:
             mode = 'full'
 
-        if payload['reports'] is None:
-            return
+        if payload.get('reports') is None:
+            # If the client does not send any reports, reply with an empty oadrRegisteredReport message.
+            return 'oadrRegisteredReport', {'report_requests': []}
 
         for report in payload['reports']:
             if payload['ven_id'] not in self.registered_reports:

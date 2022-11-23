@@ -129,8 +129,8 @@ class OpenADRClient:
             await self.stop()
             return
 
+        await self.register_reports(self.reports)
         if self.reports:
-            await self.register_reports(self.reports)
             self.report_queue_task = self.loop.create_task(self._report_queue_worker())
 
         await self._poll()
@@ -500,17 +500,17 @@ class OpenADRClient:
             for report_request in response_payload['report_requests']:
                 await self.create_report(report_request)
 
-        # Send the oadrCreatedReport message
-        message_type = 'oadrCreatedReport'
-        message_payload = {'pending_reports':
-                           [{'report_request_id': utils.getmember(report, 'report_request_id')}
-                            for report in self.report_requests]}
-        message = self._create_message(message_type,
-                                       response={'response_code': 200,
-                                                 'response_description': 'OK'},
-                                       ven_id=self.ven_id,
-                                       **message_payload)
-        response_type, response_payload = await self._perform_request(service, message)
+            # Send the oadrCreatedReport message
+            message_type = 'oadrCreatedReport'
+            message_payload = {'pending_reports':
+                               [{'report_request_id': utils.getmember(report, 'report_request_id')}
+                                for report in self.report_requests]}
+            message = self._create_message(message_type,
+                                           response={'response_code': 200,
+                                                     'response_description': 'OK'},
+                                           ven_id=self.ven_id,
+                                           **message_payload)
+            response_type, response_payload = await self._perform_request(service, message)
 
     async def create_report(self, report_request):
         """
