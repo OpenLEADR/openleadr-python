@@ -862,3 +862,40 @@ async def test_client_without_reports():
     await client.stop()
     await server.stop()
     assert True
+
+
+@pytest.mark.asyncio
+async def test_report_from_vtn_to_ven():
+    async def on_poll_providing_reports(ven_id, future):
+        if not future.done():
+            future.set_result(True)
+            return 'oadrRegisterReport', {'reports': [], 'request_id': 'req123'}
+        else:
+            return None
+
+    async def on_registered_report_vtn(payload, future):
+        future.set_result(True)
+
+    logger = logging.getLogger('openleadr')
+    # logger.setLevel(logging.DEBUG)
+
+    loop = asyncio.get_event_loop()
+    fut = loop.create_future()
+    fut2 = loop.create_future()
+    server = OpenADRServer(vtn_id="myvtn")
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+    server.add_handler('on_register_report', on_register_report)
+    server.add_handler('on_poll', partial(on_poll_providing_reports, future=fut2))
+    server._MAP['on_registered_report'] = 'report_service'
+    server.add_handler('on_registered_report', partial(on_registered_report_vtn, future=fut))
+    await server.run_async()
+
+    client = OpenADRClient(ven_name="myven",
+                           vtn_url="http://localhost:8080/OpenADR2/Simple/2.0b")
+    await client.run()
+
+    await fut
+    assert fut.result() == True
+
+    await client.stop()
+    await server.stop()

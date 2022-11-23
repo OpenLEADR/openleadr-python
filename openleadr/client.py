@@ -722,11 +722,6 @@ class OpenADRClient:
         if event['event_descriptor']['event_id'] in self.responded_events:
             return self.responded_events['event_id']
 
-    async def on_register_report(self, report):
-        """
-        Placeholder for the on_register_report handler.
-        """
-
     async def on_cancel_party_registration(self, message):
         # Update/Delete all the registration and reports information
         self.registration_id = None
@@ -918,9 +913,16 @@ class OpenADRClient:
                     await self.create_report(report_request)
 
         elif response_type == 'oadrRegisterReport':
-            if 'reports' in response_payload and len(response_payload['reports']) > 0:
-                for report in response_payload['reports']:
-                    await self.register_report(report)
+            # We don't support receiving reports from the VTN at this moment
+            logger.warning("The VTN offered reports, but OpenLEADR "
+                           "does not support reports in this direction.")
+            message = self._create_message('oadrRegisteredReport',
+                                           report_requests=[],
+                                           response={'response_code': 200,
+                                                     'response_description': 'OK',
+                                                     'request_id': response_payload['request_id']})
+            service = 'EiReport'
+            reponse_type, response_payload = await self._perform_request(service, message)
 
         elif response_type == 'oadrCancelPartyRegistration':
             logger.info("The VTN required us to cancel the registration. Calling the cancel party registration procedure.")

@@ -290,3 +290,11 @@ class ReportService(VTNService):
                                "was not created by the VEN. Yoy may want to contact the VEN to "
                                "determine the problem. The requested reports was: \n"
                                f"{requested_report}")
+
+    @handler('oadrRegisteredReport')
+    async def registered_report(self, payload):
+        if not hasattr(self, 'on_registered_report'):
+            logger.info(f"VEN {payload['ven_id']} indicated that it has registered "
+                         "your VTN-provided reports, but you are not handling that yet.")
+        else:
+            await utils.await_if_required(self.on_registered_report(payload))
