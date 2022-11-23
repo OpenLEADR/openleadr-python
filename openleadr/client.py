@@ -323,7 +323,7 @@ class OpenADRClient:
 
         # Add the new report description to the report
         target = objects.Target(resource_id=resource_id)
-        r_id = utils.generate_id()
+        r_id = r_id or utils.generate_id()
         report_description = objects.ReportDescription(r_id=r_id,
                                                        reading_type=reading_type,
                                                        report_data_source=target,
