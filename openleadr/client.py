@@ -114,6 +114,11 @@ class OpenADRClient:
                                        key=key,
                                        passphrase=passphrase,
                                        disable_signature=disable_signature)
+        self.hooks = {'before_send_xml': [],
+                      'after_receive_xml': [],
+                      'before_schema_validation': [],
+                      'before_parse_xml': [],
+                      'after_parse_xml': []}
 
     async def run(self):
         """
@@ -339,6 +344,21 @@ class OpenADRClient:
         self.report_callbacks[(report.report_specifier_id, r_id)] = callback
         report.report_descriptions.append(report_description)
         return report_specifier_id, r_id
+
+    def add_hook(self, hook_name, handler):
+        """
+        You can add a hook at specific points in the request/reponse chain.
+        Your choices are:
+
+        before_send_xml: you get the actual XML message just before it is sent over the wire
+        after_receive_xml: you get the actual XML immediately after it is received over the wire
+        before_parse_xml: you get the actual XML after its schema has been validated, but before parsing
+        after_parse_xml: you get the message name and message payload after parsing the message
+        """
+        if hook_name not in self.hooks:
+            raise ValueError(f"The hook_name should be one of {', '.join(self.hooks.keys())}. "
+                             f"You provided: {hook_name}.")
+        self.hooks[hook_name].append(handler)
 
     ###########################################################################
     #                                                                         #
@@ -780,8 +800,10 @@ class OpenADRClient:
         await self._ensure_client_session()
         url = f"{self.vtn_url}/{service}"
         try:
+            await self._execute_hooks('before_send_xml', utils.ensure_str(message))
             async with self.client_session.post(url, data=message) as req:
                 content = await req.read()
+                await self._execute_hooks('after_receive_xml', utils.ensure_str(content))
                 if req.status != HTTPStatus.OK:
                     logger.warning(f"Non-OK status {req.status} when performing a request to {url} "
                                    f"with data {message}: {req.status} {content.decode('utf-8')}")
@@ -797,10 +819,13 @@ class OpenADRClient:
         if len(content) == 0:
             return None
         try:
+            await self._execute_hooks('before_schema_validation', utils.ensure_str(content))
             tree = validate_xml_schema(content)
             if self.vtn_fingerprint:
                 validate_xml_signature(tree, cert_fingerprint=self.vtn_fingerprint)
+            await self._execute_hooks('before_parse_xml', utils.ensure_str(content))
             message_type, message_payload = parse_message(content)
+            await self._execute_hooks('after_parse_xml', message_type, message_payload)
         except XMLSyntaxError as err:
             logger.warning(f"Incoming message did not pass XML schema validation: {err}")
             return None, {}
@@ -819,6 +844,14 @@ class OpenADRClient:
                                f"{message_payload['response']['response_code']}: "
                                f"{message_payload['response']['response_description']}")
         return message_type, message_payload
+
+    async def _execute_hooks(self, hook_name, *args, **kwargs):
+        for hook in self.hooks[hook_name]:
+            try:
+                await utils.await_if_required(hook(*args, **kwargs))
+            except Exception as err:
+                logger.error(f"An error occurred while executing your '{hook_name}': {hook}:"
+                             f"{err.__class__.__name__}: {err}")
 
     async def _on_event(self, message):
         logger.debug("The VEN received an event")

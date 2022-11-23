@@ -203,3 +203,34 @@ The OpenADR polling mechanism is very robust; there is very little chance that t
 To mitigate the last point, the OpenLEADR VEN will, by default, 'jitter' the pollings by up to +/- 10% or +/- 5 minutes (whichever is smallest). The same goes for delivering the reports (the data collection will still happen on synchronized moments).
 
 If you don't want to jitter the polling requests on your VEN, you can disable this by passing ``allow_jitter=False`` to your ``OpenADRClient`` constructor.
+
+
+Hooks
+=====
+
+If you need to inspect the XML messages at certain points in the request/response chain, you can add hooks like this:
+
+.. code-block:: python3
+
+    def log_outgoing_xml(content):
+        print(content)
+
+    def log_incoming_xml(content):
+        print(content)
+
+    client.add_hook('before_send_xml', log_outgoing_xml)
+    client.add_hook('after_receive_xml', log_incoming_xml)
+
+
+
+The handlers can be normal functions or coroutines.
+
+The following hooks are available:
+
+- ``before_send_xml``: Called with one argument: ``content`` (XML string). This is the outgoing message in XML format.
+- ``after_receive_xml``: Called with one argument: ``content`` (XML string, or any other error message that the server returned).
+- ``before_schema_validation``: Called with one argument: ``content`` (XML string). This is the incoming message in XML format.
+- ``before_parse_xml``: Called with one argument: ``content`` (XML string). This is the incoming message in XML format after it has been validated to be correct.
+- ``after_parse_xml``: Called with two arguments: ``message_type`` (string) and ``message_payload`` (dict). This is the message in the OpenLEADR dict format after parsing.
+
+Use these hooks at your own risk, an be aware that the client will wait for your hook(s) to finish before continuing.
