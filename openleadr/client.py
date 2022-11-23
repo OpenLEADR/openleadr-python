@@ -133,6 +133,10 @@ class OpenADRClient:
         if self.reports:
             self.report_queue_task = self.loop.create_task(self._report_queue_worker())
 
+        # Perform initial event sync
+        await self.sync_events()
+
+        # Perform an initial poll
         await self._poll()
 
         # Set up automatic polling
@@ -470,6 +474,14 @@ class OpenADRClient:
                                         'opt_type': opt_type}]}
         message = self._create_message('oadrCreatedEvent', **payload)
         response_type, response_payload = await self._perform_request(service, message)
+
+    async def sync_events(self):
+        """
+        Used to perform an initial sync of events after the client connects
+        """
+        response_type, response_payload = await self.request_event()
+        if 'events' in response_payload and len(response_payload['events']) > 0:
+            await self._on_event(response_payload)
 
     ###########################################################################
     #                                                                         #
@@ -901,7 +913,6 @@ class OpenADRClient:
 
         elif response_type == 'oadrDistributeEvent':
             if 'events' in response_payload and len(response_payload['events']) > 0:
-                logger.info(f"The payload tyupe {type(response_payload)}")
                 await self._on_event(response_payload)
 
         elif response_type == 'oadrUpdateReport':
