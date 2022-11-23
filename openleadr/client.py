@@ -519,7 +519,8 @@ class OpenADRClient:
                                 for report in self.report_requests]}
             message = self._create_message(message_type,
                                            response={'response_code': 200,
-                                                     'response_description': 'OK'},
+                                                     'response_description': 'OK',
+                                                     'request_id': response_payload['response']['request_id']},
                                            ven_id=self.ven_id,
                                            **message_payload)
             response_type, response_payload = await self._perform_request(service, message)
