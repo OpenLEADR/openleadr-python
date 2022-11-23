@@ -27,8 +27,6 @@
     {% if ven_id is defined and ven_id is not none %}
     <ei:venID>{{ ven_id }}</ei:venID>
     {% endif %}
-    {% if report_request_id is defined and report_request_id is not none %}
-    <ei:reportRequestID>{{ report_request_id }}</ei:reportRequestID>
-    {% endif %}
+    <ei:reportRequestID></ei:reportRequestID>
   </oadr:oadrRegisterReport>
 </oadr:oadrSignedObject>
