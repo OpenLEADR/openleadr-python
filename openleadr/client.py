@@ -753,7 +753,7 @@ class OpenADRClient:
                        "an Event dict and should return either 'optIn' or 'optOut' based on your "
                        "choice. Will re-use the previous opt status for this event_id for now")
         if event['event_descriptor']['event_id'] in self.responded_events:
-            return self.responded_events['event_id']
+            return self.responded_events.get(event['event_descriptor']['event_id'])
 
     async def on_cancel_party_registration(self, message):
         # Update/Delete all the registration and reports information
