@@ -606,7 +606,7 @@ def determine_event_status(active_period):
         active_period_start = active_period_start.astimezone(timezone.utc)
         setmember(active_period, 'dtstart', active_period_start)
     active_period_end = active_period_start + getmember(active_period, 'duration')
-    if now >= active_period_end:
+    if now >= active_period_end and getmember(active_period, 'duration').total_seconds() > 0:
         return 'completed'
     if now >= active_period_start:
         return 'active'
