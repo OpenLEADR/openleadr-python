@@ -149,11 +149,10 @@ class OpenADRClient:
             logger.warning("Polling with intervals of more than 24 hours is not supported. "
                            "Will use 24 hours as the polling interval.")
             self.poll_frequency = timedelta(hours=24)
-        cron_config = utils.cron_config(self.poll_frequency, randomize_seconds=self.allow_jitter)
 
         self.scheduler.add_job(self._poll,
-                               trigger='cron',
-                               **cron_config)
+                               trigger='interval',
+                               seconds=self.poll_frequency.total_seconds())
         self.scheduler.add_job(self._event_cleanup,
                                trigger='interval',
                                seconds=300)
