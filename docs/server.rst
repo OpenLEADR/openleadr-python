@@ -146,7 +146,7 @@ The VEN can decide whether to opt in or opt out of the event. To be notified of 
 
     from openleadr import OpenADRServer
     from functools import partial
-    from datetime import datetime, timezzone
+    from datetime import datetime, timezone, timedelta
 
     async def event_callback(ven_id, event_id, opt_status):
         print(f"VEN {ven_id} responded {opt_status} to event {event_id}")
@@ -156,10 +156,12 @@ The VEN can decide whether to opt in or opt out of the event. To be notified of 
                                 signal_name='simple',
                                 signal_type='level',
                                 intervals=[{'dtstart': datetime(2020. 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+                                            'duration': timedelta(minutes=15),
                                             'signal_payload': 1},
                                             {'dtstart': datetime(2020. 1, 1, 12, 15, 0, tzinfo=timezone.utc),
+                                             'duration': timedelta(minutes=15),
                                             'signal_payload': 0}],
-                                target=[{'resource_id': 'Device001'}],
+                                target={'resource_id': 'Device001'},
                                 callback=event_callback)
 
 
@@ -169,7 +171,7 @@ Alternatively, you can use the handy constructors in ``openleadr.objects`` to fo
 
     from openleadr import OpenADRServer
     from openleadr.objects import Target, Interval
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     from functools import partial
 
     async def event_callback(ven_id, event_id, opt_status):
@@ -180,8 +182,10 @@ Alternatively, you can use the handy constructors in ``openleadr.objects`` to fo
                                 signal_name='simple',
                                 signal_type='level',
                                 intervals=[Interval(dtstart=datetime(2020, 1, 1, 12, 15, 0, tzinfo=timezone.utc),
+                                                    duration=timedelta(minutes=15),
                                                     signal_payload=0),
                                            Interval(dtstart=datetime(2020, 1, 1, 12, 15, 0, tzinfo=timezone.utc),
+                                                    duration=timedelta(minutes=15),
                                                     signal_payload=1)]
                                 target=[Target(resource_id='Device001')],
                                 callback=event_callback)
@@ -192,7 +196,7 @@ If you want to add a "raw" event directly, you can use this example as a guid:
 
     from openleadr import OpenADRServer
     from openleadr.objects import Event, EventDescriptor, EventSignal, Target, Interval
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     from functools import partial
 
     async def event_callback(ven_id, event_id, opt_status):
