@@ -17,6 +17,7 @@
 from asyncio import iscoroutine
 from http import HTTPStatus
 import logging
+import traceback
 
 from aiohttp import web
 from lxml.etree import XMLSyntaxError
@@ -146,6 +147,7 @@ class VTNService:
         except Exception as err:
             # In case of some other error, return a HTTP 500
             logger.error(f"The VTN server encountered an error: {err.__class__.__name__}: {err}")
+            logger.error(traceback.format_exc())
             response = web.Response(status=HTTPStatus.INTERNAL_SERVER_ERROR)
         else:
             # We've successfully handled this message
