@@ -153,10 +153,15 @@ class OpenADRClient:
 
         self.scheduler.add_job(self._poll,
                                trigger='cron',
+                               misfire_grace_time=None,
+                               max_instances=4,
                                **cron_config)
         self.scheduler.add_job(self._event_cleanup,
                                trigger='interval',
+                               misfire_grace_time=None,
+                               max_instances=4,
                                seconds=300)
+
         self.scheduler.start()
 
     async def stop(self):
@@ -558,6 +563,9 @@ class OpenADRClient:
         report_back_duration = report_request['report_specifier'].get('report_back_duration')
         granularity = report_request['report_specifier']['granularity']
 
+        #logger.info(">>>>> Garvish: No create Report")
+        #return False
+
         # Check if this report actually exists
         report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
         if not report:
@@ -610,9 +618,12 @@ class OpenADRClient:
         callback = partial(self.update_report, report_request_id=report_request_id)
 
         reporting_interval = report_back_duration or granularity
+        reporting_cron_config = utils.cron_config(reporting_interval, randomize_seconds=self.allow_jitter)
         job = self.scheduler.add_job(func=callback,
                                      trigger='cron',
-                                     **utils.cron_config(reporting_interval))
+                                     misfire_grace_time=None,
+                                     max_instances=4,
+                                     **reporting_cron_config)
 
         self.report_requests.append({'report_request_id': report_request_id,
                                      'report_specifier_id': report_specifier_id,
@@ -667,15 +678,18 @@ class OpenADRClient:
                                                             report_payload=report_payload))
 
         else:
+            #logger.debug(">>>>> Garvish: update_report Else")
             for r_id in report_request['r_ids']:
                 report_callback = self.report_callbacks[(report_specifier_id, r_id)]
                 result = report_callback()
                 if asyncio.iscoroutine(result):
+                    #logger.debug(">>>>> Garvish: update_report asyncio.iscoroutine")
                     result = await result
                 if isinstance(result, (int, float)):
+                    #logger.debug(">>>>> Garvish: update_report isinstance")
                     result = [(datetime.now(timezone.utc), result)]
                 for dt, value in result:
-                    logger.info(f"Adding {dt}, {value} to report")
+                    #logger.debug(f"Adding {dt}, {value} to report")
                     report_payload = objects.ReportPayload(r_id=r_id, value=value)
                     intervals.append(objects.ReportInterval(dtstart=dt,
                                                             report_payload=report_payload))
@@ -866,7 +880,13 @@ class OpenADRClient:
                 if received_event:
                     if received_event['event_descriptor']['modification_number'] == modification_number:
                         # Re-submit the same opt type as we already had previously
-                        result = self.responded_events[event_id]
+                        
+                        if event_id in self.responded_events:
+                            result = self.responded_events[event_id]
+                        else:
+                            # Wait for the result of the on_event
+                            self.received_events.append(event)
+                            result = self.on_event(event)
                     else:
                         # Replace the event with the fresh copy
                         utils.pop_by(self.received_events, 'event_descriptor.event_id', event_id)
@@ -932,6 +952,7 @@ class OpenADRClient:
 
     async def _poll(self):
         logger.debug("Now polling for new messages")
+        logger.info(">>>>> Garvish: Now polling for new messages")
         response_type, response_payload = await self.poll()
         if response_type is None:
             return
