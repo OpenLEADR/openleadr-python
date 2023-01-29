@@ -190,7 +190,7 @@ Alternatively, you can use the handy constructors in ``openleadr.objects`` to fo
                                 target=[Target(resource_id='Device001')],
                                 callback=event_callback)
 
-If you want to add a "raw" event directly, you can use this example as a guid:
+If you want to add a "raw" event directly, you can use this example as a guide:
 
 .. code-block:: python3
 
