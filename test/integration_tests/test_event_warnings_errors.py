@@ -45,11 +45,10 @@ async def test_client_no_event_handler(caplog):
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
                      callback=partial(on_event_accepted, future=event_confirm_future))
-
     print("Waiting for a response to the event")
     result = await event_confirm_future
     assert result == 'optOut'
@@ -83,7 +82,7 @@ async def test_client_faulty_event_handler(caplog):
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
                      callback=partial(on_event_accepted, future=event_confirm_future))
@@ -120,7 +119,7 @@ async def test_client_exception_event_handler(caplog):
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
                      callback=partial(on_event_accepted, future=event_confirm_future))
@@ -160,7 +159,7 @@ async def test_client_good_event_handler(caplog):
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
                      callback=partial(on_event_accepted, future=event_confirm_future))
@@ -189,7 +188,7 @@ async def test_server_warning_conflicting_poll_methods(caplog):
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
                      callback=on_event_accepted)
@@ -211,7 +210,7 @@ async def test_server_warning_naive_datetimes_in_event(caplog):
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
                      callback=on_event_accepted)
@@ -319,7 +318,7 @@ async def test_client_warning_no_update_event_handler(caplog):
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
                      callback=event_accepted_future)
@@ -336,7 +335,7 @@ async def test_client_warning_no_update_event_handler(caplog):
     server.events['venid'][0].event_descriptor.modification_number = 1
     server.events_updated['venid'] = True
 
-    await asyncio.sleep(1)
+    await asyncio.sleep(2)
     assert ("An Event was updated, but you don't have an on_updated_event handler configured. "
             "You should implement your own on_update_event handler. This handler receives "
             "an Event dict and should return either 'optIn' or 'optOut' based on your "
@@ -359,7 +358,7 @@ async def test_server_add_event_with_wrong_callback_signature(caplog):
                          signal_name='simple',
                          signal_type='level',
                          intervals=[{'dtstart': datetime.now(timezone.utc),
-                                     'duration': timedelta(seconds=1),
+                                     'duration': timedelta(hours=1),
                                      'signal_payload': 1.1}],
                          target={'ven_id': 'venid'},
                          callback=dummy_callback)
@@ -377,7 +376,7 @@ async def test_server_add_event_with_no_callback(caplog):
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'})
     assert ("You did not provide a 'callback', which means you won't know if the "
@@ -395,7 +394,7 @@ async def test_server_add_event_with_no_callback_response_never_required(caplog)
                      signal_name='simple',
                      signal_type='level',
                      intervals=[{'dtstart': datetime.now(timezone.utc),
-                                 'duration': timedelta(seconds=1),
+                                 'duration': timedelta(hours=1),
                                  'signal_payload': 1.1}],
                      target={'ven_id': 'venid'},
                      response_required='never')
