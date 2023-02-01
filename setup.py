@@ -16,11 +16,14 @@
 
 from setuptools import setup
 
-with open('README.md', 'r', encoding='utf-8') as fh:
-    long_description = fh.read()
+with open('README.md', 'r', encoding='utf-8') as file:
+    long_description = file.read()
+
+with open('VERSION', 'r', encoding='utf-8') as file:
+    version = file.read().strip()
 
 setup(name='openleadr',
-      version='0.5.28',
+      version='0.5.29',
       description='Python3 library for building OpenADR Clients (VENs) and Servers (VTNs)',
       long_description=long_description,
       long_description_content_type='text/markdown',
