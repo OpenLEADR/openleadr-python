@@ -44,14 +44,6 @@ openleadr.hooks module
    :undoc-members:
    :show-inheritance:
 
-openleadr.hooks module
-----------------------
-
-.. automodule:: openleadr.hooks
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 openleadr.messaging module
 --------------------------
 
@@ -72,14 +64,6 @@ openleadr.preflight module
 --------------------------
 
 .. automodule:: openleadr.preflight
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-openleadr.provisioning module
------------------------------
-
-.. automodule:: openleadr.provisioning
    :members:
    :undoc-members:
    :show-inheritance:
