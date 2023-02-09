@@ -12,5 +12,6 @@ def show_fingerprint():
             cert_str = file.read()
             print(certificate_fingerprint(cert_str))
 
+
 if __name__ == "__main__":
     show_fingerprint()
