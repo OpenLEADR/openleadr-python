@@ -27,6 +27,5 @@
     {% if ven_id is defined and ven_id is not none %}
     <ei:venID>{{ ven_id }}</ei:venID>
     {% endif %}
-    <ei:reportRequestID></ei:reportRequestID>
   </oadr:oadrRegisterReport>
 </oadr:oadrSignedObject>
