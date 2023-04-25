@@ -1,6 +1,6 @@
 python_env/
 __pycache__
-pyopenadr.egg-info
+*.egg-info
 docs/_build/
 build/
 openleadr.egg-info/
@@ -12,3 +12,4 @@ dist/
 static/
 .idea/
 *.venv/
+.python-version
