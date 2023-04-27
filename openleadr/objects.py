@@ -111,22 +111,25 @@ class EventDescriptor:
         if self.modification_number is None:
             self.modification_number = 0
 
+@dataclass
+class Tolerance:
+    startafter: timedelta
 
 @dataclass
 class ActivePeriod:
     dtstart: datetime
     duration: timedelta
-    tolerance: dict = None
-    notification_period: dict = None
+    notification_period: timedelta = None
+    tolerance: Tolerance = None
     ramp_up_period: dict = None
     recovery_period: dict = None
 
 
 @dataclass
 class Interval:
-    dtstart: datetime
     duration: timedelta
     signal_payload: float
+    dtstart: datetime = None
     uid: int = None
 
 
@@ -216,7 +219,7 @@ class Event:
                             if isinstance(i, dict) else i.dtstart + i.duration
                             for s in self.event_signals for i in s.intervals]) - dtstart
             self.active_period = ActivePeriod(dtstart=dtstart,
-                                              duration=duration)
+                                              duration=duration, notification_period=timedelta(hours=4))
         if self.targets is None and self.targets_by_type is None:
             raise ValueError("You must supply either 'targets' or 'targets_by_type'.")
         elif self.targets_by_type is None:
