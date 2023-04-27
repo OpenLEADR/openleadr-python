@@ -111,22 +111,25 @@ class EventDescriptor:
         if self.modification_number is None:
             self.modification_number = 0
 
+@dataclass
+class Tolerance:
+    startafter: timedelta
 
 @dataclass
 class ActivePeriod:
     dtstart: datetime
     duration: timedelta
-    tolerance: dict = None
-    notification_period: dict = None
+    notification_period: timedelta = None
+    tolerance: Tolerance = None
     ramp_up_period: dict = None
     recovery_period: dict = None
 
 
 @dataclass
 class Interval:
-    dtstart: datetime
     duration: timedelta
     signal_payload: float
+    dtstart: datetime = None
     uid: int = None
 
 
