@@ -1012,7 +1012,7 @@ class OpenADRClient:
             if event['event_descriptor']['event_status'] == 'cancelled' or \
                     utils.determine_event_status(event['active_period']) == 'completed':
                 logger.info(f"Removing event {event} because it is no longer relevant.")
-                self.received_events.pop(self.received_events.index(event))
+                self.received_events.pop(i)
 
     async def _poll(self):
         logger.debug("Now polling for new messages")
