@@ -11,4 +11,5 @@ dist/
 .ipynb_checkpoints/
 static/
 .idea/
+.vscode/
 *.venv/
