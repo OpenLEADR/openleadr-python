@@ -75,7 +75,15 @@ class OptService(VTNService):
         # modification_number (optional)
         # array of eitarget (in parts folder)
 
-        # TODO: create a handler for the ven called on_create_opt, handle and return the result (oadrCreatedOpt)
+        # TODO: call handler and return the result (oadrCreatedOpt)
+
+    def on_create_opt(self, payload):
+        """
+        Placeholder for the on_create_opt handler
+        """
+        # TODO: implement
+
+        return False
 
     @handler('oadrCancelOpt')
     async def cancel_opt(self, payload):
@@ -88,4 +96,12 @@ class OptService(VTNService):
         # ven_id
         # opt_id
 
-        # TODO: create a handler for the ven called on_cancel_opt, handle and return the result (oadrCanceledOpt)
+        # TODO: call handler and return result (oadrCanceledOpt)
+
+    def on_cancel_opt(self, ven_id, opt_id):
+        """
+        Placeholder for the on_cancel_opt handler.
+        """
+        # TODO: implement
+
+        return None
