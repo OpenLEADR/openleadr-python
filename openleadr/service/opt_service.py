@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import service, VTNService
+from . import service, handler, VTNService
 import logging
 logger = logging.getLogger('openleadr')
 
@@ -49,4 +49,43 @@ logger = logging.getLogger('openleadr')
 
 @service('EiOpt')
 class OptService(VTNService):
-    pass
+
+    def __init__(self, vtn_id):
+        super().__init__(vtn_id)
+        self.created_opt_schedules = {}
+
+    @handler('oadrCreateOpt')
+    async def create_opt(self, payload):
+        """
+        Handle an opt schedule created by the VEN
+        """
+        ven_id = payload['ven_id']
+
+        # payload parameters:
+        # ven_id
+        # opt_id
+        # opt_type
+        # opt_reason
+        # market_context (optional)
+        # array of availability components (optional):
+        #   component.dstart
+        #   component.duration
+        # created_date_time
+        # event_id (optional)
+        # modification_number (optional)
+        # array of eitarget (in parts folder)
+
+        # TODO: create a handler for the ven called on_create_opt, handle and return the result (oadrCreatedOpt)
+
+    @handler('oadrCancelOpt')
+    async def cancel_opt(self, payload):
+        """
+        Cancel an opt schedule previously created by the VEN
+        """
+        ven_id = payload['ven_id']
+
+        # payload parameters:
+        # ven_id
+        # opt_id
+
+        # TODO: create a handler for the ven called on_cancel_opt, handle and return the result (oadrCanceledOpt)
