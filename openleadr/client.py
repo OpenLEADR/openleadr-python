@@ -582,15 +582,68 @@ class OpenADRClient:
     #                                                                         #
     ###########################################################################
 
-    async def create_opt_schedule(self):
+    async def create_opt(self, opt_type, opt_reason, targets, vavailability=None, event_id=None,
+                         modification_number=None, opt_id=None, request_id=None, market_context=None):
         """
-        Send a new opt schedule to the VTN. 
+        Send a new opt to the VTN, either to communicate a temporary availability
+        schedule or to qualify the resources participating in an event.
+
+        :param str opt_type: An OpenADR opt type. (found in openleadr.enums.OPT)
+        :param str opt_reason: An OpenADR opt reason. (found in openleadr.enums.OPT_REASON)
+        :param targets: A list of target(s) that this opt is related to.
+        :param vavailability: The availability schedule to send
+        :param event_id: The id of the event this opt is referencing.
+        :param modification_number: The modification number of the event this opt is referencing.
+        :param str opt_id: A unique identifier for this opt message. Leave this blank for a
+                           random generated id, or fill it in if your VTN depends on
+                           this being a known value, or if it needs to be constant
+                           between restarts of the client.
+        :param str request_id: A unique identifier for this request. The same remarks apply
+                               as for the opt_id.
+        :param str market_context: The Market Context that this opt belongs to.
         """
+
+        # Verify input
+        if opt_type not in enums.OPT.values:
+            raise ValueError(f"{opt_type} is not a valid opt type. Valid options are "
+                             f"{', '.join(enums.REPORT_NAME.values)}")
+        if opt_reason not in enums.OPT_REASON.values:
+            raise ValueError(f"{opt_reason} is not a valid opt reason. Valid options are "
+                             f"{', '.join(enums.REPORT_NAME.values)}")
+
+        # Send opt
+        opt_id = opt_id or utils.generate_id()
+        opt = objects.Opt(
+            opt_id=opt_id,
+            opt_type=opt_type,
+            opt_reason=opt_reason,
+            vavailability=vavailability,
+            event_id=event_id,
+            modification_number=modification_number,
+            targets=targets
+        )
+
+        request_id = request_id or utils.generate_id()
+        payload = {
+            'request_id': request_id,
+            'ven_id': self.ven_id,
+            **opt
+        }
+
+        service = 'EiOpt'
+        message = self._create_message('oadrCreateOpt', **payload)
+        response_type, response_payload = await self._perform_request(service, message)
+
+        if 'opt_id' in response_payload:
+            # VTN acknowledged the opt message
+            return response_payload['opt-id']
+
+        # TODO: what to do if the VTN sends an error or does not acknowledge the opt?
         ...
 
-    async def cancel_opt_schedule(self):
+    async def cancel_opt(self):
         """
-        Tell the VTN to cancel a previously acknowledged opt schedule
+        Tell the VTN to cancel a previously acknowledged opt message
         """
         ...
 
