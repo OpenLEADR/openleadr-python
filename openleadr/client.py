@@ -91,6 +91,8 @@ class OpenADRClient:
         self.client_session = None
         self.report_queue_task = None
 
+        self.opts = []
+
         # Holds the events that we received.
         self.received_events = []
         # Holds the events that we already saw.
@@ -611,7 +613,7 @@ class OpenADRClient:
             raise ValueError(f"{opt_reason} is not a valid opt reason. Valid options are "
                              f"{', '.join(enums.REPORT_NAME.values)}")
 
-        # Send opt
+        # Save opt
         opt_id = opt_id or utils.generate_id()
         opt = objects.Opt(
             opt_id=opt_id,
@@ -622,7 +624,10 @@ class OpenADRClient:
             modification_number=modification_number,
             targets=targets
         )
+        self.opts.append(opt)
+        # TODO: this is set to grow and grow and grow. Maybe add some method to remove expired opts
 
+        # Send opt
         request_id = request_id or utils.generate_id()
         payload = {
             'request_id': request_id,
