@@ -643,7 +643,6 @@ class OpenADRClient:
             return response_payload['opt-id']
 
         # TODO: what to do if the VTN sends an error or does not acknowledge the opt?
-        ...
 
     async def cancel_opt(self, opt_id):
         """
