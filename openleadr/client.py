@@ -625,7 +625,6 @@ class OpenADRClient:
             targets=targets
         )
         self.opts.append(opt)
-        # TODO: this is set to grow and grow and grow. Maybe add some method to remove expired opts
 
         # Send opt
         request_id = request_id or utils.generate_id()
@@ -646,11 +645,33 @@ class OpenADRClient:
         # TODO: what to do if the VTN sends an error or does not acknowledge the opt?
         ...
 
-    async def cancel_opt(self):
+    async def cancel_opt(self, opt_id):
         """
         Tell the VTN to cancel a previously acknowledged opt message
+
+        :param str opt_id: The id of the opt to cancel
         """
-        ...
+
+        # Check if this report opt exists
+        report = utils.find_by(
+            self.reports, 'opt_id', opt_id)
+        if not report:
+            logger.error(f"A non-existant opt with opt_id "
+                         f"{opt_id} was requested for cancellation.")
+            return False
+
+        payload = {
+            'opt_id': opt_id,
+            'ven_id': self.ven_id
+        }
+
+        service = 'EiOpt'
+        message = self._create_message('oadrCancelOpt', **payload)
+        response_type, response_payload = await self._perform_request(service, message)
+
+        if 'opt_id' in response_payload:
+            # VTN acknowledged the opt cancelation
+            return True
 
     ###########################################################################
     #                                                                         #
