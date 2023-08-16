@@ -85,8 +85,10 @@ class Target:
     party_id: str = None
 
     def __repr__(self):
-        targets = {key: value for key, value in asdict(self).items() if value is not None}
-        targets_str = ", ".join(f"{key}={value}" for key, value in targets.items())
+        targets = {key: value for key, value in asdict(
+            self).items() if value is not None}
+        targets_str = ", ".join(
+            f"{key}={value}" for key, value in targets.items())
         return f"Target('{targets_str}')"
 
 
@@ -182,15 +184,18 @@ class EventSignal:
         if self.targets is None and self.targets_by_type is None:
             return
         elif self.targets_by_type is None:
-            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(
+                target) else target for target in self.targets]
             targets_by_type = utils.group_targets_by_type(list_of_targets)
             if len(targets_by_type) > 1:
                 raise ValueError("In OpenADR, the EventSignal target may only be of type endDeviceAsset. "
                                  f"You provided types: '{', '.join(targets_by_type)}'")
         elif self.targets is None:
-            self.targets = [Target(**target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
+            self.targets = [Target(
+                **target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
         elif self.targets is not None and self.targets_by_type is not None:
-            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(
+                target) else target for target in self.targets]
             if utils.group_targets_by_type(list_of_targets) != self.targets_by_type:
                 raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
                                  "but the two were not consistent with each other. "
@@ -218,21 +223,26 @@ class Event:
             self.active_period = ActivePeriod(dtstart=dtstart,
                                               duration=duration)
         if self.targets is None and self.targets_by_type is None:
-            raise ValueError("You must supply either 'targets' or 'targets_by_type'.")
+            raise ValueError(
+                "You must supply either 'targets' or 'targets_by_type'.")
         elif self.targets_by_type is None:
-            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(
+                target) else target for target in self.targets]
             self.targets_by_type = utils.group_targets_by_type(list_of_targets)
         elif self.targets is None:
-            self.targets = [Target(**target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
+            self.targets = [Target(
+                **target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
         elif self.targets is not None and self.targets_by_type is not None:
-            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(
+                target) else target for target in self.targets]
             if utils.group_targets_by_type(list_of_targets) != self.targets_by_type:
                 raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
                                  "but the two were not consistent with each other. "
                                  f"You supplied 'targets' = {self.targets} and "
                                  f"'targets_by_type' = {self.targets_by_type}")
         # Set the event status
-        self.event_descriptor.event_status = utils.determine_event_status(self.active_period)
+        self.event_descriptor.event_status = utils.determine_event_status(
+            self.active_period)
 
 
 @dataclass
@@ -272,7 +282,8 @@ class ReportInterval:
 @dataclass
 class Report:
     report_specifier_id: str            # This is what the VEN calls this report
-    report_name: str                    # Usually one of the default ones (enums.REPORT_NAME)
+    # Usually one of the default ones (enums.REPORT_NAME)
+    report_name: str
     report_request_id: str = None       # Usually empty
     report_descriptions: List[ReportDescription] = None
     created_date_time: datetime = None
@@ -324,9 +335,9 @@ class Vavailability:
 
 @dataclass
 class Opt:
-    opt_id: str = None,
-    opt_type: enums.OPT
-    opt_reason: enums.OPT_REASON
+    opt_type: str
+    opt_reason: str
+    opt_id: str = None
     created_date_time: datetime = None
 
     event_id: str = None
@@ -336,10 +347,16 @@ class Opt:
     targets_by_type: Dict = None
 
     def __post_init__(self):
+        if self.opt_type not in enums.OPT.values:
+            raise ValueError(f"""The opt_type must be one of '{"', '".join(enums.OPT.values)}', """
+                             f"""you specified: '{self.opt_type}'.""")
+        if self.opt_reason not in enums.OPT_REASON.values:
+            raise ValueError(f"""The opt_reason must be one of '{"', '".join(enums.OPT_REASON.values)}', """
+                             f"""you specified: '{self.opt_type}'.""")
         if self.event_id is None and self.vavailability is None:
             raise ValueError(
                 "You must supply either 'event_id' or 'vavailability'.")
-        elif self.event_id is not None and self.vavailability is not None:
+        if self.event_id is not None and self.vavailability is not None:
             raise ValueError(
                 "You supplied both 'event_id' and 'vavailability."
                 "Please supply either, but not both.")
@@ -351,12 +368,15 @@ class Opt:
             raise ValueError(
                 "You must supply either 'targets' or 'targets_by_type'.")
         elif self.targets_by_type is None:
-            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(
+                target) else target for target in self.targets]
             self.targets_by_type = utils.group_targets_by_type(list_of_targets)
         elif self.targets is None:
-            self.targets = [Target(**target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
+            self.targets = [Target(
+                **target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
         elif self.targets is not None and self.targets_by_type is not None:
-            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(
+                target) else target for target in self.targets]
             if utils.group_targets_by_type(list_of_targets) != self.targets_by_type:
                 raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
                                  "but the two were not consistent with each other. "
