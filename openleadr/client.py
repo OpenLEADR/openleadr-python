@@ -652,9 +652,9 @@ class OpenADRClient:
         """
 
         # Check if this opt exists
-        report = utils.find_by(
-            self.reports, 'opt_id', opt_id)
-        if not report:
+        opt = utils.find_by(
+            self.opts, 'opt_id', opt_id)
+        if not opt:
             logger.error(f"A non-existant opt with opt_id "
                          f"{opt_id} was requested for cancellation.")
             return False
