@@ -652,7 +652,7 @@ class OpenADRClient:
         :param str opt_id: The id of the opt to cancel
         """
 
-        # Check if this report opt exists
+        # Check if this opt exists
         report = utils.find_by(
             self.reports, 'opt_id', opt_id)
         if not report:
