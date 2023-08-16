@@ -28,7 +28,7 @@ from signxml.exceptions import InvalidSignature
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from openleadr import enums, objects, errors
 from openleadr.messaging import create_message, parse_message, \
-                                validate_xml_schema, validate_xml_signature
+    validate_xml_schema, validate_xml_signature
 from openleadr import utils
 
 import tzlocal
@@ -42,6 +42,7 @@ class OpenADRClient:
     Main client class. Most of these methods will be called automatically, but
     you can always choose to call them manually.
     """
+
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
                  allow_jitter=True, ven_id=None, disable_signature=False, check_hostname=True):
@@ -77,16 +78,23 @@ class OpenADRClient:
         self.check_hostname = check_hostname
 
         self.reports = []
-        self.report_callbacks = {}              # Holds the callbacks for each specific report
-        self.report_requests = []               # Keep track of the report requests from the VTN
-        self.incomplete_reports = {}            # Holds reports that are being populated over time
-        self.pending_reports = asyncio.Queue()  # Holds reports that are waiting to be sent
-        self.scheduler = AsyncIOScheduler(timezone=str(tzlocal.get_localzone()))
+        # Holds the callbacks for each specific report
+        self.report_callbacks = {}
+        # Keep track of the report requests from the VTN
+        self.report_requests = []
+        # Holds reports that are being populated over time
+        self.incomplete_reports = {}
+        # Holds reports that are waiting to be sent
+        self.pending_reports = asyncio.Queue()
+        self.scheduler = AsyncIOScheduler(
+            timezone=str(tzlocal.get_localzone()))
         self.client_session = None
         self.report_queue_task = None
 
-        self.received_events = []               # Holds the events that we received.
-        self.responded_events = {}              # Holds the events that we already saw.
+        # Holds the events that we received.
+        self.received_events = []
+        # Holds the events that we already saw.
+        self.responded_events = {}
 
         self.cert_path = cert
         self.key_path = key
@@ -132,11 +140,10 @@ class OpenADRClient:
         response_type, response_payload = await self.query_registration()
         if 'registration_id' in response_payload:
             self.registration_id = response_payload['registration_id']
-        if response_payload and 'response' in response_payload  and 'request_id' in response_payload['response']:
+        if response_payload and 'response' in response_payload and 'request_id' in response_payload['response']:
             request_id = response_payload['response']['request_id']
 
         await self.create_party_registration(ven_id=self.ven_id, request_id=request_id)
-
 
         if not self.registration_id:
             logger.error("No RegistrationID received from the VTN, aborting.")
@@ -145,7 +152,8 @@ class OpenADRClient:
 
         await self.register_reports(self.reports)
         if self.reports:
-            self.report_queue_task = self.loop.create_task(self._report_queue_worker())
+            self.report_queue_task = self.loop.create_task(
+                self._report_queue_worker())
 
         # Perform initial event sync
         await self.sync_events()
@@ -183,7 +191,8 @@ class OpenADRClient:
         Add a callback for the given situation
         """
         if handler not in ('on_event', 'on_update_event'):
-            logger.error("'handler' must be either on_event or on_update_event")
+            logger.error(
+                "'handler' must be either on_event or on_update_event")
             return
 
         setattr(self, handler, callback)
@@ -268,7 +277,8 @@ class OpenADRClient:
 
         if sampling_rate is None:
             sampling_rate = objects.SamplingRate(min_period=timedelta(seconds=10),
-                                                 max_period=timedelta(hours=24),
+                                                 max_period=timedelta(
+                                                     hours=24),
                                                  on_change=False)
         elif isinstance(sampling_rate, timedelta):
             sampling_rate = objects.SamplingRate(min_period=sampling_rate,
@@ -276,7 +286,8 @@ class OpenADRClient:
                                                  on_change=False)
 
         if data_collection_mode not in ('incremental', 'full'):
-            raise ValueError("The data_collection_mode should be 'incremental' or 'full'.")
+            raise ValueError(
+                "The data_collection_mode should be 'incremental' or 'full'.")
 
         if data_collection_mode == 'full':
             args = inspect.signature(callback).parameters
@@ -292,7 +303,8 @@ class OpenADRClient:
             item_base = measurement
         elif isinstance(measurement, dict):
             utils.validate_report_measurement_dict(measurement)
-            power_attributes = object.PowerAttributes(**measurement.get('power_attributes')) or None
+            power_attributes = object.PowerAttributes(
+                **measurement.get('power_attributes')) or None
             item_base = objects.Measurement(name=measurement['name'],
                                             description=measurement['description'],
                                             unit=measurement['unit'],
@@ -311,7 +323,8 @@ class OpenADRClient:
                 if scale in enums.SI_SCALE_CODE.values:
                     item_base.scale = scale
             else:
-                raise ValueError("The 'scale' argument must be one of '{'. ',join(enums.SI_SCALE_CODE.values)}")
+                raise ValueError(
+                    "The 'scale' argument must be one of '{'. ',join(enums.SI_SCALE_CODE.values)}")
 
         # Check if unit is compatible
         if unit is not None and unit != item_base.unit and unit not in item_base.acceptable_units:
@@ -395,7 +408,8 @@ class OpenADRClient:
         """
         request_id = utils.generate_id()
         service = 'EiRegisterParty'
-        message = self._create_message('oadrQueryRegistration', request_id=request_id)
+        message = self._create_message(
+            'oadrQueryRegistration', request_id=request_id)
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload
 
@@ -462,7 +476,8 @@ class OpenADRClient:
         if self.registration_id:
             self.poll_frequency = response_payload.get('requested_oadr_poll_freq',
                                                        timedelta(seconds=10))
-            logger.info(f"VEN is now registered with registration ID {self.registration_id} and venID {self.ven_id}.")
+            logger.info(
+                f"VEN is now registered with registration ID {self.registration_id} and venID {self.ven_id}.")
             logger.info(f"The polling frequency is {self.poll_frequency}")
         return response_type, response_payload
 
@@ -480,7 +495,8 @@ class OpenADRClient:
 
         await self.register_reports(self.reports)
         if self.reports:
-            self.report_queue_task = self.loop.create_task(self._report_queue_worker())
+            self.report_queue_task = self.loop.create_task(
+                self._report_queue_worker())
 
         # Perform initial event sync
         await self.sync_events()
@@ -490,14 +506,16 @@ class OpenADRClient:
             logger.info("VEN is not registered")
             return
 
-        logger.info(f"VEN is registered with registration ID {self.registration_id} and venID {self.ven_id}, trying to un-register")
+        logger.info(
+            f"VEN is registered with registration ID {self.registration_id} and venID {self.ven_id}, trying to un-register")
         request_id = utils.generate_id()
         payload = {'request_id': request_id,
                    'registration_id': self.registration_id,
                    'ven_id': self.ven_id}
 
         service = 'EiRegisterParty'
-        message = self._create_message('oadrCancelPartyRegistration', **payload)
+        message = self._create_message(
+            'oadrCancelPartyRegistration', **payload)
         response_type, response_payload = await self._perform_request(service, message)
 
         if response_type == 'oadrCanceledPartyRegistration' and response_payload['response']['response_code'] == 200:
@@ -560,6 +578,24 @@ class OpenADRClient:
 
     ###########################################################################
     #                                                                         #
+    #                                OPT METHODS                              #
+    #                                                                         #
+    ###########################################################################
+
+    async def create_opt_schedule(self):
+        """
+        Send a new opt schedule to the VTN. 
+        """
+        ...
+
+    async def cancel_opt_schedule(self):
+        """
+        Tell the VTN to cancel a previously acknowledged opt schedule
+        """
+        ...
+
+    ###########################################################################
+    #                                                                         #
     #                             REPORTING METHODS                           #
     #                                                                         #
     ###########################################################################
@@ -582,7 +618,6 @@ class OpenADRClient:
 
         for report in payload['reports']:
             utils.setmember(report, 'report_request_id', 0)
-
 
         service = 'EiReport'
         message = self._create_message('oadrRegisterReport', **payload)
@@ -616,11 +651,13 @@ class OpenADRClient:
         # Get the relevant variables from the report requests
         report_request_id = report_request['report_request_id']
         report_specifier_id = report_request['report_specifier']['report_specifier_id']
-        report_back_duration = report_request['report_specifier'].get('report_back_duration')
+        report_back_duration = report_request['report_specifier'].get(
+            'report_back_duration')
         granularity = report_request['report_specifier']['granularity']
 
         # Check if this report actually exists
-        report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
+        report = utils.find_by(
+            self.reports, 'report_specifier_id', report_specifier_id)
         if not report:
             logger.error(f"A non-existant report with report_specifier_id "
                          f"{report_specifier_id} was requested.")
@@ -668,7 +705,8 @@ class OpenADRClient:
 
             requested_r_ids.append(r_id)
 
-        callback = partial(self.update_report, report_request_id=report_request_id)
+        callback = partial(self.update_report,
+                           report_request_id=report_request_id)
 
         reporting_interval = report_back_duration or granularity
         job = self.scheduler.add_job(func=callback,
@@ -692,11 +730,13 @@ class OpenADRClient:
         Call the previously registered report callback and send the result as a message to the VTN.
         """
         logger.debug(f"Running update_report for {report_request_id}")
-        report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
+        report_request = utils.find_by(
+            self.report_requests, 'report_request_id', report_request_id)
         granularity = report_request['granularity']
         report_back_duration = report_request['report_back_duration']
         report_specifier_id = report_request['report_specifier_id']
-        report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
+        report = utils.find_by(
+            self.reports, 'report_specifier_id', report_specifier_id)
         data_collection_mode = report.data_collection_mode
 
         if report_request_id in self.incomplete_reports:
@@ -716,20 +756,23 @@ class OpenADRClient:
             date_to = datetime.now(timezone.utc)
             date_from = date_to - max(report_back_duration, granularity)
             for r_id in report_request['r_ids']:
-                report_callback = self.report_callbacks[(report_specifier_id, r_id)]
+                report_callback = self.report_callbacks[(
+                    report_specifier_id, r_id)]
                 result = report_callback(date_from=date_from,
                                          date_to=date_to,
                                          sampling_interval=granularity)
                 if asyncio.iscoroutine(result):
                     result = await result
                 for dt, value in result:
-                    report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                    report_payload = objects.ReportPayload(
+                        r_id=r_id, value=value)
                     intervals.append(objects.ReportInterval(dtstart=dt,
                                                             report_payload=report_payload))
 
         else:
             for r_id in report_request['r_ids']:
-                report_callback = self.report_callbacks[(report_specifier_id, r_id)]
+                report_callback = self.report_callbacks[(
+                    report_specifier_id, r_id)]
                 result = report_callback()
                 if asyncio.iscoroutine(result):
                     result = await result
@@ -737,27 +780,33 @@ class OpenADRClient:
                     result = [(datetime.now(timezone.utc), result)]
                 for dt, value in result:
                     logger.info(f"Adding {dt}, {value} to report")
-                    report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                    report_payload = objects.ReportPayload(
+                        r_id=r_id, value=value)
                     intervals.append(objects.ReportInterval(dtstart=dt,
                                                             report_payload=report_payload))
         outgoing_report.intervals = intervals
-        logger.info(f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
+        logger.info(
+            f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
 
         # Always set the dtstart of the report to the earliest datetime of any of the intervals
         if outgoing_report.intervals:
-            outgoing_report.dtstart = min(interval.dtstart for interval in outgoing_report.intervals)
+            outgoing_report.dtstart = min(
+                interval.dtstart for interval in outgoing_report.intervals)
 
         # Figure out if the report is complete after this sampling
         if data_collection_mode == 'incremental' and report_back_duration is not None\
                 and report_back_duration > granularity:
             report_interval = report_back_duration.total_seconds()
             sampling_interval = granularity.total_seconds()
-            expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
+            expected_len = len(
+                report_request['r_ids']) * int(report_interval / sampling_interval)
             if len(outgoing_report.intervals) == expected_len:
-                logger.info("The report is now complete with all the values. Will queue for sending.")
+                logger.info(
+                    "The report is now complete with all the values. Will queue for sending.")
                 await self.pending_reports.put(self.incomplete_reports.pop(report_request_id))
             else:
-                logger.debug("The report is not yet complete, will hold until it is.")
+                logger.debug(
+                    "The report is not yet complete, will hold until it is.")
                 self.incomplete_reports[report_request_id] = outgoing_report
         else:
             logger.info("Report will be sent now.")
@@ -783,7 +832,8 @@ class OpenADRClient:
                 try:
                     response_type, response_payload = await self._perform_request(service, message)
                 except Exception as err:
-                    logger.error(f"Unable to send the report to the VTN. Error: {err}")
+                    logger.error(
+                        f"Unable to send the report to the VTN. Error: {err}")
                 else:
                     if 'cancel_report' in response_payload:
                         await self.cancel_report(response_payload['cancel_report'])
@@ -850,7 +900,8 @@ class OpenADRClient:
         self.pending_reports = None
         self.scheduler.remove_all_jobs()
 
-        message = self._create_message('oadrCanceledPartyRegistration', response=response, ven_id=self.ven_id, registration_id=self.registration_id)
+        message = self._create_message('oadrCanceledPartyRegistration', response=response,
+                                       ven_id=self.ven_id, registration_id=self.registration_id)
         service = 'EiRegisterParty'
         response_type, response_payload = await self._perform_request(service, message)
         self.registration_id = None
@@ -893,7 +944,8 @@ class OpenADRClient:
                     return None, {}
         except aiohttp.client_exceptions.ClientConnectorError as err:
             # Could not connect to server
-            logger.error(f"Could not connect to server with URL {self.vtn_url}:")
+            logger.error(
+                f"Could not connect to server with URL {self.vtn_url}:")
             logger.error(f"{err.__class__.__name__}: {str(err)}")
             return None, {}
         except Exception as err:
@@ -905,12 +957,14 @@ class OpenADRClient:
             await self._execute_hooks('before_schema_validation', utils.ensure_str(content))
             tree = validate_xml_schema(content)
             if self.vtn_fingerprint:
-                validate_xml_signature(tree, cert_fingerprint=self.vtn_fingerprint)
+                validate_xml_signature(
+                    tree, cert_fingerprint=self.vtn_fingerprint)
             await self._execute_hooks('before_parse_xml', utils.ensure_str(content))
             message_type, message_payload = parse_message(content)
             await self._execute_hooks('after_parse_xml', message_type, message_payload)
         except XMLSyntaxError as err:
-            logger.warning(f"Incoming message did not pass XML schema validation: {err}")
+            logger.warning(
+                f"Incoming message did not pass XML schema validation: {err}")
             return None, {}
         except errors.FingerprintMismatch as err:
             logger.warning(err)
@@ -919,7 +973,8 @@ class OpenADRClient:
             logger.warning("Incoming message had invalid signature, ignoring.")
             return None, {}
         except Exception as err:
-            logger.error(f"The incoming message could not be parsed or validated: {err}")
+            logger.error(
+                f"The incoming message could not be parsed or validated: {err}")
             return None, {}
         if 'response' in message_payload and 'response_code' in message_payload['response']:
             if message_payload['response']['response_code'] != 200:
@@ -945,14 +1000,16 @@ class OpenADRClient:
                 event_id = event['event_descriptor']['event_id']
                 event_status = event['event_descriptor']['event_status']
                 modification_number = event['event_descriptor']['modification_number']
-                received_event = utils.find_by(self.received_events, 'event_descriptor.event_id', event_id)
+                received_event = utils.find_by(
+                    self.received_events, 'event_descriptor.event_id', event_id)
                 if received_event:
                     if received_event['event_descriptor']['modification_number'] == modification_number:
                         # Re-submit the same opt type as we already had previously
                         result = self.responded_events[event_id]
                     else:
                         # Replace the event with the fresh copy
-                        utils.pop_by(self.received_events, 'event_descriptor.event_id', event_id)
+                        utils.pop_by(self.received_events,
+                                     'event_descriptor.event_id', event_id)
                         self.received_events.append(event)
                         # Wait for the result of the on_update_event handler
                         result = await utils.await_if_required(self.on_update_event(event))
@@ -1001,7 +1058,8 @@ class OpenADRClient:
             response_type, response_payload = await self._perform_request(service, message)
             logger.info(response_type, response_payload)
         else:
-            logger.info("Not sending any event responses, because a response was not required/allowed by the VTN.")
+            logger.info(
+                "Not sending any event responses, because a response was not required/allowed by the VTN.")
 
     async def _event_cleanup(self):
         """
@@ -1010,7 +1068,8 @@ class OpenADRClient:
         for event in self.received_events:
             if event['event_descriptor']['event_status'] == 'cancelled' or \
                     utils.determine_event_status(event['active_period']) == 'completed':
-                logger.info(f"Removing event {event} because it is no longer relevant.")
+                logger.info(
+                    f"Removing event {event} because it is no longer relevant.")
                 self.received_events.pop(self.received_events.index(event))
 
     async def _poll(self):
@@ -1024,7 +1083,8 @@ class OpenADRClient:
             return
 
         elif response_type == 'oadrRequestReregistration':
-            logger.info("The VTN required us to re-register. Calling the registration procedure.")
+            logger.info(
+                "The VTN required us to re-register. Calling the registration procedure.")
             await self.send_response(service='EiRegisterParty')
             await self.create_party_registration()
 
@@ -1054,7 +1114,8 @@ class OpenADRClient:
             reponse_type, response_payload = await self._perform_request(service, message)
 
         elif response_type == 'oadrCancelPartyRegistration':
-            logger.info("The VTN required us to cancel the registration. Calling the cancel party registration procedure.")
+            logger.info(
+                "The VTN required us to cancel the registration. Calling the cancel party registration procedure.")
             await self.on_cancel_party_registration(response_payload)
 
         else:
@@ -1067,11 +1128,13 @@ class OpenADRClient:
     async def _ensure_client_session(self):
         if not self.client_session:
             headers = {'content-type': 'application/xml'}
-            client_timeout = aiohttp.ClientTimeout(sock_connect=5, sock_read=10)
+            client_timeout = aiohttp.ClientTimeout(
+                sock_connect=5, sock_read=10)
             if self.cert_path:
                 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                 ssl_context.load_verify_locations(self.ca_file)
-                ssl_context.load_cert_chain(self.cert_path, self.key_path, self.passphrase)
+                ssl_context.load_cert_chain(
+                    self.cert_path, self.key_path, self.passphrase)
                 ssl_context.check_hostname = self.check_hostname
                 connector = aiohttp.TCPConnector(ssl=ssl_context)
                 self.client_session = aiohttp.ClientSession(
