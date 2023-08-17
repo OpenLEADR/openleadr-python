@@ -44,7 +44,8 @@ class OpenADRClient:
     """
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
-                 allow_jitter=True, ven_id=None, disable_signature=False, check_hostname=True):
+                 allow_jitter=True, ven_id=None, disable_signature=False, check_hostname=True,
+                 event_status_log_period=10, events_clean_up_period=300):
         """
         Initializes a new OpenADR Client (Virtual End Node)
 
@@ -75,6 +76,8 @@ class OpenADRClient:
         self.vtn_fingerprint = vtn_fingerprint
         self.debug = debug
         self.check_hostname = check_hostname
+        self.event_status_log_period = event_status_log_period
+        self.events_clean_up_period = events_clean_up_period
 
         self.reports = []
         self.report_callbacks = {}              # Holds the callbacks for each specific report
@@ -162,9 +165,12 @@ class OpenADRClient:
         self.scheduler.add_job(self._poll,
                                trigger='interval',
                                seconds=self.poll_frequency.total_seconds())
+        self.scheduler.add_job(self._event_status_log,
+                               trigger='interval',
+                               seconds=self.event_status_log_period)
         self.scheduler.add_job(self._event_cleanup,
                                trigger='interval',
-                               seconds=300)
+                               seconds=self.events_clean_up_period)
         self.scheduler.start()
 
     async def stop(self):
@@ -937,7 +943,6 @@ class OpenADRClient:
                              f"{err.__class__.__name__}: {err}")
 
     async def _on_event(self, message):
-        logger.debug("The VEN received an event")
         events = message['events']
         try:
             results = []
@@ -945,6 +950,7 @@ class OpenADRClient:
                 event_id = event['event_descriptor']['event_id']
                 event_status = event['event_descriptor']['event_status']
                 modification_number = event['event_descriptor']['modification_number']
+                logger.info("The VEN received an event with event_id: %s, status: %s, modification_number: %s", event_id, event_status, modification_number)
                 received_event = utils.find_by(self.received_events, 'event_descriptor.event_id', event_id)
                 if received_event:
                     if received_event['event_descriptor']['modification_number'] == modification_number:
@@ -1002,6 +1008,20 @@ class OpenADRClient:
             logger.info(response_type, response_payload)
         else:
             logger.info("Not sending any event responses, because a response was not required/allowed by the VTN.")
+
+    async def _event_status_log(self):
+        """
+        Periodic task that will log each event status change
+        """
+        for event in self.received_events:
+            # ignoring the cancelled case
+            if event['event_descriptor']['event_status'] == 'cancelled':
+                return
+            
+            event_status = utils.determine_event_status(event['active_period'])
+            if event_status != event['event_descriptor']['event_status']:
+                event['event_descriptor']['event_status'] = event_status
+                logger.info("event_id: %s has new status: %s", event['event_descriptor']['event_id'], event_status)
 
     async def _event_cleanup(self):
         """
