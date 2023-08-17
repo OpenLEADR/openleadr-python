@@ -14,7 +14,8 @@
         <xcal:available>
           <xcal:properties>
             <xcal:dtstart>
-              <xcal:date-time>{{ component.dtstart|datetimeformat }}</xcal:date-time></xcal:dtstart>
+              <xcal:date-time>{{ component.dtstart|datetimeformat }}</xcal:date-time>
+            </xcal:dtstart>
             <xcal:duration>
               <xcal:duration>{{ component.duration|timedeltaformat }}</xcal:duration>
             </xcal:duration>
