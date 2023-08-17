@@ -19,6 +19,7 @@ import inspect
 import logging
 import ssl
 from datetime import datetime, timedelta, timezone
+from dataclasses import asdict
 from functools import partial
 from http import HTTPStatus
 
@@ -622,7 +623,8 @@ class OpenADRClient:
             vavailability=vavailability,
             event_id=event_id,
             modification_number=modification_number,
-            targets=targets
+            targets=targets,
+            market_context=market_context
         )
         self.opts.append(opt)
 
@@ -631,7 +633,7 @@ class OpenADRClient:
         payload = {
             'request_id': request_id,
             'ven_id': self.ven_id,
-            **opt
+            **asdict(opt)
         }
 
         service = 'EiOpt'
@@ -640,7 +642,7 @@ class OpenADRClient:
 
         if 'opt_id' in response_payload:
             # VTN acknowledged the opt message
-            return response_payload['opt-id']
+            return response_payload['opt_id']
 
         # TODO: what to do if the VTN sends an error or does not acknowledge the opt?
 

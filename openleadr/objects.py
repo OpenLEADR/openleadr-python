@@ -345,6 +345,7 @@ class Opt:
     vavailability: Vavailability = None
     targets: List[Target] = None
     targets_by_type: Dict = None
+    market_context: str = None
 
     def __post_init__(self):
         if self.opt_type not in enums.OPT.values:
@@ -367,7 +368,7 @@ class Opt:
         if self.targets is None and self.targets_by_type is None:
             raise ValueError(
                 "You must supply either 'targets' or 'targets_by_type'.")
-        elif self.targets_by_type is None:
+        if self.targets_by_type is None:
             list_of_targets = [asdict(target) if is_dataclass(
                 target) else target for target in self.targets]
             self.targets_by_type = utils.group_targets_by_type(list_of_targets)
