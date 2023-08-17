@@ -346,6 +346,7 @@ class Opt:
     targets: List[Target] = None
     targets_by_type: Dict = None
     market_context: str = None
+    signal_target_mrid: str = None
 
     def __post_init__(self):
         if self.opt_type not in enums.OPT.values:
@@ -354,6 +355,9 @@ class Opt:
         if self.opt_reason not in enums.OPT_REASON.values:
             raise ValueError(f"""The opt_reason must be one of '{"', '".join(enums.OPT_REASON.values)}', """
                              f"""you specified: '{self.opt_type}'.""")
+        if self.signal_target_mrid is not None and self.signal_target_mrid not in enums.SIGNAL_TARGET_MRID.values and not self.signal_target_mrid.startswith('x-'):
+            raise ValueError(f"""The signal_target_mrid must be one of '{"', '".join(enums.SIGNAL_TARGET_MRID.values)}', """
+                             f"""you specified: '{self.signal_target_mrid}'.""")
         if self.event_id is None and self.vavailability is None:
             raise ValueError(
                 "You must supply either 'event_id' or 'vavailability'.")

@@ -586,7 +586,8 @@ class OpenADRClient:
     ###########################################################################
 
     async def create_opt(self, opt_type, opt_reason, targets, vavailability=None, event_id=None,
-                         modification_number=None, opt_id=None, request_id=None, market_context=None):
+                         modification_number=None, opt_id=None, request_id=None, market_context=None,
+                         signal_target_mrid=None):
         """
         Send a new opt to the VTN, either to communicate a temporary availability
         schedule or to qualify the resources participating in an event.
@@ -624,7 +625,8 @@ class OpenADRClient:
             event_id=event_id,
             modification_number=modification_number,
             targets=targets,
-            market_context=market_context
+            market_context=market_context,
+            signal_target_mrid=signal_target_mrid
         )
         self.opts.append(opt)
 
