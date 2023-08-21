@@ -85,10 +85,8 @@ class Target:
     party_id: str = None
 
     def __repr__(self):
-        targets = {key: value for key, value in asdict(
-            self).items() if value is not None}
-        targets_str = ", ".join(
-            f"{key}={value}" for key, value in targets.items())
+        targets = {key: value for key, value in asdict(self).items() if value is not None}
+        targets_str = ", ".join(f"{key}={value}" for key, value in targets.items())
         return f"Target('{targets_str}')"
 
 
@@ -184,18 +182,15 @@ class EventSignal:
         if self.targets is None and self.targets_by_type is None:
             return
         elif self.targets_by_type is None:
-            list_of_targets = [asdict(target) if is_dataclass(
-                target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
             targets_by_type = utils.group_targets_by_type(list_of_targets)
             if len(targets_by_type) > 1:
                 raise ValueError("In OpenADR, the EventSignal target may only be of type endDeviceAsset. "
                                  f"You provided types: '{', '.join(targets_by_type)}'")
         elif self.targets is None:
-            self.targets = [Target(
-                **target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
+            self.targets = [Target(**target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
         elif self.targets is not None and self.targets_by_type is not None:
-            list_of_targets = [asdict(target) if is_dataclass(
-                target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
             if utils.group_targets_by_type(list_of_targets) != self.targets_by_type:
                 raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
                                  "but the two were not consistent with each other. "
@@ -223,26 +218,21 @@ class Event:
             self.active_period = ActivePeriod(dtstart=dtstart,
                                               duration=duration)
         if self.targets is None and self.targets_by_type is None:
-            raise ValueError(
-                "You must supply either 'targets' or 'targets_by_type'.")
+            raise ValueError("You must supply either 'targets' or 'targets_by_type'.")
         elif self.targets_by_type is None:
-            list_of_targets = [asdict(target) if is_dataclass(
-                target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
             self.targets_by_type = utils.group_targets_by_type(list_of_targets)
         elif self.targets is None:
-            self.targets = [Target(
-                **target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
+            self.targets = [Target(**target) for target in utils.ungroup_targets_by_type(self.targets_by_type)]
         elif self.targets is not None and self.targets_by_type is not None:
-            list_of_targets = [asdict(target) if is_dataclass(
-                target) else target for target in self.targets]
+            list_of_targets = [asdict(target) if is_dataclass(target) else target for target in self.targets]
             if utils.group_targets_by_type(list_of_targets) != self.targets_by_type:
                 raise ValueError("You assigned both 'targets' and 'targets_by_type' in your event, "
                                  "but the two were not consistent with each other. "
                                  f"You supplied 'targets' = {self.targets} and "
                                  f"'targets_by_type' = {self.targets_by_type}")
         # Set the event status
-        self.event_descriptor.event_status = utils.determine_event_status(
-            self.active_period)
+        self.event_descriptor.event_status = utils.determine_event_status(self.active_period)
 
 
 @dataclass
@@ -282,8 +272,7 @@ class ReportInterval:
 @dataclass
 class Report:
     report_specifier_id: str            # This is what the VEN calls this report
-    # Usually one of the default ones (enums.REPORT_NAME)
-    report_name: str
+    report_name: str                    # Usually one of the default ones (enums.REPORT_NAME)
     report_request_id: str = None       # Usually empty
     report_descriptions: List[ReportDescription] = None
     created_date_time: datetime = None
