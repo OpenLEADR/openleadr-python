@@ -59,21 +59,8 @@ class OptService(VTNService):
         """
         Handle an opt schedule created by the VEN
         """
-        # payload parameters:
-        # ven_id
-        # opt_id
-        # opt_type
-        # opt_reason
-        # market_context (optional)
-        # array of availability components (optional):
-        #   component.dstart
-        #   component.duration
-        # created_date_time
-        # event_id (optional)
-        # modification_number (optional)
-        # array of eitarget (in parts folder)
 
-        # TODO: call handler and return the result (oadrCreatedOpt)
+        pass  # TODO: call handler and return the result (oadrCreatedOpt)
 
     def on_create_opt(self, payload):
         """
@@ -96,11 +83,7 @@ class OptService(VTNService):
         ven_id = payload['ven_id']
         opt_id = payload['opt_id']
 
-        # payload parameters:
-        # ven_id
-        # opt_id
-
-        # TODO: call handler and return result (oadrCanceledOpt)
+        pass  # TODO: call handler and return result (oadrCanceledOpt)
 
     def on_cancel_opt(self, ven_id, opt_id):
         """
