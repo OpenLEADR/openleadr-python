@@ -674,6 +674,7 @@ class OpenADRClient:
 
         if 'opt_id' in response_payload:
             # VTN acknowledged the opt cancelation
+            self.opts.remove(opt)
             return True
 
     ###########################################################################
