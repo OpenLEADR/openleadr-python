@@ -19,6 +19,7 @@ import inspect
 import logging
 import ssl
 from datetime import datetime, timedelta, timezone
+from dataclasses import asdict
 from functools import partial
 from http import HTTPStatus
 
@@ -42,6 +43,7 @@ class OpenADRClient:
     Main client class. Most of these methods will be called automatically, but
     you can always choose to call them manually.
     """
+
     def __init__(self, ven_name, vtn_url, debug=False, cert=None, key=None,
                  passphrase=None, vtn_fingerprint=None, show_fingerprint=True, ca_file=None,
                  allow_jitter=True, ven_id=None, disable_signature=False, check_hostname=True):
@@ -85,6 +87,7 @@ class OpenADRClient:
         self.client_session = None
         self.report_queue_task = None
 
+        self.opts = []
         self.received_events = []               # Holds the events that we received.
         self.responded_events = {}              # Holds the events that we already saw.
 
@@ -557,6 +560,104 @@ class OpenADRClient:
         response_type, response_payload = await self.request_event()
         if 'events' in response_payload and len(response_payload['events']) > 0:
             await self._on_event(response_payload)
+
+    ###########################################################################
+    #                                                                         #
+    #                                OPT METHODS                              #
+    #                                                                         #
+    ###########################################################################
+
+    async def create_opt(self, opt_type, opt_reason, targets, vavailability=None, event_id=None,
+                         modification_number=None, opt_id=None, request_id=None, market_context=None,
+                         signal_target_mrid=None):
+        """
+        Send a new opt to the VTN, either to communicate a temporary availability
+        schedule or to qualify the resources participating in an event.
+
+        :param str opt_type: An OpenADR opt type. (found in openleadr.enums.OPT)
+        :param str opt_reason: An OpenADR opt reason. (found in openleadr.enums.OPT_REASON)
+        :param targets: A list of target(s) that this opt is related to.
+        :param vavailability: The availability schedule to send
+        :param event_id: The id of the event this opt is referencing.
+        :param modification_number: The modification number of the event this opt is referencing.
+        :param str opt_id: A unique identifier for this opt message. Leave this blank for a
+                           random generated id, or fill it in if your VTN depends on
+                           this being a known value, or if it needs to be constant
+                           between restarts of the client.
+        :param str request_id: A unique identifier for this request. The same remarks apply
+                               as for the opt_id.
+        :param str market_context: The Market Context that this opt belongs to.
+        """
+
+        # Verify input
+        if opt_type not in enums.OPT.values:
+            raise ValueError(f"{opt_type} is not a valid opt type. Valid options are "
+                             f"{', '.join(enums.REPORT_NAME.values)}")
+        if opt_reason not in enums.OPT_REASON.values:
+            raise ValueError(f"{opt_reason} is not a valid opt reason. Valid options are "
+                             f"{', '.join(enums.REPORT_NAME.values)}")
+
+        # Save opt
+        opt_id = opt_id or utils.generate_id()
+        opt = objects.Opt(
+            opt_id=opt_id,
+            opt_type=opt_type,
+            opt_reason=opt_reason,
+            vavailability=vavailability,
+            event_id=event_id,
+            modification_number=modification_number,
+            targets=targets,
+            market_context=market_context,
+            signal_target_mrid=signal_target_mrid
+        )
+        self.opts.append(opt)
+
+        # Send opt
+        request_id = request_id or utils.generate_id()
+        payload = {
+            'request_id': request_id,
+            'ven_id': self.ven_id,
+            **asdict(opt)
+        }
+
+        service = 'EiOpt'
+        message = self._create_message('oadrCreateOpt', **payload)
+        response_type, response_payload = await self._perform_request(service, message)
+
+        if 'opt_id' in response_payload:
+            # VTN acknowledged the opt message
+            return response_payload['opt_id']
+
+        # TODO: what to do if the VTN sends an error or does not acknowledge the opt?
+
+    async def cancel_opt(self, opt_id):
+        """
+        Tell the VTN to cancel a previously acknowledged opt message
+
+        :param str opt_id: The id of the opt to cancel
+        """
+
+        # Check if this opt exists
+        opt = utils.find_by(
+            self.opts, 'opt_id', opt_id)
+        if not opt:
+            logger.error(f"A non-existant opt with opt_id "
+                         f"{opt_id} was requested for cancellation.")
+            return False
+
+        payload = {
+            'opt_id': opt_id,
+            'ven_id': self.ven_id
+        }
+
+        service = 'EiOpt'
+        message = self._create_message('oadrCancelOpt', **payload)
+        response_type, response_payload = await self._perform_request(service, message)
+
+        if 'opt_id' in response_payload:
+            # VTN acknowledged the opt cancelation
+            self.opts.remove(opt)
+            return True
 
     ###########################################################################
     #                                                                         #
