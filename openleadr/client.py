@@ -66,6 +66,9 @@ class OpenADRClient:
         :param str ven_id: The ID for this VEN. If you leave this blank,
                            a VEN_ID will be assigned by the VTN.
         :param bool disable_signature: Whether or not to sign outgoing messages using a public-private key pair in PEM format.
+        :param bool check_hostname: Whether or not to check hostname
+        :param int event_status_log_period: Setting the priod of status change logging
+        :param int events_clean_up_period: Setting the priod of not relevant events clean up
         """
 
         self.ven_name = ven_name
@@ -950,7 +953,7 @@ class OpenADRClient:
                 event_id = event['event_descriptor']['event_id']
                 event_status = event['event_descriptor']['event_status']
                 modification_number = event['event_descriptor']['modification_number']
-                logger.info("The VEN received an event with event_id: %s, status: %s, modification_number: %s", event_id, event_status, modification_number)
+                logger.info("The VEN received an event with event_id: %s, status: %s, modification_number: %s", event_id, event_status, modification_number) # change to debug
                 received_event = utils.find_by(self.received_events, 'event_descriptor.event_id', event_id)
                 if received_event:
                     if received_event['event_descriptor']['modification_number'] == modification_number:
@@ -1016,12 +1019,12 @@ class OpenADRClient:
         for event in self.received_events:
             # ignoring the cancelled case
             if event['event_descriptor']['event_status'] == 'cancelled':
-                return
+                continue
             
             event_status = utils.determine_event_status(event['active_period'])
             if event_status != event['event_descriptor']['event_status']:
                 event['event_descriptor']['event_status'] = event_status
-                logger.info("event_id: %s has new status: %s", event['event_descriptor']['event_id'], event_status)
+                logger.info("event_id: %s has new status: %s", event['event_descriptor']['event_id'], event_status) # change to debug
 
     async def _event_cleanup(self):
         """
