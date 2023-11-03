@@ -168,8 +168,8 @@ class OpenADRServer:
         """
         await self.app_runner.cleanup()
 
-    def add_event(self, ven_id, signal_name, signal_type, intervals, callback=None, event_id=None,
-                  targets=None, targets_by_type=None, target=None, response_required='always',
+    def add_event(self, ven_id, signal_name, signal_type, intervals, callback=None, delivery_callback=None,
+                  event_id=None, targets=None, targets_by_type=None, target=None, response_required='always',
                   market_context="oadr://unknown.context", notification_period=None,
                   ramp_up_period=None, recovery_period=None, signal_target_mrid=None):
         """
@@ -179,7 +179,8 @@ class OpenADRServer:
         :param str signal_name: The OpenADR name of the signal; one of openleadr.objects.SIGNAL_NAME
         :param str signal_type: The OpenADR type of the signal; one of openleadr.objects.SIGNAL_TYPE
         :param str intervals: A list of intervals with a dtstart, duration and payload member.
-        :param str callback: A callback function for when your event has been accepted (optIn) or refused (optOut).
+        :param callable callback: A callback function for when your event has been accepted (optIn) or refused (optOut).
+        :param callable delivery_callback: A callback function for when your event has been delivered (oadrDistributeEvent).
         :param list targets: A list of Targets that this Event applies to.
         :param target: A single target for this event.
         :param dict targets_by_type: A dict of targets, grouped by type.
@@ -252,10 +253,10 @@ class OpenADRServer:
                               event_signals=[event_signal],
                               targets=targets,
                               response_required=response_required)
-        self.add_raw_event(ven_id=ven_id, event=event, callback=callback)
+        self.add_raw_event(ven_id=ven_id, event=event, callback=callback, delivery_callback=delivery_callback)
         return event_id
 
-    def add_raw_event(self, ven_id, event, callback=None):
+    def add_raw_event(self, ven_id, event, callback=None, delivery_callback=None):
         """
         Add a new event to the queue for a specific VEN.
         :param str ven_id: The ven_id to which this event should be distributed.
@@ -281,6 +282,17 @@ class OpenADRServer:
         if ven_id not in self.events:
             self.events[ven_id] = []
 
+        # Add some default properties to the event if they are not already set
+        if not utils.getmember(event, 'event_descriptor.event_status', None):
+            utils.setmember(event, 'event_descriptor.event_status', 'far')
+        if not utils.getmember(event, 'event_descriptor.active_period', None):
+            active_period = utils.get_active_period_from_intervals(
+                [utils.get_active_period_from_intervals(utils.getmember(signal, 'intervals'), False) for signal in utils.getmember(event, 'event_signals')]
+            )
+            utils.setmember(event, 'active_period', active_period)
+        if not utils.getmember(event, 'event_descriptor.priority', None):
+            utils.setmember(event, 'event_descriptor.priority', 0)
+
         # Add event to the queue
         self.events[ven_id].append(event)
         self.events_updated[ven_id] = True
@@ -288,6 +300,8 @@ class OpenADRServer:
         # Add the callback for the response to this event
         if callback is not None:
             self.event_callbacks[event_id] = (event, callback)
+        if delivery_callback is not None:
+            self.event_delivery_callbacks[event_id] = delivery_callback
         return event_id
 
     def cancel_event(self, ven_id, event_id):
@@ -344,3 +358,7 @@ class OpenADRServer:
     @property
     def event_callbacks(self):
         return self.services['event_service'].event_callbacks
+
+    @property
+    def event_delivery_callbacks(self):
+        return self.services['event_service'].event_delivery_callbacks

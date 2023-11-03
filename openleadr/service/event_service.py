@@ -31,6 +31,7 @@ class EventService(VTNService):
         self.completed_event_ids = {}   # Holds the ids of completed events
         self.event_callbacks = {}
         self.event_opt_types = {}
+        self.event_delivery_callbacks = {}
 
     @handler('oadrRequestEvent')
     async def request_event(self, payload):
@@ -60,6 +61,11 @@ class EventService(VTNService):
         if events is None:
             return 'oadrResponse', {}
         else:
+            # Fire the delivery callbacks, if any
+            for event in events:
+                event_id = utils.getmember(event, 'event_descriptor.event_id')
+                if event_id in self.event_delivery_callbacks:
+                    await utils.await_if_required(self.event_delivery_callbacks[event_id]())
             return 'oadrDistributeEvent', {'events': events}
         return 'oadrResponse', result
 
