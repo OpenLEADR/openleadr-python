@@ -48,7 +48,8 @@ class OpenADRServer:
     def __init__(self, vtn_id, cert=None, key=None, passphrase=None, fingerprint_lookup=None,
                  show_fingerprint=True, http_port=8080, http_host='127.0.0.1', http_cert=None,
                  http_key=None, http_key_passphrase=None, http_path_prefix='/OpenADR2/Simple/2.0b',
-                 requested_poll_freq=timedelta(seconds=10), http_ca_file=None, ven_lookup=None):
+                 requested_poll_freq=timedelta(seconds=10), http_ca_file=None, ven_lookup=None,
+                 verify_message_signatures=True):
         """
         Create a new OpenADR VTN (Server).
 
@@ -73,11 +74,18 @@ class OpenADRServer:
         :param str http_key_passphrase: The passphrase for the HTTP private key.
         :param ven_lookup: A callback that takes a ven_id and returns a dict containing the
                            ven_id, ven_name, fingerprint and registration_id.
+        :param verify_message_signatures: Whether to verify message signatures.
         """
         # Set up the message queues
 
         self.app = web.Application()
         self.services = {}
+
+        # Globally enable or disable the verification of message
+        # signatures. Only used in combination with TLS.
+        VTNService.verify_message_signatures = verify_message_signatures
+
+        # Create the separate OpenADR services
         self.services['event_service'] = EventService(vtn_id)
         self.services['report_service'] = ReportService(vtn_id)
         self.services['poll_service'] = PollService(vtn_id)
