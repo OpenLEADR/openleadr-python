@@ -32,6 +32,9 @@ logger = logging.getLogger('openleadr')
 
 
 class VTNService:
+
+    verify_message_signatures = True
+
     def __init__(self, vtn_id):
         self.vtn_id = vtn_id
         self.handlers = {}
@@ -79,10 +82,12 @@ class VTNService:
             if request.secure and 'ven_id' in message_payload:
                 if hasattr(self, 'fingerprint_lookup'):
                     await authenticate_message(request, message_tree, message_payload,
-                                               fingerprint_lookup=self.fingerprint_lookup)
+                                               fingerprint_lookup=self.fingerprint_lookup,
+                                               verify_message_signature=self.verify_message_signatures)
                 elif hasattr(self, 'ven_lookup'):
                     await authenticate_message(request, message_tree, message_payload,
-                                               ven_lookup=self.ven_lookup)
+                                               ven_lookup=self.ven_lookup,
+                                               verify_message_signature=self.verify_message_signatures)
                 else:
                     logger.error("Could not authenticate this VEN because "
                                  "you did not provide a 'ven_lookup' function. Please see "
