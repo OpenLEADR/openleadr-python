@@ -320,12 +320,16 @@ class OpenADRServer:
         """
         Mark the indicated event as cancelled.
         """
+        if ven_id not in self.events:
+            logger.warning(f"Attempted to cancel event {event_id} for "
+                           f"ven_id {ven_id}, but this ven_id does not exist.")
+            return
+
         event = utils.find_by(self.events[ven_id], 'event_descriptor.event_id', event_id)
         if not event:
             logger.error("""The event you tried to cancel was not found. """
-                         """Was looking for event_id {event_id} for ven {ven_id}."""
-                         """Only found these: [getmember(e, 'event_descriptor.event_id')
-                                               for e in self.events[ven_id]]""")
+                         f"""Was looking for event_id {event_id} for ven {ven_id}."""
+                         f"""Only found these: {[utils.getmember(e, 'event_descriptor.event_id') for e in self.events[ven_id]]}""")
             return
 
         # Set the Event Status to cancelled
