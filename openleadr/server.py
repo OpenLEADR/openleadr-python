@@ -49,7 +49,7 @@ class OpenADRServer:
                  show_fingerprint=True, http_port=8080, http_host='127.0.0.1', http_cert=None,
                  http_key=None, http_key_passphrase=None, http_path_prefix='/OpenADR2/Simple/2.0b',
                  requested_poll_freq=timedelta(seconds=10), http_ca_file=None, ven_lookup=None,
-                 verify_message_signatures=True):
+                 verify_message_signatures=True, show_server_cert_domain=True):
         """
         Create a new OpenADR VTN (Server).
 
@@ -130,6 +130,10 @@ class OpenADRServer:
                       f"{utils.certificate_fingerprint(cert)}".center(80))
                 print("Please deliver this fingerprint to the VENs that connect to you.".center(80))
                 print("You do not need to keep this a secret.".center(80))
+                if show_server_cert_domain:
+                    print("")
+                    print("The VTN Certificate is valid for the following domain(s):".center(80))
+                    print(utils.certificate_domain(cert).center(80))
                 print("*" * 80)
                 print("")
         VTNService._create_message = partial(create_message, cert=cert, key=key,

@@ -19,6 +19,7 @@ from dataclasses import is_dataclass, asdict
 from collections import OrderedDict
 from openleadr import enums, objects
 import asyncio
+import os
 import re
 import ssl
 import hashlib
@@ -401,6 +402,25 @@ def certificate_fingerprint(certificate_str):
     """
     der_bytes = ssl.PEM_cert_to_DER_cert(ensure_str(certificate_str))
     return certificate_fingerprint_from_der(der_bytes)
+
+
+def certificate_domain(cert):
+    from cryptography import x509
+    from cryptography.hazmat.backends import default_backend
+
+
+    if os.path.exists(cert):
+        with open(cert) as file:
+            cert = file.read()
+    elif cert.startswith(b"-----BEGIN CERTIFICATE-----"):
+        pass
+    else:
+        raise ValueError("Could not read certificate when attempting "
+                         "to determine the domain for it. Certificate "
+                         "should be a file or a PEM-encoded string.")
+    parsed_certificate = x509.load_pem_x509_certificate(cert, default_backend())
+    domains = parsed_certificate.subject.get_attributes_for_oid(x509.oid.NameOID.COMMON_NAME)
+    return ", ".join([domain.value for domain in domains])
 
 
 def extract_pem_cert(tree):
