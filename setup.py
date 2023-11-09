@@ -30,5 +30,5 @@ setup(name='openleadr',
       packages=['openleadr', 'openleadr.service'],
       python_requires='>=3.7.0',
       include_package_data=True,
-      install_requires=['xmltodict==0.13.0', 'aiohttp>=3.8.3,<4.0.0', 'apscheduler>=3.10.0,<4.0.0', 'jinja2>=3.1.2,<4.0.0', 'signxml>=3.1.0,<3.2.0'],
+      install_requires=['xmltodict==0.13.0', 'aiohttp>=3.8.3,<4.0.0', 'apscheduler>=3.10.0,<4.0.0', 'jinja2>=3.1.2,<4.0.0', 'signxml==3.2.1'],
       entry_points={'console_scripts': ['fingerprint = openleadr.fingerprint:show_fingerprint']})
