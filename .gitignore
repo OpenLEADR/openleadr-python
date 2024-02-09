@@ -12,3 +12,4 @@ dist/
 static/
 .idea/
 *.venv/
+venv/
