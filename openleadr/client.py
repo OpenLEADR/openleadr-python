@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import asyncio
 import inspect
 import logging
@@ -30,6 +31,8 @@ from openleadr import enums, objects, errors
 from openleadr.messaging import create_message, parse_message, \
                                 validate_xml_schema, validate_xml_signature
 from openleadr import utils
+from openleadr.utils import generate_id, group_targets_by_type, datetimeformat
+
 
 import tzlocal
 
@@ -514,6 +517,66 @@ class OpenADRClient:
         else:
             logger.warning("The VEN couldn't cancel the registration")
 
+    ###########################################################################
+    #                                                                         #
+    #                              OPT METHODS                                #
+    #                                                                         #
+    ###########################################################################
+
+    async def create_opt(self, 
+                         opt_id:str , 
+                         opt_type: str, 
+                         opt_reason: str,
+                         availability: list,                         
+                         request_id: str = None, 
+                         market_context=None,
+                         event_id=None, modification_number=None,
+                         targets: list = None):
+        
+        """
+        Create an Opt schedule and send to the VTN
+        """
+        logger.debug(f"create_opt: ENTRY", file=sys.stderr)
+
+        payload = {
+            'ven_id': self.ven_id,
+            'request_id': request_id or utils.generate_id(),
+            'opt_id': opt_id,
+            'opt_type': opt_type,
+            'opt_reason': opt_reason,
+            'vavailability': availability,
+            'market_context': market_context,
+            'event_id': event_id,
+            'modification_number': modification_number,
+            'created_date_time': datetimeformat(datetime.now(timezone.utc)),
+            'targets': targets,
+            # Not sure if this is required, by the original oadrCreateOpt test had it
+            'targets_by_type': group_targets_by_type(targets)
+        }
+        message = self._create_message('oadrCreateOpt', **payload)
+        logger.debug(f"create_opt: Payload: {payload}", file=sys.stderr)
+        logger.debug(f"create_opt: oadrCreateOpt message: {message}", file=sys.stderr)
+
+        service = 'EiOpt'
+        response_type, response_payload = await self._perform_request(service, message)
+        return response_type, response_payload
+    
+    async def cancel_opt(self, opt_id:str, request_id: str = None):
+        """
+        Cancel an existing Opt schedule with the VTN
+        """
+        logger.debug(f"cancel_opt: ENTRY", file=sys.stderr)
+
+        payload = {'ven_id': self.ven_id, 'opt_id': opt_id, 'request_id': request_id or utils.generate_id()}
+        message = self._create_message('oadrCancelOpt', **payload)
+        
+        logger.debug(f"cancel_opt: Payload: {payload}", file=sys.stderr)
+        logger.debug(f"cancel_opt: oadrCreateOpt message: {message}", file=sys.stderr)
+
+        service = 'EiOpt'
+        response_type, response_payload = await self._perform_request(service, message)
+        return response_type, response_payload
+    
     ###########################################################################
     #                                                                         #
     #                              EVENT METHODS                              #

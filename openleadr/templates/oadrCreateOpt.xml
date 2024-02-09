@@ -7,7 +7,7 @@
     <emix:marketContext>{{ market_context }}</emix:marketContext>
     {% endif %}
     <ei:venID>{{ ven_id }}</ei:venID>
-    {% if vavailability is defined and vavalailability is not none %}
+    {% if vavailability is defined and vavailability is not none %}
     <xcal:vavailability>
       <xcal:components>
         {% for component in vavailability.components %}

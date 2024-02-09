@@ -16,7 +16,7 @@
 
 from aiohttp import web
 from openleadr.service import EventService, PollService, RegistrationService, ReportService, \
-                              VTNService
+                              OptService, VTNService
 from openleadr.messaging import create_message
 from openleadr import objects, enums, utils
 from functools import partial
@@ -86,6 +86,7 @@ class OpenADRServer:
         VTNService.verify_message_signatures = verify_message_signatures
 
         # Create the separate OpenADR services
+        self.services['eiopt_service'] = OptService(vtn_id)
         self.services['event_service'] = EventService(vtn_id)
         self.services['report_service'] = ReportService(vtn_id)
         self.services['poll_service'] = PollService(vtn_id)
@@ -101,7 +102,8 @@ class OpenADRServer:
                              for s in self.services.values()])
 
         # Add a reference to the openadr VTN to the aiohttp 'app'
-        self.app['server'] = self
+        vtn_app_key = web.AppKey('server', self)
+        self.app[vtn_app_key] = self
 
         # Configure the web server
         self.http_port = http_port
@@ -147,7 +149,7 @@ class OpenADRServer:
         if ven_lookup is None:
             logger.warning("If you provide a 'ven_lookup' to your OpenADRServer() init, OpenLEADR can "
                            "automatically issue ReregistrationRequests for VENs that don't exist in "
-                           "your system. Please see https://openleadr.org/docs/server.html#things-you-should-implement.")
+                           "your system. Please see https://openleadr.org/docs/server.html#things-you-should-implement!!")
         else:
             VTNService.ven_lookup = staticmethod(ven_lookup)
         self.__setattr__ = self.add_handler
@@ -166,7 +168,7 @@ class OpenADRServer:
         protocol = 'https' if self.ssl_context else 'http'
         print("")
         print("*" * 80)
-        print("Your VTN Server is now running at ".center(80))
+        print("Your VTN Server with EiOpt support is now running at ".center(80))
         print(f"{protocol}://{self.http_host}:{self.http_port}{self.http_path_prefix}".center(80))
         print("*" * 80)
         print("")

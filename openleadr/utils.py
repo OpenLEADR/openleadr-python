@@ -151,7 +151,7 @@ def normalize_dict(ordered_dict):
             elif d[key] is None:
                 d[key] = []
 
-        # Group all events al a list of dicts under the key "events"
+        # Group all events as a list of dicts under the key "events"
         elif key == "event" and isinstance(d[key], list):
             events = d.pop("event")
             new_events = []

@@ -100,6 +100,7 @@ class VTNService:
                     message_payload['fingerprint'] = utils.get_cert_fingerprint_from_request(request)
                 response_type, response_payload = await self.handle_message(message_type,
                                                                             message_payload)
+
             except Exception as err:
                 logger.error("An exception occurred during the execution of your "
                              f"{self.__class__.__name__} handler: "
@@ -157,6 +158,7 @@ class VTNService:
         else:
             # We've successfully handled this message
             msg = self._create_message(response_type, **response_payload)
+
             response = web.Response(text=msg,
                                     status=HTTPStatus.OK,
                                     content_type='application/xml')

@@ -309,3 +309,30 @@ class ReportSpecifier:
 class ReportRequest:
     report_request_id: str
     report_specifier: ReportSpecifier
+
+
+@dataclass
+class Availability:
+    dtstart: datetime
+    duration: timedelta = None
+
+
+@dataclass
+class OptCreateRequest:
+    report_specifier_id: str    # This is what the VEN called this report
+    granularity: timedelta
+    specifier_payloads: List[SpecifierPayload]
+
+    request_id: str
+    opt_id: str
+    opt_type: str
+    opt_reason: str
+    ven_id: str
+    market_context: str
+    created_date_time: datetime = None
+    availability: Availability = None
+
+    event_id: str = None
+    modification_number: int = None # Required if event_id is provided
+    
+    targets: List[Target] = None

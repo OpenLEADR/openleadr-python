@@ -307,6 +307,7 @@ def test_message(message_type, data):
     #     print("    " + line, file=file)
     # print("", file=file)
     # print("", file=file)
+    print(f"message_type: {message_type}")
     if message_type == 'oadrRegisterReport':
         data.pop('report_request_id')
         for report in data['reports']:
@@ -318,4 +319,5 @@ def test_message(message_type, data):
             for signal in event['event_signals']:
                 if 'measurement' in signal:
                     signal['measurement'].pop('ns')
+    
     assert parsed == data
