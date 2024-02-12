@@ -523,11 +523,11 @@ class OpenADRClient:
     ###########################################################################
 
     async def create_opt(self, 
-                         opt_id:str , 
-                         opt_type: str, 
+                         opt_id: str,
+                         opt_type: str,
                          opt_reason: str,
-                         availability: list,                         
-                         request_id: str = None, 
+                         availability: list,
+                         request_id: str = None,
                          market_context=None,
                          event_id=None, modification_number=None,
                          targets: list = None):

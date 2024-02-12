@@ -113,8 +113,9 @@ class PollService(VTNService):
     @handler('oadrPoll')
     async def poll(self, payload):
         """
-        Handle the request to the oadrPoll service. This either calls a previously registered
-        `on_poll` handler, or it retrieves the next message from the internal queue.
+        Handle the request to the oadrPoll service. This either calls a 
+        previously registered `on_poll` handler, or it retrieves the next
+        message from the internal queue.
         """
         if self.polling_method == 'external':
             result = self.on_poll(ven_id=payload['ven_id'])

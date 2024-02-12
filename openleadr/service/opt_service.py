@@ -20,6 +20,7 @@ import logging
 
 logger = logging.getLogger('openleadr')
 
+
 @service('EiOpt')
 class OptService(VTNService):
 
@@ -46,12 +47,14 @@ class OptService(VTNService):
             'vavailability': {
                 'components': {
                     'available': {
-                        'dtstart': datetime.datetime(2024, 2, 9, 20, 22, 25, 628864, tzinfo=datetime.timezone.utc), 
+                        'dtstart': datetime.datetime(2024, 2, 9, 20, 22, 25, 
+                            628864, tzinfo=datetime.timezone.utc), 
                         'duration': datetime.timedelta(seconds=300)
                     }
                 }
             }, 
-            'created_date_time': datetime.datetime(2024, 2, 9, 20, 22, 25, 628912, tzinfo=datetime.timezone.utc), 
+            'created_date_time': datetime.datetime(2024, 2, 9, 20, 22, 25, 
+                628912, tzinfo=datetime.timezone.utc), 
             'request_id': 'request123', 
             'targets': [{'ven_id': 'ven123'}], 
             'targets_by_type': {
@@ -75,7 +78,8 @@ class OptService(VTNService):
             logger.info(f"Adding opt schedule with key {key}")
             self.opt_schedules[key] = payload
 
-        return {'opt_id': payload['opt_id'], 'request_id': payload['request_id']}
+        return {'opt_id': payload['opt_id'], 
+                'request_id': payload['request_id']}
     
     ###########################################################################
     #                                                                         #
@@ -101,9 +105,11 @@ class OptService(VTNService):
         """
         Managed the details of the cancellation of an Opt Schedule.
         """
-        keys_to_delete = [k for k in self.opt_schedules.keys() if k.startswith(f"{payload['opt_id']}_")]
+        keys_to_delete = [k for k in self.opt_schedules.keys() 
+                          if k.startswith(f"{payload['opt_id']}_")]
         for key in keys_to_delete:
             logger.info(f"Removing opt schedule with key {key}")
             del self.opt_schedules[key]
 
-        return {'opt_id': payload['opt_id'], 'request_id': payload['request_id']}
+        return {'opt_id': payload['opt_id'], 
+                'request_id': payload['request_id']}
