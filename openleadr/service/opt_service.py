@@ -101,10 +101,7 @@ class OptService(VTNService):
         """
         Managed the details of the cancellation of an Opt Schedule.
         """
-        keys_to_delete = []
-        for key in self.opt_schedules.keys():
-            if key.startswith(f"{payload['opt_id']}_"):
-                keys_to_delete.append(key)
+        keys_to_delete = [k for k in self.opt_schedules.keys() if k.startswith(f"{payload['opt_id']}_")]
         for key in keys_to_delete:
             logger.info(f"Removing opt schedule with key {key}")
             del self.opt_schedules[key]
