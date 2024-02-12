@@ -31,8 +31,7 @@ from openleadr import enums, objects, errors
 from openleadr.messaging import create_message, parse_message, \
                                 validate_xml_schema, validate_xml_signature
 from openleadr import utils
-from openleadr.utils import generate_id, group_targets_by_type, datetimeformat
-
+from openleadr.utils import group_targets_by_type, datetimeformat
 
 import tzlocal
 
@@ -536,8 +535,6 @@ class OpenADRClient:
         """
         Create an Opt schedule and send to the VTN
         """
-        logger.debug(f"create_opt: ENTRY", file=sys.stderr)
-
         payload = {
             'ven_id': self.ven_id,
             'request_id': request_id or utils.generate_id(),
@@ -550,12 +547,11 @@ class OpenADRClient:
             'modification_number': modification_number,
             'created_date_time': datetimeformat(datetime.now(timezone.utc)),
             'targets': targets,
-            # Not sure if this is required, by the original oadrCreateOpt test had it
+            # Not sure if this is required, but the original oadrCreateOpt test had it
             'targets_by_type': group_targets_by_type(targets)
         }
+
         message = self._create_message('oadrCreateOpt', **payload)
-        logger.debug(f"create_opt: Payload: {payload}", file=sys.stderr)
-        logger.debug(f"create_opt: oadrCreateOpt message: {message}", file=sys.stderr)
 
         service = 'EiOpt'
         response_type, response_payload = await self._perform_request(service, message)
@@ -565,14 +561,9 @@ class OpenADRClient:
         """
         Cancel an existing Opt schedule with the VTN
         """
-        logger.debug(f"cancel_opt: ENTRY", file=sys.stderr)
-
         payload = {'ven_id': self.ven_id, 'opt_id': opt_id, 'request_id': request_id or utils.generate_id()}
         message = self._create_message('oadrCancelOpt', **payload)
         
-        logger.debug(f"cancel_opt: Payload: {payload}", file=sys.stderr)
-        logger.debug(f"cancel_opt: oadrCreateOpt message: {message}", file=sys.stderr)
-
         service = 'EiOpt'
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload

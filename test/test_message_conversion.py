@@ -307,7 +307,6 @@ def test_message(message_type, data):
     #     print("    " + line, file=file)
     # print("", file=file)
     # print("", file=file)
-    print(f"message_type: {message_type}")
     if message_type == 'oadrRegisterReport':
         data.pop('report_request_id')
         for report in data['reports']:

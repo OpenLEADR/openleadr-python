@@ -16,9 +16,8 @@
 
 from . import service, handler, VTNService
 from asyncio import iscoroutine
-from openleadr import objects, utils
 import logging
-import inspect
+
 logger = logging.getLogger('openleadr')
 
 @service('EiOpt')
@@ -60,13 +59,10 @@ class OptService(VTNService):
             }
         }
         """
-        logger.debug("Received an oadrCreateOpt message.")
-        logger.debug(f"Payload: {payload}")
         result = self.on_create_opt(payload)
         if iscoroutine(result):
             result = await result
 
-        logger.debug(f"...Result: {result}")
         return 'oadrCreatedOpt', result
 
     def on_create_opt(self, payload):
@@ -76,7 +72,7 @@ class OptService(VTNService):
         targets = payload.get('targets', [{'ven_id': payload.get('ven_id')}])
         for target in targets:
             key = f"{payload['opt_id']}_{target['ven_id']}"
-            logger.debug(f"Adding opt schedule with key {key}")
+            logger.info(f"Adding opt schedule with key {key}")
             self.opt_schedules[key] = payload
 
         return {'opt_id': payload['opt_id'], 'request_id': payload['request_id']}
@@ -95,13 +91,9 @@ class OptService(VTNService):
         Opt schedules are removed from the dictionary
         Dictionary will be keyed by optId_venId
         """
-        logger.debug("Received an oadrCancelOpt message.")
-        logger.debug(f"Payload: {payload}")
         result = self.on_cancel_opt(payload)
         if iscoroutine(result):
             result = await result
-
-        logger.debug(f"...Result: {result}")
 
         return 'oadrCanceledOpt', result
     
@@ -114,7 +106,7 @@ class OptService(VTNService):
             if key.startswith(f"{payload['opt_id']}_"):
                 keys_to_delete.append(key)
         for key in keys_to_delete:
-            logger.debug(f"Removing opt schedule with key {key}")
+            logger.info(f"Removing opt schedule with key {key}")
             del self.opt_schedules[key]
 
         return {'opt_id': payload['opt_id'], 'request_id': payload['request_id']}

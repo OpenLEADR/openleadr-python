@@ -149,7 +149,7 @@ class OpenADRServer:
         if ven_lookup is None:
             logger.warning("If you provide a 'ven_lookup' to your OpenADRServer() init, OpenLEADR can "
                            "automatically issue ReregistrationRequests for VENs that don't exist in "
-                           "your system. Please see https://openleadr.org/docs/server.html#things-you-should-implement!!")
+                           "your system. Please see https://openleadr.org/docs/server.html#things-you-should-implement.")
         else:
             VTNService.ven_lookup = staticmethod(ven_lookup)
         self.__setattr__ = self.add_handler
@@ -168,7 +168,7 @@ class OpenADRServer:
         protocol = 'https' if self.ssl_context else 'http'
         print("")
         print("*" * 80)
-        print("Your VTN Server with EiOpt support is now running at ".center(80))
+        print("Your VTN Server is now running at ".center(80))
         print(f"{protocol}://{self.http_host}:{self.http_port}{self.http_path_prefix}".center(80))
         print("*" * 80)
         print("")
