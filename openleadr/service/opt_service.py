@@ -5,7 +5,6 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
 #     http://www.apache.org/licenses/LICENSE-2.0
 
 # Unless required by applicable law or agreed to in writing, software
@@ -39,24 +38,24 @@ class OptService(VTNService):
         Called when the server receives an oadrCreateOpt message.
 
         Payload will look like:
-            {'opt_id': 'opt123', 
-            'opt_type': 'optOut', 
-            'opt_reason': 'emergency', 
-            'market_context': 'oadr://unknown.context', 
-            'ven_id': 'ven123', 
+            {'opt_id': 'opt123',
+            'opt_type': 'optOut',
+            'opt_reason': 'emergency',
+            'market_context': 'oadr://unknown.context',
+            'ven_id': 'ven123',
             'vavailability': {
                 'components': {
                     'available': {
-                        'dtstart': datetime.datetime(2024, 2, 9, 20, 22, 25, 
-                            628864, tzinfo=datetime.timezone.utc), 
+                        'dtstart': datetime.datetime(2024, 2, 9, 20, 22, 25,
+                            628864, tzinfo=datetime.timezone.utc),
                         'duration': datetime.timedelta(seconds=300)
                     }
                 }
-            }, 
-            'created_date_time': datetime.datetime(2024, 2, 9, 20, 22, 25, 
-                628912, tzinfo=datetime.timezone.utc), 
-            'request_id': 'request123', 
-            'targets': [{'ven_id': 'ven123'}], 
+            },
+            'created_date_time': datetime.datetime(2024, 2, 9, 20, 22, 25,
+                628912, tzinfo=datetime.timezone.utc),
+            'request_id': 'request123',
+            'targets': [{'ven_id': 'ven123'}],
             'targets_by_type': {
                 'ven_id': ['ven123']
             }
@@ -78,9 +77,9 @@ class OptService(VTNService):
             logger.info(f"Adding opt schedule with key {key}")
             self.opt_schedules[key] = payload
 
-        return {'opt_id': payload['opt_id'], 
+        return {'opt_id': payload['opt_id'],
                 'request_id': payload['request_id']}
-    
+
     ###########################################################################
     #                                                                         #
     #                              CANCEL METHODS                             #
@@ -100,16 +99,16 @@ class OptService(VTNService):
             result = await result
 
         return 'oadrCanceledOpt', result
-    
+
     def on_cancel_opt(self, payload):
         """
         Managed the details of the cancellation of an Opt Schedule.
         """
-        keys_to_delete = [k for k in self.opt_schedules.keys() 
+        keys_to_delete = [k for k in self.opt_schedules.keys()
                           if k.startswith(f"{payload['opt_id']}_")]
         for key in keys_to_delete:
             logger.info(f"Removing opt schedule with key {key}")
             del self.opt_schedules[key]
 
-        return {'opt_id': payload['opt_id'], 
+        return {'opt_id': payload['opt_id'],
                 'request_id': payload['request_id']}

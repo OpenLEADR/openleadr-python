@@ -113,7 +113,7 @@ class PollService(VTNService):
     @handler('oadrPoll')
     async def poll(self, payload):
         """
-        Handle the request to the oadrPoll service. This either calls a 
+        Handle the request to the oadrPoll service. This either calls a
         previously registered `on_poll` handler, or it retrieves the next
         message from the internal queue.
         """

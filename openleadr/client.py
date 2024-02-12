@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import asyncio
 import inspect
 import logging
@@ -134,11 +133,10 @@ class OpenADRClient:
         response_type, response_payload = await self.query_registration()
         if 'registration_id' in response_payload:
             self.registration_id = response_payload['registration_id']
-        if response_payload and 'response' in response_payload  and 'request_id' in response_payload['response']:
+        if response_payload and 'response' in response_payload and 'request_id' in response_payload['response']:
             request_id = response_payload['response']['request_id']
 
         await self.create_party_registration(ven_id=self.ven_id, request_id=request_id)
-
 
         if not self.registration_id:
             logger.error("No RegistrationID received from the VTN, aborting.")
@@ -522,7 +520,7 @@ class OpenADRClient:
     #                                                                         #
     ###########################################################################
 
-    async def create_opt(self, 
+    async def create_opt(self,
                          opt_id: str,
                          opt_type: str,
                          opt_reason: str,
@@ -531,7 +529,7 @@ class OpenADRClient:
                          market_context=None,
                          event_id=None, modification_number=None,
                          targets: list = None):
-        
+
         """
         Create an Opt schedule and send to the VTN
         """
@@ -556,18 +554,18 @@ class OpenADRClient:
         service = 'EiOpt'
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload
-    
-    async def cancel_opt(self, opt_id:str, request_id: str = None):
+
+    async def cancel_opt(self, opt_id: str, request_id: str = None):
         """
         Cancel an existing Opt schedule with the VTN
         """
         payload = {'ven_id': self.ven_id, 'opt_id': opt_id, 'request_id': request_id or utils.generate_id()}
         message = self._create_message('oadrCancelOpt', **payload)
-        
+
         service = 'EiOpt'
         response_type, response_payload = await self._perform_request(service, message)
         return response_type, response_payload
-    
+
     ###########################################################################
     #                                                                         #
     #                              EVENT METHODS                              #
@@ -636,7 +634,6 @@ class OpenADRClient:
 
         for report in payload['reports']:
             utils.setmember(report, 'report_request_id', 0)
-
 
         service = 'EiReport'
         message = self._create_message('oadrRegisterReport', **payload)

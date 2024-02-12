@@ -408,7 +408,6 @@ def certificate_domain(cert):
     from cryptography import x509
     from cryptography.hazmat.backends import default_backend
 
-
     if os.path.exists(cert):
         with open(cert) as file:
             cert = file.read()
