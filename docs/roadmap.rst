@@ -21,6 +21,34 @@ Version Main features
 Changelog
 ---------
 
+openleadr 0.5.34
+~~~~~~~~~~~~~~~~
+
+Released: 12 february 2024
+
+This version fixes behaviour that when a VEN responds to a completed Event, the VTN service would return a 452 "Unknown ID" error.
+
+openleadr 0.5.33
+~~~~~~~~~~~~~~~~
+
+Released: 13 november 2023
+
+This version updates the version of SignXML, and adds as small option to display the domain names your VTN certificate is valid for on startup.
+
+openleadr 0.5.32
+~~~~~~~~~~~~~~~~
+
+Released: 6 november 2023
+
+This version makes verification of message signatures optional.
+
+openleadr 0.5.31
+~~~~~~~~~~~~~~~~
+
+Released: 3 november 2023
+
+This version implements message delivery callbacks
+
 openleadr 0.5.30
 ~~~~~~~~~~~~~~~~
 
