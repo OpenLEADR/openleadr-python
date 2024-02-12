@@ -46,6 +46,10 @@ class EventService(VTNService):
                     event_status = utils.getmember(event, 'event_descriptor.event_status')
                     # Pop the event from the events so that this is the last time it is communicated
                     if event_status == enums.EVENT_STATUS.COMPLETED:
+                        if ven_id not in self.completed_event_ids:
+                            self.completed_event_ids[ven_id] = []
+                        event_id = utils.getmember(event, 'event_descriptor.event_id')
+                        self.completed_event_ids[ven_id].append(event_id)
                         self.events[ven_id].pop(self.events[ven_id].index(event))
             else:
                 events = None
