@@ -21,10 +21,14 @@ with open('README.md', 'r', encoding='utf-8') as file:
 
 setup(name='openleadr',
 <<<<<<< HEAD
+<<<<<<< HEAD
       version='0.5.34',
 =======
       version='0.5.33',
 >>>>>>> f16c72b2c117f344e89764565b2a633c001a2b5f
+=======
+      version='0.5.34',
+>>>>>>> main
       description='Python3 library for building OpenADR Clients (VENs) and Servers (VTNs)',
       long_description=long_description,
       long_description_content_type='text/markdown',
