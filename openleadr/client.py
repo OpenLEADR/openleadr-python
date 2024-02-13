@@ -1007,11 +1007,12 @@ class OpenADRClient:
         """
         Periodic task that will clean up completed and cancelled events in our memory.
         """
-        for event in self.received_events:
+        for i in range(len(self.received_events)-1, -1, -1):
+            event = self.received_events[i]
             if event['event_descriptor']['event_status'] == 'cancelled' or \
                     utils.determine_event_status(event['active_period']) == 'completed':
                 logger.info(f"Removing event {event} because it is no longer relevant.")
-                self.received_events.pop(self.received_events.index(event))
+                self.received_events.pop(i)
 
     async def _poll(self):
         logger.debug("Now polling for new messages")
