@@ -7,14 +7,15 @@
     <emix:marketContext>{{ market_context }}</emix:marketContext>
     {% endif %}
     <ei:venID>{{ ven_id }}</ei:venID>
-    {% if vavailability is defined and vavalailability is not none %}
+    {% if vavailability is defined and vavailability is not none %}
     <xcal:vavailability>
       <xcal:components>
         {% for component in vavailability.components %}
         <xcal:available>
           <xcal:properties>
             <xcal:dtstart>
-              <xcal:date-time>{{ component.dtstart|datetimeformat }}</xcal:date-time></xcal:dtstart>
+              <xcal:date-time>{{ component.dtstart|datetimeformat }}</xcal:date-time>
+            </xcal:dtstart>
             <xcal:duration>
               <xcal:duration>{{ component.duration|timedeltaformat }}</xcal:duration>
             </xcal:duration>
@@ -33,5 +34,12 @@
     {% for target in targets %}
     {% include 'parts/eiTarget.xml' %}
     {% endfor %}
+    {% if signal_target_mrid is defined and signal_target_mrid is not none %}
+    <oadr:oadrDeviceClass>
+				<power:endDeviceAsset>
+					<power:mrid>{{ signal_target_mrid }}</power:mrid>
+				</power:endDeviceAsset>
+		</oadr:oadrDeviceClass>
+    {% endif %}
   </oadr:oadrCreateOpt>
 </oadr:oadrSignedObject>
