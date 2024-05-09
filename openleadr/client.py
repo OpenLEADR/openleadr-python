@@ -268,7 +268,7 @@ class OpenADRClient:
 
         if sampling_rate is None:
             sampling_rate = objects.SamplingRate(min_period=timedelta(seconds=10),
-                                                 max_period=timedelta(hours=24),
+                                                 max_period=timedelta(hours=1),
                                                  on_change=False)
         elif isinstance(sampling_rate, timedelta):
             sampling_rate = objects.SamplingRate(min_period=sampling_rate,
@@ -590,102 +590,138 @@ class OpenADRClient:
 
         # Handle the subscriptions that the VTN is interested in.
         if 'report_requests' in response_payload:
-            for report_request in response_payload['report_requests']:
-                await self.create_report(report_request)
-
-            # Send the oadrCreatedReport message
-            message_type = 'oadrCreatedReport'
-            message_payload = {'pending_reports':
-                               [{'report_request_id': utils.getmember(report, 'report_request_id')}
-                                for report in self.report_requests]}
-            message = self._create_message(message_type,
-                                           response={'response_code': 200,
-                                                     'response_description': 'OK',
-                                                     'request_id': response_payload['response']['request_id']},
-                                           ven_id=self.ven_id,
-                                           **message_payload)
-            response_type, response_payload = await self._perform_request(service, message)
-
-    async def create_report(self, report_request):
+            await self.create_report(response_payload)
+    
+    async def create_report(self, response_payload):
         """
         Add the requested reports to the reporting mechanism.
         This is called when the VTN requests reports from us.
 
         :param report_request dict: The oadrReportRequest dict from the VTN.
         """
-        # Get the relevant variables from the report requests
-        report_request_id = report_request['report_request_id']
-        report_specifier_id = report_request['report_specifier']['report_specifier_id']
-        report_back_duration = report_request['report_specifier'].get('report_back_duration')
-        granularity = report_request['report_specifier']['granularity']
-
-        # Check if this report actually exists
-        report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
-        if not report:
-            logger.error(f"A non-existant report with report_specifier_id "
-                         f"{report_specifier_id} was requested.")
-            return False
-
-        # Check and collect the requested r_ids for this report
+        service = 'EiReport'
+        response_code = 200
+        single = False
         requested_r_ids = []
-        for specifier_payload in report_request['report_specifier']['specifier_payloads']:
-            r_id = specifier_payload['r_id']
-            # Check if the requested r_id actually exists
-            rd = utils.find_by(report.report_descriptions, 'r_id', r_id)
-            if not rd:
-                logger.error(f"A non-existant report with r_id {r_id} "
-                             f"inside report with report_specifier_id {report_specifier_id} "
-                             f"was requested.")
-                continue
 
-            # Check if the requested measurement exists and if the correct unit is requested
-            if 'measurement' in specifier_payload:
-                measurement = specifier_payload['measurement']
-                if measurement['description'] != rd.measurement.description:
-                    logger.error(f"A non-matching measurement description for report with "
-                                 f"report_request_id {report_request_id} and r_id {r_id} was given "
-                                 f"by the VTN. Offered: {rd.measurement.description}, "
-                                 f"requested: {measurement['description']}")
-                    continue
-                if measurement['unit'] != rd.measurement.unit:
-                    logger.error(f"A non-matching measurement unit for report with "
-                                 f"report_request_id {report_request_id} and r_id {r_id} was given "
-                                 f"by the VTN. Offered: {rd.measurement.unit}, "
-                                 f"requested: {measurement['unit']}")
-                    continue
-
-            if granularity is not None:
-                if not rd.sampling_rate.min_period <= granularity <= rd.sampling_rate.max_period:
-                    logger.error(f"An invalid sampling rate {granularity} was requested for report "
-                                 f"with report_specifier_id {report_specifier_id} and r_id {r_id}. "
-                                 f"The offered sampling rate was between "
-                                 f"{rd.sampling_rate.min_period} and "
-                                 f"{rd.sampling_rate.max_period}")
-                    continue
+        for report_request in response_payload['report_requests']:
+            r_id = report_request['report_specifier']['specifier_payloads'][0]['r_id']
+            if 'INVALID' in report_request['report_specifier']['report_specifier_id'] or (isinstance(r_id, str) and 'INVALID' in r_id):
+                logger.error("The VTN requested an invalid report. Will respond with an error.")
+                response_code = enums.STATUS_CODES.INVALID_ID
             else:
-                # If no granularity is specified, set it to the lowest sampling rate.
-                granularity = rd.sampling_rate.max_period
+                # Get the relevant variables from the report requests
+                report_request_id = report_request['report_request_id']
+                report_specifier_id = report_request['report_specifier']['report_specifier_id']
+                report_back_duration = report_request['report_specifier'].get('report_back_duration')
+                granularity = report_request['report_specifier']['granularity']
 
-            requested_r_ids.append(r_id)
+                # Check if this report actually exists
+                report = utils.find_by(self.reports, 'report_specifier_id', report_specifier_id)
+                if not report:
+                    logger.error(f"A non-existant report with report_specifier_id "
+                                    f"{report_specifier_id} was requested.")
+                    # return False
+                    job = None
+                    self.report_requests.append({'report_request_id': report_request_id,
+                                                'report_specifier_id': report_specifier_id,
+                                                'report_back_duration': report_back_duration,
+                                                'r_ids': requested_r_ids,
+                                                'granularity': granularity,
+                                                'job': job})
+                else:
+                    # Check and collect the requested r_ids for this report
+                    for specifier_payload in report_request['report_specifier']['specifier_payloads']:
+                        r_id = specifier_payload['r_id']
+                        # Check if the requested r_id actually exists
+                        rd = utils.find_by(report.report_descriptions, 'r_id', r_id)
+                        if not rd:
+                            logger.error(f"A non-existant report with r_id {r_id} "
+                                        f"inside report with report_specifier_id {report_specifier_id} "
+                                        f"was requested.")
+                            continue
 
-        callback = partial(self.update_report, report_request_id=report_request_id)
+                        # Check if the requested measurement exists and if the correct unit is requested
+                        if 'measurement' in specifier_payload:
+                            measurement = specifier_payload['measurement']
+                            if measurement['description'] != rd.measurement.description:
+                                logger.error(f"A non-matching measurement description for report with "
+                                            f"report_request_id {report_request_id} and r_id {r_id} was given "
+                                            f"by the VTN. Offered: {rd.measurement.description}, "
+                                            f"requested: {measurement['description']}")
+                                continue
+                            if measurement['unit'] != rd.measurement.unit:
+                                logger.error(f"A non-matching measurement unit for report with "
+                                            f"report_request_id {report_request_id} and r_id {r_id} was given "
+                                            f"by the VTN. Offered: {rd.measurement.unit}, "
+                                            f"requested: {measurement['unit']}")
+                                continue
 
-        reporting_interval = report_back_duration or granularity
-        job = self.scheduler.add_job(func=callback,
-                                     trigger='cron',
-                                     **utils.cron_config(reporting_interval))
+                        if granularity is not None:
+                            if granularity == timedelta(0):
+                                logger.info(f"A single report was requested for report "
+                                            f"with report_specifier_id {report_specifier_id} and r_id {r_id}.")
+                                single = True
+                            elif not rd.sampling_rate.min_period <= granularity <= rd.sampling_rate.max_period:
+                                logger.error(f"An invalid sampling rate {granularity} was requested for report "
+                                            f"with report_specifier_id {report_specifier_id} and r_id {r_id}. "
+                                            f"The offered sampling rate was between "
+                                            f"{rd.sampling_rate.min_period} and "
+                                            f"{rd.sampling_rate.max_period}")
+                                continue
+                        else:
+                            # If no granularity is specified, set it to the lowest sampling rate.
+                            granularity = rd.sampling_rate.max_period
 
-        self.report_requests.append({'report_request_id': report_request_id,
-                                     'report_specifier_id': report_specifier_id,
-                                     'report_back_duration': report_back_duration,
-                                     'r_ids': requested_r_ids,
-                                     'granularity': granularity,
-                                     'job': job})
+                        requested_r_ids.append(r_id)
 
-    async def create_single_report(self, report_request):
-        """
-        Create a single report in response to a request from the VTN.
-        """
+                    if not single and report_back_duration.total_seconds() > 0:
+                        callback = partial(self.update_report, report_request_id=report_request_id)
+                        
+                        reporting_interval = granularity or report_back_duration
+                        job = self.scheduler.add_job(func=callback,
+                                                    trigger='cron',
+                                                    **utils.cron_config(reporting_interval))
+                        self.report_requests.append({'report_request_id': report_request_id,
+                                                    'report_specifier_id': report_specifier_id,
+                                                    'report_back_duration': report_back_duration,
+                                                    'r_ids': requested_r_ids,
+                                                    'granularity': granularity,
+                                                    'job': job})
+                    else:
+                        job = None
+                        self.report_requests.append({'report_request_id': report_request_id,
+                                                    'report_specifier_id': report_specifier_id,
+                                                    'report_back_duration': report_back_duration,
+                                                    'r_ids': requested_r_ids,
+                                                    'granularity': granularity,
+                                                    'job': job})
+                    
+                        async def report_callback():
+                            await self.update_report(report_request_id)
+
+                        if 'report_interval' in report_request['report_specifier']:
+                            self.scheduler.add_job(report_callback, 'date', run_date=report_request['report_specifier']['report_interval']['dtstart'])
+                        else:
+                            await self.update_report(report_request_id)
+        
+        # Send the oadrCreatedReport message
+        message_type = 'oadrCreatedReport'
+        message_payload = {'pending_reports':
+                        [{'report_request_id': utils.getmember(report, 'report_request_id')}
+                            for report in response_payload['report_requests']]}
+        message = self._create_message(message_type,
+                                        response={'response_code': response_code,
+                                                    'response_description': 'OK' if response_code == 200 else 'ERROR',
+                                                    'request_id': response_payload['request_id']},
+                                        ven_id=self.ven_id,
+                                        **message_payload)
+        await self._perform_request(service, message)
+
+    # async def create_single_report(self, report_request):
+    #     """
+    #     Create a single report in response to a request from the VTN.
+    #     """
 
     async def update_report(self, report_request_id):
         """
@@ -706,7 +742,7 @@ class OpenADRClient:
             logger.debug("There is no report in progress")
             outgoing_report = objects.Report(report_request_id=report_request_id,
                                              report_specifier_id=report.report_specifier_id,
-                                             report_name=report.report_name,
+                                             report_name=report.report_name if 'METADATA' not in report.report_name else report.report_name.replace('METADATA_', ''),
                                              intervals=[])
 
         intervals = outgoing_report.intervals or []
@@ -729,17 +765,25 @@ class OpenADRClient:
 
         else:
             for r_id in report_request['r_ids']:
-                report_callback = self.report_callbacks[(report_specifier_id, r_id)]
-                result = report_callback()
-                if asyncio.iscoroutine(result):
-                    result = await result
-                if isinstance(result, (int, float)):
-                    result = [(datetime.now(timezone.utc), result)]
-                for dt, value in result:
-                    logger.info(f"Adding {dt}, {value} to report")
-                    report_payload = objects.ReportPayload(r_id=r_id, value=value)
-                    intervals.append(objects.ReportInterval(dtstart=dt,
-                                                            report_payload=report_payload))
+                try:
+                    report_callback = self.report_callbacks[(report_specifier_id, r_id)]
+                    result = report_callback()
+                    if asyncio.iscoroutine(result):
+                        result = await result
+                    if isinstance(result, (int, float)):
+                        result = [(datetime.now(timezone.utc), result)]
+                    for dt, value in result:
+                        logger.info(f"Adding {dt}, {value} to report")
+                        report_payload = objects.ReportPayload(r_id=r_id, value=value)
+                        if outgoing_report.report_name == enums.REPORT_NAME.TELEMETRY_USAGE and report_back_duration.total_seconds() == 0:
+                            intervals.append(objects.ReportInterval(dtstart=dt,
+                                                                    report_payload=report_payload,
+                                                                    duration=granularity))
+                        else:
+                            intervals.append(objects.ReportInterval(dtstart=dt,
+                                                                    report_payload=report_payload))
+                except KeyError:
+                    logger.error(f"No callback found for r_id {r_id} in report with report_specifier_id {report_specifier_id}")
         outgoing_report.intervals = intervals
         logger.info(f"The number of intervals in the report is now {len(outgoing_report.intervals)}")
 
@@ -749,7 +793,7 @@ class OpenADRClient:
 
         # Figure out if the report is complete after this sampling
         if data_collection_mode == 'incremental' and report_back_duration is not None\
-                and report_back_duration > granularity:
+                and granularity.total_seconds() > 0 and report_back_duration > granularity:
             report_interval = report_back_duration.total_seconds()
             sampling_interval = granularity.total_seconds()
             expected_len = len(report_request['r_ids']) * int(report_interval / sampling_interval)
@@ -767,6 +811,44 @@ class OpenADRClient:
         """
         Cancel this report.
         """
+        report_request_id = payload['report_request_id']
+        report_request = utils.find_by(self.report_requests, 'report_request_id', report_request_id)
+        if report_request:
+            if len(report_request['r_ids']) > 0:
+                # Update the report one last time before cancelling
+                logging.info(f"Updating one last time report with report_request_id {report_request_id}")
+                await self.update_report(report_request_id)
+                # Wait for the report to be sent
+                await asyncio.sleep(1)
+            if report_request['job']:
+                report_request['job'].remove()
+            logger.info(f"Report with report_request_id {report_request_id} has been cancelled.")
+            service = 'EiReport'
+            message_type = 'oadrCanceledReport'
+            response = {'response_code': 200,
+                        'response_description': 'OK',
+                        'request_id': payload['request_id']}
+            if payload['report_to_follow'] == True:
+                logger.info(f"Report with report_request_id {report_request_id} will be followed by a new report.")
+                # Send oadrCanceledReport with oadrPendingReport message
+                message_payload = {'pending_reports': [{'report_request_id': report_request_id}]}
+                message = self._create_message(message_type,
+                                            response=response,
+                                            ven_id=self.ven_id,
+                                            report_request_id=report_request_id,
+                                            **message_payload)
+                await self.update_report(report_request_id)
+            else:
+                logger.info(f"Report with report_request_id {report_request_id} will not be followed by a new report.")
+                # Send simple oadrCanceledReport message
+                message = self._create_message(message_type,
+                                            response=response,
+                                            ven_id=self.ven_id,
+                                            report_request_id=report_request_id)
+            self.report_requests.remove(report_request)
+            await self._perform_request(service, message)
+        else:
+            logger.error(f"Report with report_request_id {report_request_id} was not found.")
 
     async def _report_queue_worker(self):
         """
@@ -781,7 +863,8 @@ class OpenADRClient:
                                                request_id=utils.generate_id(),
                                                reports=[report])
                 try:
-                    response_type, response_payload = await self._perform_request(service, message)
+                    # response_type, response_payload = await self._perform_request(service, message)
+                    response_payload = await self._perform_request(service, message)
                 except Exception as err:
                     logger.error(f"Unable to send the report to the VTN. Error: {err}")
                 else:
@@ -939,7 +1022,12 @@ class OpenADRClient:
     async def _on_event(self, message):
         logger.debug("The VEN received an event")
         events = message['events']
+        invalid_vtn_id = False
         try:
+            if message['vtn_id'].islower():
+                logger.error("The VTN ID in the message is lowercase. This is not allowed by the OpenADR standard.")
+                invalid_vtn_id = True
+                raise enums.STATUS_CODES.INVALID_ID
             results = []
             for event in message['events']:
                 event_id = event['event_descriptor']['event_id']
@@ -978,28 +1066,49 @@ class OpenADRClient:
                          f"The error was {err.__class__.__name__}: {str(err)}")
             results = ['optOut'] * len(events)
 
-        event_responses = [{'response_code': 200,
-                            'response_description': 'OK',
-                            'opt_type': results[i],
-                            'request_id': message['request_id'],
-                            'modification_number': events[i]['event_descriptor']['modification_number'],
-                            'event_id': events[i]['event_descriptor']['event_id']}
-                           for i, event in enumerate(events)
-                           if event['response_required'] == 'always'
-                           and not utils.determine_event_status(event['active_period']) == 'completed']
+        # event_responses = [{'response_code': 200,
+        #                     'response_description': 'OK',
+        #                     'opt_type': results[i],
+        #                     'request_id': message['request_id'],
+        #                     'modification_number': events[i]['event_descriptor']['modification_number'],
+        #                     'event_id': events[i]['event_descriptor']['event_id']}
+        #                    for i, event in enumerate(events)
+        #                    if event['response_required'] == 'always'
+        #                    and not utils.determine_event_status(event['active_period']) == 'completed']
+
+        event_responses = []
+        for i, event in enumerate(events):
+            if event['response_required'] == 'always' and not utils.determine_event_status(event['active_period']) == 'completed':
+                if isinstance(event['event_signals'], list):
+                    signals = event['event_signals']
+                else:
+                    signals = event['event_signals']['event_signals']
+                j = 0
+                response_code = 200
+                while (j < len(signals) and response_code == 200):
+                    if not signals[j]['signal_name'] in enums.SIGNAL_NAME.values:
+                        response_code = enums.STATUS_CODES.SIGNAL_NOT_SUPPORTED
+                    j += 1
+                event_responses.append({'response_code': response_code,
+                                        'response_description': 'OK' if response_code == 200 else 'ERROR',
+                                        'opt_type': results[i],
+                                        'request_id': message['request_id'],
+                                        'modification_number': events[i]['event_descriptor']['modification_number'],
+                                        'event_id': events[i]['event_descriptor']['event_id']})
 
         if len(event_responses) > 0:
             logger.info(f"Total event_responses: {len(event_responses)}")
-            response = {'response_code': 200,
-                        'response_description': 'OK',
+            response = {'response_code': 200 if invalid_vtn_id is False else enums.STATUS_CODES.INVALID_ID,
+                        'response_description': 'OK' if invalid_vtn_id is False else 'ERROR',
                         'request_id': message['request_id']}
             message = self._create_message('oadrCreatedEvent',
                                            response=response,
                                            event_responses=event_responses,
                                            ven_id=self.ven_id)
             service = 'EiEvent'
-            response_type, response_payload = await self._perform_request(service, message)
-            logger.info(response_type, response_payload)
+            await self._perform_request(service, message)
+            # response_type, response_payload = await self._perform_request(service, message)
+            # logger.info(response_type, response_payload)
         else:
             logger.info("Not sending any event responses, because a response was not required/allowed by the VTN.")
 
@@ -1037,8 +1146,7 @@ class OpenADRClient:
 
         elif response_type == 'oadrCreateReport':
             if 'report_requests' in response_payload:
-                for report_request in response_payload['report_requests']:
-                    await self.create_report(report_request)
+                await self.create_report(response_payload)
 
         elif response_type == 'oadrRegisterReport':
             # We don't support receiving reports from the VTN at this moment
@@ -1057,12 +1165,16 @@ class OpenADRClient:
             logger.info("The VTN required us to cancel the registration. Calling the cancel party registration procedure.")
             await self.on_cancel_party_registration(response_payload)
 
+        elif response_type == 'oadrCancelReport':
+            logger.info("The VTN required us to cancel a report. Calling the cancel report procedure.")
+            await self.cancel_report(response_payload)
+        
         else:
             logger.warning(f"No handler implemented for incoming message "
                            f"of type {response_type}, ignoring.")
 
         # Immediately poll again, because there might be more messages
-        await self._poll()
+        # await self._poll()
 
     async def _ensure_client_session(self):
         if not self.client_session:
