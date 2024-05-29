@@ -313,7 +313,7 @@ class ReportRequest:
 
 @dataclass
 class VavailabilityComponent:
-    dstart: datetime
+    dtstart: datetime
     duration: timedelta
 
 

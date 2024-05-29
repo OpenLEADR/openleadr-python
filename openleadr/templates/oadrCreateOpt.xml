@@ -31,9 +31,13 @@
       <ei:modificationNumber>{{ modification_number }}</ei:modificationNumber>
     </ei:qualifiedEventID>
     {% endif %}
+    {% if targets is defined and targets is not none and targets|length > 0 %}
     {% for target in targets %}
     {% include 'parts/eiTarget.xml' %}
     {% endfor %}
+    {% else %}
+    <ei:eiTarget/>
+    {% endif %}
     {% if signal_target_mrid is defined and signal_target_mrid is not none %}
     <oadr:oadrDeviceClass>
 				<power:endDeviceAsset>

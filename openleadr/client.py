@@ -483,6 +483,8 @@ class OpenADRClient:
         Take the neccessary steps to re-register this client with the server.
         """
 
+        if registration_id is None:
+            registration_id = self.registration_id
         await self.create_party_registration(ven_id=self.ven_id, registration_id=registration_id)
 
         if not self.registration_id:
@@ -632,10 +634,15 @@ class OpenADRClient:
         service = 'EiOpt'
         message = self._create_message('oadrCreateOpt', **payload)
         response_type, response_payload = await self._perform_request(service, message)
+        logger.info(response_type, response_payload)
 
         if 'opt_id' in response_payload:
             # VTN acknowledged the opt message
+            logging.info(f"VTN acknowledged the opt message with opt_id {response_payload['opt_id']}")
             return response_payload['opt_id']
+        else:
+            logging.error(f"VTN did not acknowledge the opt message")
+            return False
 
         # TODO: what to do if the VTN sends an error or does not acknowledge the opt?
 
@@ -662,11 +669,16 @@ class OpenADRClient:
         service = 'EiOpt'
         message = self._create_message('oadrCancelOpt', **payload)
         response_type, response_payload = await self._perform_request(service, message)
+        logger.info(response_type, response_payload)
 
         if 'opt_id' in response_payload:
             # VTN acknowledged the opt cancelation
+            logging.info(f"VTN acknowledged the opt cancelation with opt_id {response_payload['opt_id']}")
             self.opts.remove(opt)
             return True
+        else:
+            logging.error(f"VTN did not acknowledge the opt cancelation")
+            return False
 
     ###########################################################################
     #                                                                         #
@@ -799,13 +811,12 @@ class OpenADRClient:
                                                     'granularity': granularity,
                                                     'job': job})
                     else:
-                        job = None
                         self.report_requests.append({'report_request_id': report_request_id,
                                                     'report_specifier_id': report_specifier_id,
                                                     'report_back_duration': report_back_duration,
                                                     'r_ids': requested_r_ids,
                                                     'granularity': granularity,
-                                                    'job': job})
+                                                    'job': None})
                     
                         async def report_callback():
                             await self.update_report(report_request_id)
@@ -823,7 +834,8 @@ class OpenADRClient:
         message = self._create_message(message_type,
                                         response={'response_code': response_code,
                                                     'response_description': 'OK' if response_code == 200 else 'ERROR',
-                                                    'request_id': response_payload['request_id']},
+                                                    'request_id': response_payload['request_id'] if 'request_id' in response_payload else\
+                                                                  response_payload['response']['request_id']},
                                         ven_id=self.ven_id,
                                         **message_payload)
         await self._perform_request(service, message)
@@ -1257,9 +1269,9 @@ class OpenADRClient:
             return
 
         elif response_type == 'oadrRequestReregistration':
-            logger.info("The VTN required us to re-register. Calling the registration procedure.")
+            logger.info("The VTN required us to re-register. Calling the re-registration procedure.")
             await self.send_response(service='EiRegisterParty')
-            await self.create_party_registration()
+            await self.create_party_reregistration()
 
         elif response_type == 'oadrDistributeEvent':
             if 'events' in response_payload and len(response_payload['events']) > 0:
