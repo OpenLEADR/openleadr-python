@@ -11,12 +11,17 @@
       {% endif %}
 
       {% if report.intervals %}
-      <strm:intervals xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream">
+      <strm:intervals xmlns:strm="urn:ietf:params:xml:ns:icalendar-2.0:stream" xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0">
         {% for interval in report.intervals %}
         <ei:interval>
           <xcal:dtstart>
             <xcal:date-time>{{ interval.dtstart|datetimeformat }}</xcal:date-time>
           </xcal:dtstart>
+          {% if interval.duration is defined and interval.duration is not none %}
+          <xcal:duration>
+            <xcal:duration>{{ interval.duration|timedeltaformat }}</xcal:duration>
+          </xcal:duration>
+          {% endif %}
           <oadr:oadrReportPayload>
             <ei:rID>{{ interval.report_payload.r_id }}</ei:rID>
             {% if interval.report_payload.confidence is defined and interval.report_payload.confidence is not none %}
