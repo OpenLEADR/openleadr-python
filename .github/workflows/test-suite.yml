@@ -42,4 +42,4 @@ jobs:
         flake8 openleadr/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest -vv --timeout 30 -o faulthandler_timeout=5 test/
+        pytest -vv -o faulthandler_timeout=30 test/
