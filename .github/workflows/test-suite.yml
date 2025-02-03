@@ -37,4 +37,5 @@ jobs:
         flake8 openleadr/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest -vv test/
+        # pytest -vv test/
+        pytest --no-header -v -rfs /test/
