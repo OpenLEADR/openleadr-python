@@ -32,7 +32,7 @@ jobs:
         pip install .
         # Need for python 3.13 lxml 5.3.0
         # pip install lxml==5.3.0
-        pip install flake8 pytest pyOpenSSL==24.2.1 async-timeout==4.0.3
+        pip install flake8 pytest==8.3.3 pyOpenSSL==24.2.1 async-timeout==4.0.3
         if [ -f dev_requirements.txt ]; then pip install -r dev_requirements.txt; fi
     - name: Lint with flake8
       run: |
