@@ -26,7 +26,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        sudo apt-get install libxml2-dev libxslt-dev
+        # Need for python3.13: sudo apt-get install libxml2-dev libxslt-dev
+        # sudo apt-get install libxml2-dev libxslt-dev
         python -m pip install --upgrade pip       
         pip install .
         # Need for python 3.13 lxml 5.3.0
