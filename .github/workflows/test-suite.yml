@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        apt-get install libxml2-dev libxslt-dev
+        sudo apt-get install libxml2-dev libxslt-dev
         pip install .
         pip install flake8 pytest pyOpenSSL==24.2.1 async-timeout==4.0.3 lxml
         if [ -f dev_requirements.txt ]; then pip install -r dev_requirements.txt; fi
