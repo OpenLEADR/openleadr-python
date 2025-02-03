@@ -39,4 +39,4 @@ jobs:
     - name: Test with pytest
       run: |
         # pytest -vv test/
-        pytest --no-header -v -rfs /test/
+        pytest --no-header -v -rfs test/
