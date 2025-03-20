@@ -31,7 +31,9 @@ import logging
 logger = logging.getLogger('openleadr')
 
 SIGNER = XMLSigner(method=methods.detached,
-                   c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+                   c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
+                   signature_algorithm="ecdsa-sha256")
+print("hello from messaging CHANGED MESSAGE")
 SIGNER.namespaces['oadr'] = "http://openadr.org/oadr-2.0b/2012/07"
 VERIFIER = XMLVerifier()
 
