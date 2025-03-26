@@ -23,6 +23,8 @@ from lxml.etree import Element
 from openleadr import errors
 from datetime import datetime, timezone, timedelta
 import os
+from signxml.algorithms import SignatureMethod
+from cryptography.hazmat.primitives import serialization
 
 from openleadr import utils
 from .preflight import preflight_message
@@ -31,9 +33,7 @@ import logging
 logger = logging.getLogger('openleadr')
 
 SIGNER = XMLSigner(method=methods.detached,
-                   c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
-                   signature_algorithm="ecdsa-sha256")
-print("hello from messaging CHANGED MESSAGE")
+                   c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
 SIGNER.namespaces['oadr'] = "http://openadr.org/oadr-2.0b/2012/07"
 VERIFIER = XMLVerifier()
 
@@ -64,6 +64,28 @@ def parse_message(data):
     return message_type, message_payload
 
 
+def get_signature_algorithm(key_data, default_algorithm="rsa-sha256"):
+    """
+    Derive the signature algorithm based on the key type. Accepted key types are EC, DSA and RSA keys.
+    Returns a string that can be used to lookup a signature algorithm by fragment. 
+    If key is not EC or DSA, the lookup will return rsa-sha256, which is the default signature algorithm
+    for XMLSigner objects. 
+    """
+    try:
+        key = serialization.load_pem_private_key(key_data, password=None)
+    except ValueError:
+        try:
+            key = serialization.load_der_private_key(key_data, password=None)
+        except ValueError:
+            logger.warning(f"Could not load key: unknown key type.")
+    key_type = str(type(key)).lower()
+    if "ec" in key_type and hasattr(key, "curve"):
+        return "ecdsa-sha3-256"
+    elif "dsa" in key_type:
+        return "dsa-sha256"
+    
+    return default_algorithm
+
 def create_message(message_type, cert=None, key=None, passphrase=None, disable_signature=False, **message_payload):
     """
     Create and optionally sign an OpenADR message. Returns an XML string.
@@ -74,6 +96,7 @@ def create_message(message_type, cert=None, key=None, passphrase=None, disable_s
     envelope = TEMPLATES.get_template('oadrPayload.xml')
     if cert and key and not disable_signature:
         tree = etree.fromstring(signed_object)
+        SIGNER.sign_alg = SignatureMethod.from_fragment(get_signature_algorithm(key))
         signature_tree = SIGNER.sign(tree,
                                      key=key,
                                      cert=cert,
