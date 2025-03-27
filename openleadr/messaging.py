@@ -33,9 +33,6 @@ from .preflight import preflight_message
 import logging
 logger = logging.getLogger('openleadr')
 
-SIGNER = XMLSigner(method=methods.detached,
-                   c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
-SIGNER.namespaces['oadr'] = "http://openadr.org/oadr-2.0b/2012/07"
 VERIFIER = XMLVerifier()
 
 XML_SCHEMA_LOCATION = os.path.join(os.path.dirname(__file__), 'schema', 'oadr_20b.xsd')
@@ -122,6 +119,9 @@ def create_message(message_type, cert=None, key=None, passphrase=None, disable_s
     envelope = TEMPLATES.get_template('oadrPayload.xml')
     if cert and key and not disable_signature:
         tree = etree.fromstring(signed_object)
+        SIGNER = XMLSigner(method=methods.detached,
+                   c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+        SIGNER.namespaces['oadr'] = "http://openadr.org/oadr-2.0b/2012/07"
         SIGNER.sign_alg = SignatureMethod.from_fragment(get_signature_algorithm_from_private_key(key))
         signature_tree = SIGNER.sign(tree,
                                      key=key,
