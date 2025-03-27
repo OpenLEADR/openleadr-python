@@ -70,8 +70,6 @@ def load_private_key(key_data):
     Load the key based on key data. .pem and .der keys can be loaded. 
     Returns a private key object.
     """
-    with open(key_data, "rb") as f:
-        key_data = f.read()
     try:
         key = serialization.load_pem_private_key(key_data, password=None)
     except ValueError:
