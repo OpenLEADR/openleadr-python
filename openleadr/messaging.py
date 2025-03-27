@@ -77,22 +77,6 @@ def load_private_key(key_data, passphrase=None):
             logger.warning(f"Could not load key: unknown key file format.")
     return key
 
-def get_private_key_type(key):
-    """
-    Determine the type of the key. ED25519 and ED448 are not supported by SignXML so these are rejected. 
-    """
-    if isinstance(key, rsa.RSAPrivateKey):
-        return "rsa"
-    elif isinstance(key, dsa.DSAPrivateKey):
-        return "dsa"
-    elif isinstance(key, ec.EllipticCurvePrivateKey):
-        return "ec"
-    elif isinstance(key, ed25519.Ed25519PrivateKey):
-        logger.warning("ED25519 keys are not supported")
-    elif isinstance(key, ed448.Ed448PrivateKey):
-        logger.warning("ED448 keys are not supported")
-    logger.warning("Unknown key type.")
-
 
 def get_signature_algorithm_from_private_key(key_data, passphrase=None, default_algorithm="rsa-sha256"):
     """
@@ -101,14 +85,18 @@ def get_signature_algorithm_from_private_key(key_data, passphrase=None, default_
     By default the lookup will return rsa-sha256, which is the default signature algorithm for XMLSigner objects.
     """
     key = load_private_key(key_data, passphrase)
-    key_type = get_private_key_type(key)
-    if key_type == "rsa":
+    if isinstance(key, rsa.RSAPrivateKey):
         return "rsa-sha256"
-    elif key_type == "dsa":
+    elif isinstance(key, dsa.DSAPrivateKey):
         return "dsa-sha256"
-    elif key_type == "ec":
+    elif isinstance(key, ec.EllipticCurvePrivateKey):
         return "ecdsa-sha3-256"
+    elif isinstance(key, ed25519.Ed25519PrivateKey):
+        logger.warning("ED25519 keys are not supported")
+    elif isinstance(key, ed448.Ed448PrivateKey):
+        logger.warning("ED448 keys are not supported")
     return default_algorithm
+
 
 def create_message(message_type, cert=None, key=None, passphrase=None, disable_signature=False, **message_payload):
     """
