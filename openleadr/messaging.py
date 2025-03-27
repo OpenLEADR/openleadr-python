@@ -62,16 +62,17 @@ def parse_message(data):
     return message_type, message_payload
 
 
-def load_private_key(key_data):
+def load_private_key(key_data, passphrase=None):
     """
     Load the key based on key data. .pem and .der keys can be loaded. 
     Returns a private key object.
     """
+    passphrase_bytes = passphrase.encode() if passphrase else None
     try:
-        key = serialization.load_pem_private_key(key_data, password=None)
+        key = serialization.load_pem_private_key(key_data, passphrase_bytes)
     except ValueError:
         try:
-            key = serialization.load_der_private_key(key_data, password=None)
+            key = serialization.load_der_private_key(key_data, passphrase_bytes)
         except ValueError:
             logger.warning(f"Could not load key: unknown key file format.")
     return key
@@ -93,13 +94,13 @@ def get_private_key_type(key):
     logger.warning("Unknown key type.")
 
 
-def get_signature_algorithm_from_private_key(key_data, default_algorithm="rsa-sha256"):
+def get_signature_algorithm_from_private_key(key_data, passphrase=None, default_algorithm="rsa-sha256"):
     """
     Derive a signature algorithm based on the private key type. Accepted key types are EC, DSA and RSA keys.
     Returns a string that can be used to lookup a signature algorithm by fragment. 
     By default the lookup will return rsa-sha256, which is the default signature algorithm for XMLSigner objects.
     """
-    key = load_private_key(key_data)
+    key = load_private_key(key_data, passphrase)
     key_type = get_private_key_type(key)
     if key_type == "rsa":
         return "rsa-sha256"
@@ -122,7 +123,7 @@ def create_message(message_type, cert=None, key=None, passphrase=None, disable_s
         SIGNER = XMLSigner(method=methods.detached,
                    c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
         SIGNER.namespaces['oadr'] = "http://openadr.org/oadr-2.0b/2012/07"
-        SIGNER.sign_alg = SignatureMethod.from_fragment(get_signature_algorithm_from_private_key(key))
+        SIGNER.sign_alg = SignatureMethod.from_fragment(get_signature_algorithm_from_private_key(key, passphrase))
         signature_tree = SIGNER.sign(tree,
                                      key=key,
                                      cert=cert,
