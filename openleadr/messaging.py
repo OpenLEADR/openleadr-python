@@ -25,6 +25,7 @@ from datetime import datetime, timezone, timedelta
 import os
 from signxml.algorithms import SignatureMethod
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, dsa, ec, ed25519, ed448
 
 from openleadr import utils
 from .preflight import preflight_message
@@ -64,26 +65,53 @@ def parse_message(data):
     return message_type, message_payload
 
 
-def get_signature_algorithm(key_data, default_algorithm="rsa-sha256"):
+def load_private_key(key_data):
     """
-    Derive the signature algorithm based on the key type. Accepted key types are EC, DSA and RSA keys.
-    Returns a string that can be used to lookup a signature algorithm by fragment. 
-    If key is not EC or DSA, the lookup will return rsa-sha256, which is the default signature algorithm
-    for XMLSigner objects. 
+    Load the key based on key data. .pem and .der keys can be loaded. 
+    Returns a private key object.
     """
+    with open(key_data, "rb") as f:
+        key_data = f.read()
     try:
         key = serialization.load_pem_private_key(key_data, password=None)
     except ValueError:
         try:
             key = serialization.load_der_private_key(key_data, password=None)
         except ValueError:
-            logger.warning(f"Could not load key: unknown key type.")
-    key_type = str(type(key)).lower()
-    if "ec" in key_type and hasattr(key, "curve"):
-        return "ecdsa-sha3-256"
-    elif "dsa" in key_type:
+            logger.warning(f"Could not load key: unknown key file format.")
+    return key
+
+def get_private_key_type(key):
+    """
+    Determine the type of the key. ED25519 and ED448 are not supported by SignXML so these are rejected. 
+    """
+    if isinstance(key, rsa.RSAPrivateKey):
+        return "rsa"
+    elif isinstance(key, dsa.DSAPrivateKey):
+        return "dsa"
+    elif isinstance(key, ec.EllipticCurvePrivateKey):
+        return "ec"
+    elif isinstance(key, ed25519.Ed25519PrivateKey):
+        logger.warning("ED25519 keys are not supported")
+    elif isinstance(key, ed448.Ed448PrivateKey):
+        logger.warning("ED448 keys are not supported")
+    logger.warning("Unknown key type.")
+
+
+def get_signature_algorithm_from_private_key(key_data, default_algorithm="rsa-sha256"):
+    """
+    Derive a signature algorithm based on the private key type. Accepted key types are EC, DSA and RSA keys.
+    Returns a string that can be used to lookup a signature algorithm by fragment. 
+    By default the lookup will return rsa-sha256, which is the default signature algorithm for XMLSigner objects.
+    """
+    key = load_private_key(key_data)
+    key_type = get_private_key_type(key)
+    if key_type == "rsa":
+        return "rsa-sha256"
+    elif key_type == "dsa":
         return "dsa-sha256"
-    
+    elif key_type == "ec":
+        return "ecdsa-sha3-256"
     return default_algorithm
 
 def create_message(message_type, cert=None, key=None, passphrase=None, disable_signature=False, **message_payload):
@@ -96,7 +124,7 @@ def create_message(message_type, cert=None, key=None, passphrase=None, disable_s
     envelope = TEMPLATES.get_template('oadrPayload.xml')
     if cert and key and not disable_signature:
         tree = etree.fromstring(signed_object)
-        SIGNER.sign_alg = SignatureMethod.from_fragment(get_signature_algorithm(key))
+        SIGNER.sign_alg = SignatureMethod.from_fragment(get_signature_algorithm_from_private_key(key))
         signature_tree = SIGNER.sign(tree,
                                      key=key,
                                      cert=cert,
