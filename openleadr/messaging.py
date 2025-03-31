@@ -80,9 +80,11 @@ def load_private_key(key_data, passphrase=None):
 
 def get_signature_algorithm_from_private_key(key_data, passphrase=None, default_algorithm="rsa-sha256"):
     """
-    Derive a signature algorithm based on the private key type. Accepted key types are EC, DSA and RSA keys.
-    Returns a string that can be used to lookup a signature algorithm by fragment. 
-    By default the lookup will return rsa-sha256, which is the default signature algorithm for XMLSigner objects.
+    Derive a signature algorithm based on the private key type. Returns a string that can be used to lookup 
+    a signature algorithm by fragment. Algorithms are chosen based on NIST recommendations. 
+
+    SignXML supports only RSA-, DSA- and EC-based signature methods. As XMLSigner uses RSA_SHA256 as default
+    signature algorithm, a fragment that results in this algorithm is returned for unsupported keys.   
     """
     key = load_private_key(key_data, passphrase)
     if isinstance(key, rsa.RSAPrivateKey):
@@ -90,7 +92,7 @@ def get_signature_algorithm_from_private_key(key_data, passphrase=None, default_
     elif isinstance(key, dsa.DSAPrivateKey):
         return "dsa-sha256"
     elif isinstance(key, ec.EllipticCurvePrivateKey):
-        return "ecdsa-sha3-256"
+        return "ecdsa-sha-256"
     elif isinstance(key, ed25519.Ed25519PrivateKey):
         logger.warning("ED25519 keys are not supported")
     elif isinstance(key, ed448.Ed448PrivateKey):
