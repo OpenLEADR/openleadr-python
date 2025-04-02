@@ -24,7 +24,7 @@ test_keys = {
 @pytest.mark.parametrize("key_type, expected_alg", [
     ("rsa", "rsa-sha256"),
     ("dsa", "dsa-sha256"),
-    ("ec", "ecdsa-sha-256"),
+    ("ec", "ecdsa-sha256"),
     ("ed25519", "rsa-sha256"),
     ("ed448", "rsa-sha256"),
 ])
