@@ -64,7 +64,8 @@ def parse_message(data):
 
 def load_private_key(key_data, passphrase=None):
     """
-    Load the key based on key data. .pem and .der keys can be loaded. 
+    Load the key based on key data. Supports .pem and .der keys.
+
     Returns a private key object.
     """
     passphrase_bytes = passphrase.encode() if passphrase else None
@@ -92,7 +93,7 @@ def get_signature_algorithm_from_private_key(key_data, passphrase=None, default_
     elif isinstance(key, dsa.DSAPrivateKey):
         return "dsa-sha256"
     elif isinstance(key, ec.EllipticCurvePrivateKey):
-        return "ecdsa-sha-256"
+        return "ecdsa-sha256"
     elif isinstance(key, ed25519.Ed25519PrivateKey):
         logger.warning("ED25519 keys are not supported")
     elif isinstance(key, ed448.Ed448PrivateKey):
