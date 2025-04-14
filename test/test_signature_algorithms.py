@@ -1,15 +1,7 @@
 import pytest
-import warnings
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, dsa, ec, ed25519, ed448
 from openleadr.messaging import get_signature_algorithm_from_private_key
-
-
-def fxn():
-    warnings.warn("deprecated", DeprecationWarning)
-
-with warnings.catch_warnings(action="ignore"):
-    fxn()
 
 
 test_keys = {
