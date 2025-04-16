@@ -75,17 +75,17 @@ def load_private_key(key_data, passphrase=None):
         try:
             key = serialization.load_der_private_key(key_data, passphrase_bytes)
         except ValueError:
-            logger.warning(f"Could not load key: unknown key file format.")
+            logger.warning("Could not load key: unknown key file format.")
     return key
 
 
 def get_signature_algorithm_from_private_key(key_data, passphrase=None, default_algorithm="rsa-sha256"):
     """
-    Derive a signature algorithm based on the private key type. Returns a string that can be used to lookup 
-    a signature algorithm by fragment. Algorithms are chosen based on NIST recommendations. 
+    Derive a signature algorithm based on the private key type. Returns a string that can be used to lookup
+    a signature algorithm by fragment. Algorithms are chosen based on NIST recommendations.
 
     SignXML supports only RSA-, DSA- and EC-based signature methods. As XMLSigner uses RSA_SHA256 as default
-    signature algorithm, a fragment that results in this algorithm is returned for unsupported keys.   
+    signature algorithm, a fragment that results in this algorithm is returned for unsupported keys.
     """
     key = load_private_key(key_data, passphrase)
     if isinstance(key, rsa.RSAPrivateKey):
@@ -111,8 +111,10 @@ def create_message(message_type, cert=None, key=None, passphrase=None, disable_s
     envelope = TEMPLATES.get_template('oadrPayload.xml')
     if cert and key and not disable_signature:
         tree = etree.fromstring(signed_object)
-        SIGNER = XMLSigner(method=methods.detached,
-                   c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+        SIGNER = XMLSigner(
+            method=methods.detached,
+            c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"
+            )
         SIGNER.namespaces['oadr'] = "http://openadr.org/oadr-2.0b/2012/07"
         SIGNER.sign_alg = SignatureMethod.from_fragment(get_signature_algorithm_from_private_key(key, passphrase))
         signature_tree = SIGNER.sign(tree,
@@ -126,7 +128,8 @@ def create_message(message_type, cert=None, key=None, passphrase=None, disable_s
         signature = None
     msg = envelope.render(template=f'{message_type}',
                           signature=signature,
-                          signed_object=signed_object)
+                          signed_object=signed_object
+                          )
     logger.debug(f"Created message: {msg}")
     return msg
 
