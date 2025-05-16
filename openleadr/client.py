@@ -1200,7 +1200,7 @@ class OpenADRClient:
 
         event_responses = []
         for i, event in enumerate(events):
-            if event['response_required'] == 'always' and not utils.determine_event_status(event['active_period']) == 'completed':
+            if event['response_required'] == 'always':
                 if isinstance(event['event_signals'], list):
                     signals = event['event_signals']
                 else:
@@ -1210,6 +1210,8 @@ class OpenADRClient:
                 while (j < len(signals) and response_code == 200):
                     if not signals[j]['signal_name'] in enums.SIGNAL_NAME.values:
                         response_code = enums.STATUS_CODES.SIGNAL_NOT_SUPPORTED
+                        results[i] = 'optOut'
+                        break
                     j += 1
                 event_responses.append({'response_code': response_code,
                                         'response_description': 'OK' if response_code == 200 else 'ERROR',
