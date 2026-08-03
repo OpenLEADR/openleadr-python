@@ -27,6 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install 'cryptography<40'
         pip install .
         pip install flake8 pytest
         if [ -f dev_requirements.txt ]; then pip install -r dev_requirements.txt; fi
