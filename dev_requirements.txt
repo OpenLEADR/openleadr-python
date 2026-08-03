@@ -1,5 +1,6 @@
 termcolor
 pytest
 pytest-asyncio
+cryptography<40
 sphinx
 sphinxcontrib-apidoc
