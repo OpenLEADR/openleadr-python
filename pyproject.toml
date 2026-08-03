@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openleadr"
+version = "0.5.34"
+description = "Python3 library for building OpenADR Clients (VENs) and Servers (VTNs)"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "aiohttp>=3.8.3,<4.0.0",
+    "apscheduler>=3.10.0,<4.0.0",
+    "jinja2>=3.1.2,<4.0.0",
+    "signxml==3.2.1; python_version < '3.12'",
+    "signxml>=4.5.1,<5.0.0; python_version >= '3.12'",
+    "xmltodict==0.13.0",
+]
+
+[project.urls]
+Documentation = "https://openleadr.org/docs"
+GitHub = "https://github.com/openleadr/openleadr-python"
+Homepage = "https://openleadr.org"
+
+[project.scripts]
+fingerprint = "openleadr.fingerprint:show_fingerprint"
+
+[dependency-groups]
+dev = [
+    "async-timeout",
+    "flake8",
+    "pytest",
+    "pytest-asyncio",
+    "sphinx",
+    "sphinxcontrib-apidoc",
+    "termcolor",
+]
+
+[tool.setuptools]
+include-package-data = true
+packages = ["openleadr", "openleadr.service"]
