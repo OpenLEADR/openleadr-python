@@ -1194,9 +1194,8 @@ class OpenADRClient:
         invalid_vtn_id = False
         try:
             if message['vtn_id'].islower():
-                logger.error("The VTN ID in the message is lowercase. This is not allowed by the OpenADR standard.")
+                logger.debug("The VTN ID in the message is lowercase. This is not allowed by the OpenADR standard.")
                 invalid_vtn_id = True
-                raise enums.STATUS_CODES.INVALID_ID
             results = []
             for event in message['events']:
                 event_id = event['event_descriptor']['event_id']

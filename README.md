@@ -85,18 +85,25 @@ That said, we do try to make OpenLEADR as secure as can be to work with. If you 
 
 We recommend the following development setup for working with OpenLEADR (this is on Linux / macOS):
 
+Install `uv` an extremely fast Python package and project manager, written in Rust:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Then create virtual environment and install dependencies:
+
 ```bash
 git clone https://github.com/openleadr/openleadr-python
 cd openleadr-python
-python3 -m venv python_env
-./python_env/bin/pip3 install -e .
-./python_env/bin/pip3 install -r dev_requirements.txt
+uv venv --python 3.12
+uv sync --group dev
 ```
 
 To run the test suite, you can use the following command:
 
 ```bash
-./python_env/bin/python3 -m pytest -v test/
+uv run pytest -v test/
 ```
 
 ## Contributing Documentation
