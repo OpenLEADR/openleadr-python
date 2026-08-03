@@ -9,8 +9,11 @@ def test_trailing_slash_on_vtn_url():
 def test_wrong_handler_supplied(caplog):
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost')
     client.add_handler('non_existant', print)
-    assert ("'handler' must be either on_event or on_update_event") in [rec.message for rec in caplog.records]
-
+    assert any(
+        rec.levelname == "ERROR"
+        and rec.message.startswith("'handler' must be in")
+        for rec in caplog.records
+    )
 def test_invalid_report_name(caplog):
     client = OpenADRClient(ven_name='myven', vtn_url='http://localhost')
     with pytest.raises(ValueError):
