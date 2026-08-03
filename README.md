@@ -2,6 +2,7 @@
  [![Test Coverage](https://openleadr.org/coverage/badge.svg)](https://openleadr.org/coverage)
  ![PyPI Downloads](https://img.shields.io/pypi/dm/openleadr?color=lightblue&label=PyPI%20Downloads)
  [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4317/badge)](https://bestpractices.coreinfrastructure.org/projects/4317)
+ [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/OpenLEADR/openleadr-python/badge)](https://scorecard.dev/viewer/?uri=github.com/OpenLEADR/openleadr-python)
 
 ![OpenLEADR](https://openleadr.org/images/lf-logo.png)
 
