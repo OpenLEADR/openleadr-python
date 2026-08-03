@@ -85,18 +85,32 @@ That said, we do try to make OpenLEADR as secure as can be to work with. If you 
 
 We recommend the following development setup for working with OpenLEADR (this is on Linux / macOS):
 
+Install `uv` an extremely fast Python package and project manager, written in Rust:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Then Continue with cloning and creating virtual environment using `uv`:
+
 ```bash
 git clone https://github.com/openleadr/openleadr-python
 cd openleadr-python
-python3 -m venv python_env
-./python_env/bin/pip3 install -e .
-./python_env/bin/pip3 install -r dev_requirements.txt
+uv venv --python 3.12
+uv sync --group dev
 ```
 
 To run the test suite, you can use the following command:
 
 ```bash
-./python_env/bin/python3 -m pytest -v test/
+uv run pytest -v test/
+```
+
+To run the same syntax checks used in CI:
+
+```bash
+uv run flake8 openleadr/ --count --select=E9,F63,F7,F82 --show-source --statistics
+uv run flake8 openleadr/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 ```
 
 ## Contributing Documentation
@@ -112,7 +126,7 @@ the documentation can be built locally through the command line using the follow
 # After running this these commands, you should see a new directory `docs/_build`, which contains the HTML documentation. 
 # For more details, see https://www.sphinx-doc.org/en/master/tutorial/first-steps.html  
 cd docs
-make html
+uv run make html
 ```
 
 Then, open your browser to the created local files:
