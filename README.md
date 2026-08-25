@@ -105,6 +105,25 @@ To run the test suite, you can use the following command:
 uv run pytest -v test/
 ```
 
+We also run [zizmor](https://github.com/zizmorcore/zizmor) in CI to statically
+audit our GitHub Actions workflows for security issues (e.g. injection risks,
+overly broad permissions, unpinned actions). You can run it locally without
+installing it, using `uvx`:
+
+```bash
+uvx zizmor .
+```
+
+Some findings can be fixed automatically:
+
+```bash
+# Apply only safe fixes
+uvx zizmor --fix .
+
+# Apply all fixes, including unsafe ones (review the diff afterwards)
+uvx zizmor --fix=all .
+```
+
 ## Contributing Documentation
 
 ### Building the documentation
