@@ -105,6 +105,12 @@ To run the test suite, you can use the following command:
 uv run pytest -v test/
 ```
 
+To lint the code with `flake8`:
+
+```bash
+uv run flake8 openleadr/ --count --select=E9,F63,F7,F82 --show-source --statistics
+```
+
 We also run [zizmor](https://github.com/zizmorcore/zizmor) in CI to statically
 audit our GitHub Actions workflows for security issues (e.g. injection risks,
 overly broad permissions, unpinned actions). You can run it locally without
