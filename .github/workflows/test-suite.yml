@@ -10,8 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-
+  ci:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,10 +25,11 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install UV
       uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
     - name: Install dependencies
       run: |
-        uv venv --python ${{ matrix.python-version }}
-        uv sync --python ${{ matrix.python-version }} --group dev
+        uv sync --locked --python ${{ matrix.python-version }} --group dev
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
