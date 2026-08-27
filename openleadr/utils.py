@@ -331,6 +331,8 @@ def timedeltaformat(value):
     """
     if not isinstance(value, timedelta):
         return value
+    if value.total_seconds() < 1:
+        return "PT0S"
     days = value.days
     hours, seconds = divmod(value.seconds, 3600)
     minutes, seconds = divmod(seconds, 60)
