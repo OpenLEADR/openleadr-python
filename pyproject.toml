@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "openleadr"
@@ -35,6 +35,5 @@ dev = [
     "termcolor",
 ]
 
-[tool.setuptools]
-include-package-data = true
-packages = ["openleadr", "openleadr.service"]
+[tool.hatch.build.targets.wheel]
+packages = ["openleadr"]

@@ -96,7 +96,6 @@ Then create virtual environment and install dependencies:
 ```bash
 git clone https://github.com/openleadr/openleadr-python
 cd openleadr-python
-uv venv --python 3.12
 uv sync --group dev
 ```
 
