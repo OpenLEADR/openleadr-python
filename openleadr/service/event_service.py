@@ -14,10 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import service, handler, VTNService
 import asyncio
-from openleadr import utils, errors, enums
 import logging
+
+from openleadr import utils, errors, enums
+from . import service, handler, VTNService
+
 logger = logging.getLogger('openleadr')
 
 
@@ -28,7 +30,7 @@ class EventService(VTNService):
         super().__init__(vtn_id)
         self.polling_method = polling_method
         self.events = {}
-        self.completed_event_ids = {}   # Holds the ids of completed events
+        self.completed_event_ids = {}  # Holds the ids of completed events
         self.event_callbacks = {}
         self.event_opt_types = {}
         self.event_delivery_callbacks = {}
@@ -41,7 +43,7 @@ class EventService(VTNService):
         ven_id = payload['ven_id']
         if self.polling_method == 'internal':
             if ven_id in self.events and self.events[ven_id]:
-                events = utils.order_events(self.events[ven_id])
+                events = utils.order_events(self.events[ven_id].copy())
                 for event in events:
                     event_status = utils.getmember(event, 'event_descriptor.event_status')
                     # Pop the event from the events so that this is the last time it is communicated
