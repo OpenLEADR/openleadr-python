@@ -194,8 +194,9 @@ class OpenADRClient:
         """
         Add a callback for the given situation
         """
-        if handler not in ('on_event', 'on_update_event'):
-            logger.error("'handler' must be either on_event or on_update_event")
+        valid = ('on_event', 'on_update_event', 'on_register_report', 'on_report_update')
+        if handler not in valid:
+            logger.error("'handler' must be in %s" % (valid,))
             return
 
         setattr(self, handler, callback)
@@ -713,7 +714,7 @@ class OpenADRClient:
         # Handle the subscriptions that the VTN is interested in.
         if 'report_requests' in response_payload:
             await self.create_report(response_payload)
-    
+
     async def create_report(self, response_payload):
         """
         Add the requested reports to the reporting mechanism.
@@ -799,7 +800,7 @@ class OpenADRClient:
 
                     if not single and report_back_duration.total_seconds() > 0:
                         callback = partial(self.update_report, report_request_id=report_request_id)
-                        
+
                         reporting_interval = granularity or report_back_duration
                         job = self.scheduler.add_job(func=callback,
                                                     trigger='cron',
@@ -817,7 +818,7 @@ class OpenADRClient:
                                                     'r_ids': requested_r_ids,
                                                     'granularity': granularity,
                                                     'job': None})
-                    
+
                         async def report_callback():
                             await self.update_report(report_request_id)
 
@@ -825,7 +826,7 @@ class OpenADRClient:
                             self.scheduler.add_job(report_callback, 'date', run_date=report_request['report_specifier']['report_interval']['dtstart'])
                         else:
                             await self.update_report(report_request_id)
-        
+
         # Send the oadrCreatedReport message
         message_type = 'oadrCreatedReport'
         message_payload = {'pending_reports':
@@ -1021,6 +1022,24 @@ class OpenADRClient:
         if event['event_descriptor']['event_id'] in self.responded_events:
             return self.responded_events.get(event['event_descriptor']['event_id'])
 
+    async def on_report_update(self, report_update):
+        """
+        Placeholder for the on_report_update handler.
+        """
+        logger.warning("A report update was sent but you don't have an on_report_update handler configured. "
+                       "You should implement your own on_report_update handler. This handler receives "
+                       "an oadrReport dict and should not return anything in response.")
+        return
+
+    async def on_register_report(self, report_metadata):
+        """
+        Placeholder for the on_register_report handler.
+        """
+        logger.warning("A report update was sent but you don't have an on_register_report handler configured. "
+                       "You should implement your own on_report_update handler. This handler receives "
+                       "an oadrReport dict and should not return anything in response.")
+        return None
+
     async def on_cancel_party_registration(self, message):
         if self.registration_id is None:
             logger.info('VEN is not registered, doing nothing')
@@ -1141,6 +1160,35 @@ class OpenADRClient:
                 logger.error(f"An error occurred while executing your '{hook_name}': {hook}:"
                              f"{err.__class__.__name__}: {err}")
 
+    async def _on_register_report(self, response_payload):
+        report_requests = []
+        for report_metadata in response_payload.get('reports', []):
+            request = await self.on_register_report(report_metadata)
+            if request:
+                report_requests.append(request)
+
+        message = self._create_message('oadrRegisteredReport',
+                                       report_requests=report_requests,
+                                       ven_id=self.ven_id,
+                                       response={'response_code': 200,
+                                                 'response_description': 'OK',
+                                                 'request_id': response_payload['request_id']})
+        service = 'EiReport'
+        await self._perform_request(service, message)
+
+    async def _on_report_update(self, response_payload):
+        for report_update in response_payload.get('reports', []):
+            await self.on_report_update(report_update)
+        message = self._create_message('oadrUpdatedReport',
+                                       ven_id=self.ven_id,
+                                       response= {
+                                           'request_id': response_payload['request_id'],
+                                           'response_code': 200,
+                                           'response_description': 'OK'
+                                       })
+        service = 'EiReport'
+        await self._perform_request(service, message)
+
     async def _on_event(self, message):
         events = message['events']
         invalid_vtn_id = False
@@ -1241,7 +1289,7 @@ class OpenADRClient:
             # ignoring the cancelled case
             if event['event_descriptor']['event_status'] == 'cancelled':
                 continue
-            
+
             event_status = utils.determine_event_status(event['active_period'])
             if event_status != event['event_descriptor']['event_status']:
                 event['event_descriptor']['event_status'] = event_status
@@ -1278,24 +1326,14 @@ class OpenADRClient:
                 await self._on_event(response_payload)
 
         elif response_type == 'oadrUpdateReport':
-            await self._on_report(response_payload)
+            await self._on_report_update(response_payload)
 
         elif response_type == 'oadrCreateReport':
             if 'report_requests' in response_payload:
                 await self.create_report(response_payload)
 
         elif response_type == 'oadrRegisterReport':
-            # We don't support receiving reports from the VTN at this moment
-            logger.warning("The VTN offered reports, but OpenLEADR "
-                           "does not support reports in this direction.")
-            message = self._create_message('oadrRegisteredReport',
-                                           report_requests=[],
-                                           ven_id=self.ven_id,
-                                           response={'response_code': 200,
-                                                     'response_description': 'OK',
-                                                     'request_id': response_payload['request_id']})
-            service = 'EiReport'
-            reponse_type, response_payload = await self._perform_request(service, message)
+            await self._on_register_report(response_payload)
 
         elif response_type == 'oadrCancelPartyRegistration':
             logger.info("The VTN required us to cancel the registration. Calling the cancel party registration procedure.")
@@ -1304,7 +1342,7 @@ class OpenADRClient:
         elif response_type == 'oadrCancelReport':
             logger.info("The VTN required us to cancel a report. Calling the cancel report procedure.")
             await self.cancel_report(response_payload)
-        
+
         else:
             logger.warning(f"No handler implemented for incoming message "
                            f"of type {response_type}, ignoring.")
