@@ -1,10 +1,16 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "openleadr/_version.py"
 
 [project]
 name = "openleadr"
-version = "0.5.34"
+dynamic = ["version"]
 description = "Python3 library for building OpenADR Clients (VENs) and Servers (VTNs)"
 readme = "README.md"
 requires-python = ">=3.9"

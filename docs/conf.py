@@ -12,6 +12,7 @@
 #
 import os
 import sys
+from importlib.metadata import version
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -22,10 +23,7 @@ copyright = '2020, OpenLEADR Contributors'
 author = 'Stan Janssen'
 
 # The full version, including alpha/beta/rc tags
-with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'VERSION')) as file:
-    release = file.read().strip()
-
-print(release)
+release = version('openleadr')
 
 # -- General configuration ---------------------------------------------------
 

@@ -13,3 +13,4 @@ static/
 .idea/
 .vscode/
 *.venv/
+_version.py
