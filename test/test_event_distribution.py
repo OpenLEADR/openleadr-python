@@ -1,4 +1,5 @@
 from openleadr import OpenADRClient, OpenADRServer, enable_default_logging, objects, utils
+from openleadr.service.event_service import EventService
 import pytest
 import asyncio
 import datetime
@@ -394,3 +395,92 @@ async def test_event_external_polling_function():
 
     await server.stop()
     await client.stop()
+
+
+def _make_event_dict(event_id, dtstart, duration):
+    return {'event_descriptor': {'event_id': event_id,
+                                 'event_status': 'far',
+                                 'modification_number': 0,
+                                 'market_context': 'http://marketcontext01',
+                                 'created_date_time': dtstart,
+                                 'priority': 1},
+            'active_period': {'dtstart': dtstart, 'duration': duration},
+            'event_signals': [],
+            'targets': [{'ven_id': 'ven123'}]}
+
+
+async def _request_event_from_service(events):
+    """Ask the event service directly for the events of ven123, return the response type, the event ids, and the queue."""
+    service = EventService(vtn_id='myvtn', polling_method='internal')
+    service.events = {'ven123': events}
+    response_type, response_payload = await service.request_event({'ven_id': 'ven123'})
+    event_ids = [event['event_descriptor']['event_id'] for event in response_payload.get('events', [])]
+    return response_type, event_ids, service.events['ven123']
+
+
+@pytest.mark.asyncio
+async def test_request_event_single_completed_event_is_in_response():
+    # Issue #175: the only event of the VEN is completed, it has to be sent one last time
+    now = datetime.datetime.now(datetime.timezone.utc)
+    completed = _make_event_dict('event001', now - datetime.timedelta(hours=2), datetime.timedelta(minutes=30))
+
+    response_type, event_ids, queue = await _request_event_from_service([completed])
+
+    assert response_type == 'oadrDistributeEvent'
+    assert event_ids == ['event001']
+    # ... and then it is removed, so that it is not communicated again
+    assert queue == []
+
+
+@pytest.mark.asyncio
+async def test_request_event_single_active_event_stays_queued():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    active = _make_event_dict('event001', now - datetime.timedelta(minutes=1), datetime.timedelta(minutes=30))
+
+    response_type, event_ids, queue = await _request_event_from_service([active])
+
+    assert response_type == 'oadrDistributeEvent'
+    assert event_ids == ['event001']
+    assert len(queue) == 1
+
+
+@pytest.mark.asyncio
+async def test_request_event_completed_and_active_event():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    completed = _make_event_dict('completed001', now - datetime.timedelta(hours=2), datetime.timedelta(minutes=30))
+    active = _make_event_dict('active001', now - datetime.timedelta(minutes=1), datetime.timedelta(minutes=30))
+
+    response_type, event_ids, queue = await _request_event_from_service([completed, active])
+
+    assert response_type == 'oadrDistributeEvent'
+    assert sorted(event_ids) == ['active001', 'completed001']
+    assert [event['event_descriptor']['event_id'] for event in queue] == ['active001']
+
+
+@pytest.mark.asyncio
+async def test_request_event_single_completed_event_through_the_client():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    server = OpenADRServer(vtn_id='myvtn')
+    server.add_handler('on_create_party_registration', on_create_party_registration)
+    server.add_event(ven_id='ven123',
+                     signal_name='simple',
+                     signal_type='level',
+                     intervals=[objects.Interval(dtstart=now - datetime.timedelta(minutes=10),
+                                                 duration=datetime.timedelta(minutes=1),
+                                                 signal_payload=1)])
+    await server.run()
+    client = OpenADRClient(ven_name='ven123',
+                           vtn_url='http://localhost:8080/OpenADR2/Simple/2.0b')
+    await client.create_party_registration()
+
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrDistributeEvent'
+    assert len(response_payload['events']) == 1
+    assert response_payload['events'][0]['event_descriptor']['event_status'] == 'completed'
+
+    # The completed event was communicated once, there is nothing left to send
+    response_type, response_payload = await client.request_event()
+    assert response_type == 'oadrResponse'
+
+    await client.stop()
+    await server.stop()
