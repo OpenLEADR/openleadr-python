@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Contributors to OpenLEADR
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from openleadr import utils, objects
 from dataclasses import dataclass, asdict
 import pytest

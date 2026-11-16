@@ -1,0 +1,89 @@
+version = 1
+SPDX-PackageName = "openleadr"
+SPDX-PackageSupplier = "Contributors to OpenLEADR"
+SPDX-PackageDownloadLocation = "https://github.com/OpenLEADR/openleadr-python"
+
+# Third-party OpenADR 2.0b schemas. These files must never be modified, so their
+# license information is recorded here instead of in a header. See
+# openleadr/schema/LICENSES.txt.
+
+[[annotations]]
+path = "openleadr/schema/oadr_siscale_20b.xsd"
+precedence = "override"
+SPDX-FileCopyrightText = "OASIS Open 2011"
+SPDX-License-Identifier = "LicenseRef-OASIS-Copyright"
+
+[[annotations]]
+path = "openleadr/schema/oadr_ISO_ISO3AlphaCurrencyCode_20100407.xsd"
+precedence = "override"
+SPDX-FileCopyrightText = "UN/CEFACT 2010"
+SPDX-License-Identifier = "LicenseRef-UNCEFACT-Copyright"
+
+[[annotations]]
+path = "openleadr/schema/oadr_xmldsig11.xsd"
+precedence = "override"
+SPDX-FileCopyrightText = "2011 World Wide Web Consortium (Massachusetts Institute of Technology, European Research Consortium for Informatics and Mathematics, Keio University)"
+SPDX-License-Identifier = "W3C"
+
+[[annotations]]
+path = [
+    "openleadr/schema/oadr_20b.xsd",
+    "openleadr/schema/oadr_atom.xsd",
+    "openleadr/schema/oadr_ei_20b.xsd",
+    "openleadr/schema/oadr_emix_20b.xsd",
+    "openleadr/schema/oadr_gml_20b.xsd",
+    "openleadr/schema/oadr_greenbutton.xsd",
+    "openleadr/schema/oadr_power_20b.xsd",
+    "openleadr/schema/oadr_pyld_20b.xsd",
+    "openleadr/schema/oadr_strm_20b.xsd",
+    "openleadr/schema/oadr_xcal_20b.xsd",
+    "openleadr/schema/oadr_xml.xsd",
+    "openleadr/schema/oadr_xmldsig-properties-schema.xsd",
+    "openleadr/schema/oadr_xmldsig.xsd",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "OpenADR Alliance"
+SPDX-License-Identifier = "LicenseRef-OpenADR-2.0b-Schema"
+
+[[annotations]]
+path = "openleadr/schema/LICENSES.txt"
+SPDX-FileCopyrightText = "Contributors to OpenLEADR"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Jinja templates that render OpenADR messages; a header comment would end up in
+# the rendered XML.
+[[annotations]]
+path = ["openleadr/templates/*.xml", "openleadr/templates/parts/*.xml"]
+SPDX-FileCopyrightText = "Contributors to OpenLEADR"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["logo.png", "docs/_static/logo-tall.png"]
+SPDX-FileCopyrightText = "Contributors to OpenLEADR"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Dummy test certificates and keys; licensing them makes no sense.
+[[annotations]]
+path = ["certificates/*.crt", "certificates/*.csr", "certificates/*.srl", "certificates/*.key"]
+precedence = "override"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "CC0-1.0"
+
+# Computer-generated or trivial files.
+[[annotations]]
+path = ["uv.lock", ".python-version"]
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "CC0-1.0"
+
+# Adapted from the Contributor Covenant, version 1.4.
+[[annotations]]
+path = "CODE_OF_CONDUCT.md"
+SPDX-FileCopyrightText = "Contributor Covenant contributors <https://www.contributor-covenant.org>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# Verbatim copy of the Developer Certificate of Origin 1.1; may not be modified.
+[[annotations]]
+path = "CONTRIBUTING.md"
+precedence = "override"
+SPDX-FileCopyrightText = "2004, 2006 The Linux Foundation and its contributors"
+SPDX-License-Identifier = "LicenseRef-DCO"

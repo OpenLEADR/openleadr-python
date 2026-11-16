@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Contributors to OpenLEADR
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from openleadr import OpenADRClient, OpenADRServer, enable_default_logging, objects, utils
 import pytest
 import asyncio

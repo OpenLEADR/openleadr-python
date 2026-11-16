@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Contributors to OpenLEADR
+#
+# SPDX-License-Identifier: Apache-2.0
+
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
@@ -28,6 +32,25 @@ jobs:
 
       - name: Run zizmor 🌈
         uses: zizmorcore/zizmor-action@6599ee8b7a49aef6a770f63d261d214911a7ce02 # v0.6.0
+  licensing:
+    name: Check licensing
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.9.22"
+          enable-cache: false
+
+      - name: Check REUSE compliance
+        run: uv run --locked --group dev reuse lint
   codeqa:
     runs-on: ubuntu-latest
     strategy:

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Contributors to OpenLEADR
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from openleadr import OpenADRClient, OpenADRServer, objects, utils
 from functools import partial
 from dataclasses import asdict

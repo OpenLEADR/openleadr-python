@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: Contributors to OpenLEADR
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 ![Test Suite](https://github.com/OpenLEADR/openleadr-python/workflows/Test%20Suite/badge.svg)
  [![Test Coverage](https://openleadr.org/coverage/badge.svg)](https://openleadr.org/coverage)
  ![PyPI Downloads](https://img.shields.io/pypi/dm/openleadr?color=lightblue&label=PyPI%20Downloads)

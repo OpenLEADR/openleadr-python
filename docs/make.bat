@@ -1,5 +1,9 @@
 @ECHO OFF
 
+REM SPDX-FileCopyrightText: Contributors to OpenLEADR
+REM
+REM SPDX-License-Identifier: Apache-2.0
+
 pushd %~dp0
 
 REM Command file for Sphinx documentation

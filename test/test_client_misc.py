@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Contributors to OpenLEADR
+#
+# SPDX-License-Identifier: Apache-2.0
+
 import pytest
 from openleadr import OpenADRClient
 from openleadr import enums

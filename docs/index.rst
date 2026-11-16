@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: Contributors to OpenLEADR
+..
+.. SPDX-License-Identifier: Apache-2.0
+
 .. OpenLEADR documentation master file, created by
    sphinx-quickstart on Thu Jul  9 14:09:27 2020.
    You can adapt this file completely to your liking, but it should at least

@@ -1,0 +1,14 @@
+OpenADR 2.0b XML Schema files
+
+These XML Schema (XSD) files are part of the OpenADR 2.0b schema distributed by
+the OpenADR Alliance (https://www.openadr.org). Several of them are profiles of
+schemas published by OASIS (Energy Interoperation, EMIX), the IETF (xCal,
+Atom), the W3C (XML, XML Signature) and NAESB (ESPI / Green Button).
+
+The files themselves do not contain an explicit license statement. They are
+redistributed unmodified, in good faith, because they are required to validate
+OpenADR 2.0b messages. They must not be modified.
+
+If you hold rights in these files and believe the attribution or licensing
+information is incorrect or incomplete, please file an issue at
+https://github.com/OpenLEADR/openleadr-python/issues.
