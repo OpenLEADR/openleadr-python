@@ -4,8 +4,8 @@ SPDX-PackageSupplier = "Contributors to OpenLEADR"
 SPDX-PackageDownloadLocation = "https://github.com/OpenLEADR/openleadr-python"
 
 # Third-party OpenADR 2.0b schemas. These files must never be modified, so their
-# license information is recorded here instead of in a header. See
-# openleadr/schema/LICENSES.txt.
+# license information is recorded here instead of in a header. Their integrity is
+# checked in CI against openleadr/schema/SHA256SUMS. See openleadr/schema/LICENSES.txt.
 
 [[annotations]]
 path = "openleadr/schema/oadr_siscale_20b.xsd"
@@ -46,7 +46,7 @@ SPDX-FileCopyrightText = "OpenADR Alliance"
 SPDX-License-Identifier = "LicenseRef-OpenADR-2.0b-Schema"
 
 [[annotations]]
-path = "openleadr/schema/LICENSES.txt"
+path = ["openleadr/schema/LICENSES.txt", "openleadr/schema/SHA256SUMS"]
 SPDX-FileCopyrightText = "Contributors to OpenLEADR"
 SPDX-License-Identifier = "Apache-2.0"
 

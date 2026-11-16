@@ -51,6 +51,11 @@ jobs:
 
       - name: Check REUSE compliance
         run: uv run --locked --group dev reuse lint
+
+      # The third-party XSD schemas may be redistributed but not modified.
+      - name: Check XSD schemas are unmodified
+        working-directory: openleadr/schema
+        run: sha256sum --check --strict SHA256SUMS
   codeqa:
     runs-on: ubuntu-latest
     strategy:
