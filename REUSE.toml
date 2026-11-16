@@ -1,0 +1,42 @@
+version = 1
+SPDX-PackageName = "openleadr"
+SPDX-PackageSupplier = "Contributors to OpenLEADR"
+SPDX-PackageDownloadLocation = "https://github.com/OpenLEADR/openleadr-python"
+
+# Jinja templates that render OpenADR messages; a header comment would end up in
+# the rendered XML.
+[[annotations]]
+path = ["openleadr/templates/*.xml", "openleadr/templates/parts/*.xml"]
+SPDX-FileCopyrightText = "Contributors to OpenLEADR"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["logo.png", "docs/_static/logo-tall.png"]
+SPDX-FileCopyrightText = "Contributors to OpenLEADR"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Dummy test certificates and keys; licensing them makes no sense.
+[[annotations]]
+path = ["certificates/*.crt", "certificates/*.csr", "certificates/*.srl", "certificates/*.key"]
+precedence = "override"
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "CC0-1.0"
+
+# Computer-generated or trivial files.
+[[annotations]]
+path = ["uv.lock", ".python-version"]
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "CC0-1.0"
+
+# Adapted from the Contributor Covenant, version 1.4.
+[[annotations]]
+path = "CODE_OF_CONDUCT.md"
+SPDX-FileCopyrightText = "Contributor Covenant contributors <https://www.contributor-covenant.org>"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# Verbatim copy of the Developer Certificate of Origin 1.1; may not be modified.
+[[annotations]]
+path = "CONTRIBUTING.md"
+precedence = "override"
+SPDX-FileCopyrightText = "2004, 2006 The Linux Foundation and its contributors"
+SPDX-License-Identifier = "LicenseRef-DCO"

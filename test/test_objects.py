@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Contributors to OpenLEADR
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from openleadr import objects, enums
 from datetime import datetime, timedelta, timezone
 from openleadr.utils import ensure_bytes

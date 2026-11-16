@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Contributors to OpenLEADR
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from argparse import ArgumentParser
 from openleadr.utils import certificate_fingerprint
 

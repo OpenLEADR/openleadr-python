@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Contributors to OpenLEADR
+#
+# SPDX-License-Identifier: Apache-2.0
+
 from openleadr import OpenADRClient, OpenADRServer
 from openleadr.utils import generate_id, certificate_fingerprint
 from openleadr import messaging, errors, objects
