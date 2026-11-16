@@ -3,53 +3,6 @@ SPDX-PackageName = "openleadr"
 SPDX-PackageSupplier = "Contributors to OpenLEADR"
 SPDX-PackageDownloadLocation = "https://github.com/OpenLEADR/openleadr-python"
 
-# Third-party OpenADR 2.0b schemas. These files must never be modified, so their
-# license information is recorded here instead of in a header. Their integrity is
-# checked in CI against openleadr/schema/SHA256SUMS. See openleadr/schema/LICENSES.txt.
-
-[[annotations]]
-path = "openleadr/schema/oadr_siscale_20b.xsd"
-precedence = "override"
-SPDX-FileCopyrightText = "OASIS Open 2011"
-SPDX-License-Identifier = "LicenseRef-OASIS-Copyright"
-
-[[annotations]]
-path = "openleadr/schema/oadr_ISO_ISO3AlphaCurrencyCode_20100407.xsd"
-precedence = "override"
-SPDX-FileCopyrightText = "UN/CEFACT 2010"
-SPDX-License-Identifier = "LicenseRef-UNCEFACT-Copyright"
-
-[[annotations]]
-path = "openleadr/schema/oadr_xmldsig11.xsd"
-precedence = "override"
-SPDX-FileCopyrightText = "2011 World Wide Web Consortium (Massachusetts Institute of Technology, European Research Consortium for Informatics and Mathematics, Keio University)"
-SPDX-License-Identifier = "W3C"
-
-[[annotations]]
-path = [
-    "openleadr/schema/oadr_20b.xsd",
-    "openleadr/schema/oadr_atom.xsd",
-    "openleadr/schema/oadr_ei_20b.xsd",
-    "openleadr/schema/oadr_emix_20b.xsd",
-    "openleadr/schema/oadr_gml_20b.xsd",
-    "openleadr/schema/oadr_greenbutton.xsd",
-    "openleadr/schema/oadr_power_20b.xsd",
-    "openleadr/schema/oadr_pyld_20b.xsd",
-    "openleadr/schema/oadr_strm_20b.xsd",
-    "openleadr/schema/oadr_xcal_20b.xsd",
-    "openleadr/schema/oadr_xml.xsd",
-    "openleadr/schema/oadr_xmldsig-properties-schema.xsd",
-    "openleadr/schema/oadr_xmldsig.xsd",
-]
-precedence = "override"
-SPDX-FileCopyrightText = "OpenADR Alliance"
-SPDX-License-Identifier = "LicenseRef-OpenADR-2.0b-Schema"
-
-[[annotations]]
-path = ["openleadr/schema/LICENSES.txt", "openleadr/schema/SHA256SUMS"]
-SPDX-FileCopyrightText = "Contributors to OpenLEADR"
-SPDX-License-Identifier = "Apache-2.0"
-
 # Jinja templates that render OpenADR messages; a header comment would end up in
 # the rendered XML.
 [[annotations]]
